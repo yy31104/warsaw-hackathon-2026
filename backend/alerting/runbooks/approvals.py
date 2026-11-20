@@ -77,7 +77,7 @@ async def request_run(cur, alert, step, actor, settings):
             (now, now),
         )
     for _ in range(32):
-        code = f"{randbelow(10000):04d}" if required else None
+        code = f"{randbelow(1_000_000):06d}" if required else None
         await cur.execute(
             """insert into action_runs(alert_id,runbook_id,step_index,action,params,approval,
             state,approval_code,approval_expires_at,requested_by,resolves_alert)
@@ -92,7 +92,7 @@ async def request_run(cur, alert, step, actor, settings):
                 step["approval"],
                 "pending_approval" if required else "requested",
                 code,
-                now + timedelta(minutes=10) if required else None,
+                now + timedelta(minutes=5) if required else None,
                 actor,
                 step.get("resolves_alert", False),
             ),
@@ -103,7 +103,7 @@ async def request_run(cur, alert, step, actor, settings):
     else:
         raise HTTPException(503, "Approval codes busy")
     if required:
-        text = f"Approve {step['action']} for alert {alert['id']}? Reply YES {code} or NO {code} within 10 minutes."
+        text = f"Approve {step['action']} for alert {alert['id']}? Reply YES {code} or NO {code} within 5 minutes."
         msg = RenderedMessage(title="Runbook approval", body=text, short=text)
         intents = [
             NotificationIntent(
