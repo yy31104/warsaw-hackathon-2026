@@ -33,8 +33,18 @@ services:
     image: axllent/mailpit:latest
     ports: ["1025:1025", "8025:8025"]      # SMTP 1025, inbox UI http://localhost:8025
 
+  fake-telecom:
+    build:
+      context: .
+      dockerfile: mocks/fake_telecom/Dockerfile
+    ports: ["127.0.0.1:8100:8100"]
+    environment:
+      ALERTING_API_URL: ${ALERTING_API_URL:-http://host.docker.internal:8000}
+      INBOUND_SECRET: ${INBOUND_SECRET:-}
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    volumes: ["telecom-data:/data"]
+
   # --- added at G1 by their owners (keep the names; other services depend on them) ---
-  # fake-telecom:   daizhongtian  port 8100   (SMS/phone gateway mock with a phone-like web UI)
   # mock-ops:       daizhongtian  port 8200   network alias: counterparty-service (runbook targets)
   # api:            shared    port 8000   uvicorn alerting.api.app:app
   # ingest-amqp:    daizhongtian  python -m alerting.ingest.amqp
@@ -46,3 +56,4 @@ services:
 
 volumes:
   pgdata: {}
+  telecom-data: {}

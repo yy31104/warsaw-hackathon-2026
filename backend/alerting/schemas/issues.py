@@ -38,7 +38,8 @@ async def _open_notice(conn, shape, sample, count, first_seen, last_seen):
         VALUES (%s,'initial',%s,'ui',%s,'delivered',now(),%s) RETURNING id
     """, (alert_id, f"team:{team}", Jsonb(rendered), f"{REVIEW_RULE}:{shape}"))
     notification_id, = await cursor.fetchone()
-    await notify(conn, "alerts", "alert.created", id=alert_id, team_id=team)
+    await notify(conn, "alerts", "alert.created", id=alert_id, team_id=team, status="open",
+                 severity="unknown", priority="P3", occurrence_count=count)
     await notify(conn, "notifications", "notification.updated", id=str(notification_id),
                  alert_id=alert_id, team_id=team, state="delivered")
     return team
@@ -81,10 +82,11 @@ async def register_unknowns(conn, events: list[CanonicalEvent]):
                 UPDATE alerts SET occurrence_count=occurrence_count+%s, last_seen_at=greatest(last_seen_at,%s),
                     representative_event_id=%s, status=CASE WHEN status='resolved' THEN 'open' ELSE status END,
                     resolved_at=NULL, resolved_by=NULL
-                WHERE rule_id=%s AND alert_key=%s RETURNING id, team_id
+                WHERE rule_id=%s AND alert_key=%s RETURNING id, team_id, status, occurrence_count
             """, (len(group), last, sample_id, REVIEW_RULE, shape))
-            alert_id, team = await cursor.fetchone()
-            await notify(conn, "alerts", "alert.updated", id=alert_id, team_id=team)
+            alert_id, team, alert_status, count = await cursor.fetchone()
+            await notify(conn, "alerts", "alert.updated", id=alert_id, team_id=team,
+                         status=alert_status, occurrence_count=count)
             if old_status != "resolved":
                 continue
         await notify(conn, "schema_issues", "schema.issue", id=shape, fingerprint=shape,
@@ -117,7 +119,7 @@ async def refresh_issue(conn, shape, schema_id):
             UPDATE schema_issues SET sample_event_id=%s, source_id=%s, sample_fields=%s WHERE fingerprint=%s
         """, (sample_id, source, Jsonb(fields), shape))
         cursor = await conn.execute("""
-            UPDATE alerts SET representative_event_id=%s WHERE rule_id=%s AND alert_key=%s RETURNING id, team_id
+            UPDATE alerts SET representative_event_id=%s WHERE rule_id=%s AND alert_key=%s RETURNING id, team_id, status
         """, (sample_id, REVIEW_RULE, shape))
         status = "open"
     else:
@@ -126,9 +128,9 @@ async def refresh_issue(conn, shape, schema_id):
         """, (schema_id, shape))
         cursor = await conn.execute("""
             UPDATE alerts SET status='resolved', resolved_by='system', resolved_at=now()
-            WHERE rule_id=%s AND alert_key=%s RETURNING id, team_id
+            WHERE rule_id=%s AND alert_key=%s RETURNING id, team_id, status
         """, (REVIEW_RULE, shape))
         status = "resolved"
-    alert_id, team = await cursor.fetchone()
-    await notify(conn, "alerts", "alert.updated", id=alert_id, team_id=team)
+    alert_id, team, alert_status = await cursor.fetchone()
+    await notify(conn, "alerts", "alert.updated", id=alert_id, team_id=team, status=alert_status)
     await notify(conn, "schema_issues", "schema.issue", id=shape, fingerprint=shape, team_id=team, status=status)

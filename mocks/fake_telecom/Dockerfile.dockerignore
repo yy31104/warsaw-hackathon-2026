@@ -1,0 +1,11 @@
+**
+!backend/
+!backend/pyproject.toml
+!backend/uv.lock
+!backend/alerting/
+!backend/alerting/clock.py
+!mocks/
+!mocks/fake_telecom/
+!mocks/fake_telecom/app.py
+!mocks/fake_telecom/inbox.py
+!mocks/fake_telecom/index.html
