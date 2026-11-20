@@ -1,18 +1,23 @@
-"""Check declared delivery requirements with finite, reproducible scenarios."""
+"""Pure rule-safety scenarios and sample verification for configuration drafts."""
 
 import json
+import math
 import re
 from collections import defaultdict
 from datetime import UTC, datetime
+from decimal import DecimalException, localcontext
 from itertools import product
+from sys import get_int_max_str_digits
 from zoneinfo import ZoneInfo
 
 from alerting.clock import FixedClock
 from alerting.contracts import CanonicalEvent, Severity
+from alerting.ingest.normalize import MAX_BYTES, _labels, _severity, _time, normalize
 from alerting.routing import plan
 from alerting.routing.directory import by_id, team_for
 from alerting.rules.dsl import compile, number
 from alerting.rules.engine import Ruleset, evaluate
+from alerting.templates import lookup, render, variables
 
 
 def _leaves(node, positive=True):
@@ -118,7 +123,7 @@ def _requirements(routes, people, team_id, policy, severity, intents):
 
 def check(rule_draft, ruleset, schemas, directory):
     """Check the draft in isolation. Schema `samples` hold canonical field maps or {fields: ...}."""
-    rule = {"id": "draft", **rule_draft, "enabled": True}
+    rule = {"id": "draft", **rule_draft, "enabled": True, "shadow": False}
     checked, violations, warnings = [], [], []
     report = {"scenarios_checked": checked, "violations": violations, "warnings": warnings}
 
@@ -239,3 +244,171 @@ def check(rule_draft, ruleset, schemas, directory):
         for to in missing_targets:
             record({}, "route target", f"{to} reaches nobody", [])
     return report
+
+
+def _trace_evidence(node, rows):
+    """Keep the evaluated leaves that explain the outcome of a logical group."""
+    if "not" in node:
+        matched, evidence = _trace_evidence(node["not"], rows)
+        return not matched, evidence
+    if "field" in node:
+        leaf = next(rows)
+        return leaf["matched"], [leaf]
+    if "any" in node:
+        combine, children = any, node["any"]
+    elif "all" in node:
+        combine, children = all, node["all"]
+    else:
+        combine, children = all, [leaf for leaf, _ in _leaves(node)]
+    branches = [_trace_evidence(child, rows) for child in children]
+    matched = combine(ok for ok, _ in branches)
+    return matched, [leaf for ok, proof in branches if ok == matched for leaf in proof]
+
+
+def _scaled_values(fields, scales):
+    changes = {}
+    for path, scale in scales.items():
+        value = number(lookup(fields, path))
+        if value is None:
+            continue
+        try:
+            with localcontext() as context:
+                context.prec = len(value.as_tuple().digits) + len(scale.as_tuple().digits)
+                scaled = value * scale
+            if scaled == scaled.to_integral_value():
+                if scaled.adjusted() >= (get_int_max_str_digits() or MAX_BYTES):
+                    raise ValueError(f"scale for {path} exceeds the JSON integer limit")
+                changes[path] = int(scaled)
+            else:
+                converted = float(scaled)
+                if not math.isfinite(converted) or converted == 0:
+                    raise ValueError(f"scale for {path} exceeds JSON number precision")
+                changes[path] = converted
+        except DecimalException as exc:
+            raise ValueError(f"invalid scale for {path}") from exc
+    return changes
+
+
+def _draft_event(raw, source, schema, detector, scales, at):
+    trace = []
+
+    def detect(fields):
+        matched, rows = detector(fields)
+        trace.extend(rows)
+        return schema if matched else None
+
+    event = normalize(raw, source, detect, received_at=at)
+    if event.schema_id is None:
+        return event, trace
+    changes = _scaled_values(event.fields, scales)
+    if changes:
+        # Transform only flattened paths. Re-project their aliases using the ingest semantics.
+        fields = event.fields
+        fields.update({path + ".raw": lookup(fields, path) for path in changes})
+        fields.update(changes)
+        aliases = schema.get("aliases", {})
+        if aliases.get("severity") in changes:
+            event.severity = _severity(fields[aliases["severity"]], schema)
+            fields["$severity"] = event.severity.value
+            event.lane = "critical" if event.severity == "critical" else "normal"
+        if aliases.get("time") in changes:
+            event.occurred_at = _time(fields[aliases["time"]], schema.get("time_format", "iso"))
+            fields["$time"] = event.occurred_at.isoformat() if event.occurred_at else None
+        fields.update(_labels(fields, schema))
+        event.schema_name = fields["$schema"]
+        event.service, event.environment = fields["$service"], fields["$environment"]
+    episode = schema.get("episode_key")
+    if episode and all(lookup(event.fields, p) is not None for p in variables(episode)):
+        event.fields["$episode"] = render(episode, event.fields)
+    return event, trace
+
+
+def _sample_result(event, trace, schema, ruleset, directory, runbooks, expected, clock):
+    intents, evidence, warnings = [], [], set()
+    if event.schema_id is None:
+        _, evidence = _trace_evidence(schema["detect"], iter(trace))
+    else:
+        evaluation = evaluate(event, ruleset, {}, clock)
+        notifying_rules = set()
+        for op in evaluation.alert_ops:
+            if op.notify:
+                routed = plan(
+                    _snapshot(op, event.severity), op.transition, op.rule, event.fields,
+                    directory, runbooks, {}, clock,
+                ).intents
+                if routed:
+                    notifying_rules.add(op.rule["id"])
+                    intents.extend(routed)
+        matches = {rule["id"]: rule.get("match", {}) for rule, _ in ruleset.rules}
+        for decision in evaluation.decisions:
+            rule_id = decision["rule_id"]
+            rows = decision["reason"].get("trace")
+            if rows is None:
+                continue
+            if not notifying_rules or rule_id in notifying_rules:
+                _, proof = _trace_evidence(matches[rule_id], iter(rows))
+                evidence.extend(proof)
+            for leaf in rows:
+                path = leaf["field"]
+                if number(leaf["actual"]) is None:
+                    continue
+                comparisons = leaf["value"] if leaf["op"] in {"in", "not_in"} else [leaf["value"]]
+                if leaf["op"] in {"lt", "lte", "gt", "gte", "eq", "neq", "in", "not_in"} and any(
+                    number(value) is not None for value in comparisons
+                ):
+                    unit_path = (
+                        schema.get("aliases", {}).get(path[1:], path) if path.startswith("$") else path
+                    )
+                    if not schema.get("transforms", {}).get(unit_path, {}).get("unit"):
+                        warnings.add(path)
+    actual = {
+        "recipients": sorted({intent.recipient for intent in intents}),
+        "channels": sorted({intent.channel.value for intent in intents}),
+    }
+    if isinstance(expected, dict):
+        passed = bool(expected) and all(
+            key in actual and isinstance(values, list) and sorted(values) == actual[key]
+            for key, values in expected.items()
+        )
+    else:
+        passed = expected == ("notify" if intents else "quiet")
+    return {
+        "actual": actual,
+        "expected": expected,
+        "passed": passed,
+        "deciding_fields": sorted({leaf["field"] for leaf in evidence}),
+        "fields": event.fields,
+        "unit_warnings": sorted(warnings),
+    }
+
+
+def verify(schema, samples, ruleset, directory, runbooks, clock):
+    """Evaluate independent raw samples against a draft or an overlay of an active schema."""
+    base = schema.get("base", schema.get("id"))
+    if "base" in schema and base not in ruleset.schemas:
+        raise ValueError(f"unknown base schema: {base}")
+    draft = {**ruleset.schemas.get(base, {}), **schema}
+    if not draft.get("id"):
+        raise ValueError("draft schema requires an id or a base")
+    draft.setdefault("name", draft["id"])
+    draft.setdefault("detect", {})
+    detector = compile(draft["detect"])
+    transforms = draft.get("transforms", {})
+    scales = {}
+    for path, transform in transforms.items():
+        scale = number(transform.get("scale", 1)) if isinstance(transform, dict) else None
+        if scale is None:
+            raise ValueError(f"invalid scale for {path}")
+        scales[path] = scale
+    # Apply each scale exactly once, including when the installed normalizer supports transforms.
+    projection = {**draft, "transforms": {}}
+    trial = Ruleset([rule for rule, _ in ruleset.rules], [draft])
+    clock = FixedClock(clock.now())
+    results = []
+    for sample in samples:
+        source = {"id": sample.get("source", "preview"), "transport": sample.get("transport", "http")}
+        event, trace = _draft_event(sample["event"], source, projection, detector, scales, clock.now())
+        results.append(
+            _sample_result(event, trace, draft, trial, directory, runbooks, sample["expect"], clock)
+        )
+    return {"samples": results, "all_pass": all(result["passed"] for result in results)}
