@@ -9,6 +9,7 @@ x-backend: &backend
     DATABASE_URL: postgresql://alerting:alerting@postgres:5432/alerting
     RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
     CONFIG_DIR: /app/config
+    PUBLIC_UI_URL: ${PUBLIC_UI_URL:-http://127.0.0.1:${FRONTEND_PORT:-5173}}
     SMTP_HOST: mailpit
     SMTP_PORT: 1025
     FAKE_TELECOM_URL: http://fake-telecom:8100

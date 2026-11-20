@@ -6,6 +6,7 @@ from alerting.rules.worker import process_batch
 
 async def test_cent_amounts_route_identically_before_and_after_approval(client, inbox_pool, monkeypatch):
     monkeypatch.setitem(app.dependency_overrides, get_db, lambda: inbox_pool)
+    monkeypatch.setenv("PUBLIC_UI_URL", "http://127.0.0.1:18173/")
     merchant = {"desk": "rates", "currency": "EUR", "reason": "desk limit"}
     events = [
         {"newEnvelope": "v1", "payload": {**merchant, "tradeId": "large", "notional": 2_500_000_000}},
@@ -57,6 +58,12 @@ async def test_cent_amounts_route_identically_before_and_after_approval(client, 
             stored = await get_event(event_id)
             assert (stored["status"], stored["fields"]["payload.notional"]) == ("processed", expected_amount)
         async with inbox_pool.connection() as conn:
+            links = await (await conn.execute("""
+                select a.id, n.rendered->>'link' from alerts a join notifications n on n.alert_id=a.id
+                where a.rule_id='rates-big-rejects'
+            """)).fetchall()
+            assert len(links) == 4
+            assert all(link == f"http://127.0.0.1:18173/a/{alert_id}" for alert_id, link in links)
             rows = await (await conn.execute("""
                 select o.event_id, n.recipient, n.channel from notifications n
                 join alerts a on a.id=n.alert_id join alert_occurrences o on o.alert_id=a.id

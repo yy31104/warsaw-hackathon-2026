@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import os
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -190,6 +191,8 @@ def build_snapshot(revision, imported, objects):
         "fallback_team": next((row["value"] for row in collections.get("fallback_team", [])), None),
         "default_preferences": next((row["value"] for row in collections.get("default_preferences", [])), []),
     }
+    if public_url := os.getenv("PUBLIC_UI_URL"):
+        directory["public_ui_url"] = public_url.rstrip("/")
     return ConfigSnapshot(revision, imported, collections.get("rule", []), directory,
                           collections.get("runbook", []), collections.get("schema", []), collections.get("source", []))
 
