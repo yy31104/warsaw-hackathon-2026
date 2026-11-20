@@ -12,7 +12,9 @@
         "url": "http://counterparty-service/health"
       },
       "approval": "none",
-      "state": null
+      "state": null,
+      "resolves_alert": false,
+      "runs": 0
     },
     {
       "index": 1,
@@ -24,7 +26,8 @@
       },
       "approval": "none",
       "state": "failed",
-      "runs": 2
+      "runs": 2,
+      "resolves_alert": false
     },
     {
       "index": 2,
@@ -39,7 +42,9 @@
       "approvers": [
         "lee"
       ],
-      "suggested": true
+      "suggested": true,
+      "resolves_alert": false,
+      "runs": 1
     }
   ],
   "can_structure": false

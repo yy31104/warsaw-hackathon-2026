@@ -164,8 +164,18 @@ async def close_settings(db):
             await provider.listener
 
 
-async def emit(cur, channel, topic, **data):
-    data.setdefault("ts", SYSTEM.now().isoformat())
+EVENT_CHANNELS = {
+    "alert.created": "alerts",
+    "alert.updated": "alerts",
+    "notification.updated": "notifications",
+    "action.updated": "actions",
+}
+
+
+async def emit(cur, channel, topic, *, id, team_id, **changes):
+    if EVENT_CHANNELS.get(topic) != channel or channel is None:
+        raise ValueError(f"Unknown backend event or channel: {topic} on {channel}")
+    data = {**changes, "id": id, "team_id": team_id, "ts": SYSTEM.now().isoformat()}
     await cur.execute(
         "select pg_notify(%s,%s)", (channel, json.dumps({"type": topic, "data": data}, default=str))
     )

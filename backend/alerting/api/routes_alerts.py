@@ -19,6 +19,18 @@ async def lifespan(app):
 router = APIRouter(prefix="/v1", tags=["alerts"], lifespan=lifespan)
 
 
+# The feed, detail and mutation responses expose the same alert fields as the frontend fixture.
+ALERT_FIELDS = (
+    "id rule_id rule_version alert_key status severity priority score score_breakdown lane team_id "
+    "title body color fields group_values runbook_id occurrence_count first_seen_at last_seen_at "
+    "acked_by acked_at resolved_by resolved_at"
+).split()
+
+
+def public_alert(row):
+    return {key: row[key] for key in ALERT_FIELDS}
+
+
 async def get_alert(cur, id, lock=False):
     await cur.execute("select * from alerts where id=%s" + (" for update" if lock else ""), (id,))
     row = await cur.fetchone()
@@ -56,13 +68,13 @@ async def alerts(
             params,
         )
         items = await cur.fetchall()
-        return {"items": items, "total": len(items)}
+        return {"items": [public_alert(row) for row in items], "total": len(items)}
 
 
 @router.get("/alerts/{id}")
 async def detail(id: int, db=Depends(get_db)):
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-        alert = await get_alert(cur, id)
+        alert = public_alert(await get_alert(cur, id))
         await cur.execute(
             """select o.event_id,o.seen_at,e.fields from alert_occurrences o join events e on e.id=o.event_id
             where o.alert_id=%s order by event_id""",
@@ -90,7 +102,7 @@ async def change(db, id, actor, resolve):
         require_member(alert, actor, settings)
         target = "resolved" if resolve else "acknowledged"
         if alert["status"] == target:
-            return alert
+            return public_alert(alert)
         if alert["status"] == "resolved":
             raise HTTPException(409, "Alert already resolved")
         assignment = (
@@ -107,7 +119,7 @@ async def change(db, id, actor, resolve):
         row = await cur.fetchone()
         await audit(cur, actor, "alert.resolve" if resolve else "alert.ack", "alert", id)
         await alert_changed(cur, row)
-        return row
+        return public_alert(row)
 
 
 @router.post("/alerts/{id}/ack")

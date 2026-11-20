@@ -26,7 +26,9 @@ async def database():
     async with admin:
         await admin.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(schema)))
         try:
-            scoped = make_conninfo(dsn, options=f"-c search_path={schema},public")
+            scoped = make_conninfo(
+                dsn, options=f"-c search_path={schema},public", application_name=schema
+            )
             async with AsyncConnectionPool(scoped, min_size=1, max_size=6, open=False) as pool:
                 async with pool.connection() as conn:
                     migrations = Path(__file__).resolve().parents[3] / "db/migrations"
