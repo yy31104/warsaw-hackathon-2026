@@ -31,13 +31,18 @@ The sample log has no event ID. Each line counts as an occurrence, including lin
 
 Apply `db/migrations/201_schema_review.sql` to an existing database. A fresh Compose database
 applies it automatically. Start the API and open `/docs` to run the following calls.
+On native Windows, run `uv run uvicorn alerting.api.app:app --loop asyncio:SelectorEventLoop --port 8000`
+from `backend/` and open `http://127.0.0.1:8000/docs`.
 
 1. Send `{"app":{"name":"payments-api"},"signal":"RED"}` to
    `POST /v1/events/generic-webhook` with `X-Api-Key: demo-generic-key`. Keep the event ID.
 2. Open `GET /v1/schema-issues`. The sample is under fingerprint `app,signal`. Read its redacted
    original with `GET /v1/events/{id}`. Each accepted occurrence increments the issue count.
    The first occurrence creates a grey incident and a delivered UI notice for the fallback team.
-3. In `POST /v1/schemas/preview`, select that fingerprint and use this draft.
+3. Optionally call `POST /v1/schemas/suggest` with `{"fingerprint":"app,signal"}` to get an editable
+   draft, or pass `{"sample":{...}}` to try another example. Names such as `app.name` suggest a
+   service field. The reviewer supplies the meaning of vendor-specific levels such as `RED`.
+   In `POST /v1/schemas/preview`, select the fingerprint and try the following draft.
 
 ```json
 {
@@ -61,6 +66,10 @@ applies it automatically. Start the API and open `/docs` to run the following ca
 File-managed schemas retain their order and are read-only through the API. UI-managed mappings
 are stored in PostgreSQL. Publication, replay and audit commit together. If a proposed identity
 would merge distinct stored events, the API returns 409 and the reviewer can refine the identity.
+
+Schema suggestions work locally with `ASSIST_ENABLED=0`. With a configured model, the helper
+can fill missing aliases using bounded, redacted field descriptions. The response reports
+`source` as `heuristic` or `llm`. A suggestion and its preview are both read-only.
 
 ## Reproduce the ingest tests
 

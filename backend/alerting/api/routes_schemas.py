@@ -3,9 +3,13 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from psycopg.rows import dict_row
+from pydantic import BaseModel, model_validator
 
+from alerting.assist.schema_suggest import suggest
+from alerting.clock import SYSTEM
 from alerting.config import files
 from alerting.db import pool
+from alerting.ingest.normalize import InvalidEvent, normalize
 from alerting.schemas.issues import index_legacy
 from alerting.schemas.mapping import SchemaDraft
 from alerting.schemas.registry import ReviewError, lock_registry, schemas, with_draft
@@ -37,6 +41,35 @@ async def list_issues(status: Literal["open", "resolved", "ignored", "all"] = "o
 async def list_schemas(db_pool=Depends(pool)):
     async with db_pool.connection() as conn:
         return {"items": await schemas(conn)}
+
+
+class SuggestionInput(BaseModel):
+    sample: dict | None = None
+    fingerprint: str | None = None
+
+    @model_validator(mode="after")
+    def select_one(self):
+        if (self.sample is None) == (self.fingerprint is None):
+            raise ValueError("provide one sample or one review fingerprint")
+        return self
+
+
+@router.post("/schemas/suggest")
+async def suggest_schema(request: SuggestionInput, db_pool=Depends(pool)):
+    """Return an editable draft from one sample or the current example in a review issue."""
+    if request.fingerprint is not None:
+        try:
+            async with db_pool.connection() as conn:
+                sample = await sample_event(conn, request.fingerprint)
+        except ReviewError as exc:
+            raise HTTPException(exc.status, str(exc)) from exc
+    else:
+        try:
+            sample = normalize(request.sample, {"id": "sample", "transport": "http"}, [], received_at=SYSTEM.now())
+        except InvalidEvent as exc:
+            raise HTTPException(422, str(exc)) from exc
+    # The remote helper, if enabled, runs after the sample's DB connection is released.
+    return await suggest(sample)
 
 
 @router.post("/schemas/preview")

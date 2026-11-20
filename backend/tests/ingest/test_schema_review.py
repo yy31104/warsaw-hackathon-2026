@@ -2,14 +2,19 @@ import asyncio
 import json
 import os
 from contextlib import suppress
+from pathlib import Path
 from uuid import uuid4
 
 import aio_pika
 import pytest
+import yaml
+from psycopg import sql
+from psycopg.types.json import Jsonb
 from pydantic import ValidationError
 
 from alerting.config import files
 from alerting.ingest.amqp import consume
+from alerting.ingest.logfile import import_file
 from alerting.schemas.mapping import SchemaDraft, fingerprint
 
 
@@ -44,6 +49,63 @@ async def send(client, raw=RAW, key=None):
     response = await client.post(SOURCE, json=raw, headers={**KEY, **({"Idempotency-Key": key} if key else {})})
     assert response.status_code == 202, response.text
     return response.json()
+
+
+async def test_golden_unknown_format_notifies_the_fallback_team_once(client, inbox_pool):
+    golden = Path(__file__).resolve().parents[3] / "fixtures/golden/expectations.yaml"
+    cases = yaml.safe_load(golden.read_text(encoding="utf-8"))["cases"]
+    case = next(item for item in cases if item["id"] == "unknown-schema-visible")
+    expected = case["expect"]
+    for _ in range(3):
+        response = await client.post("/v1/events/" + case["send"]["source"], headers=KEY, json=case["send"]["body"])
+        assert response.status_code == 202
+    item, = (await client.get("/v1/schema-issues")).json()["items"]
+    assert item["fingerprint"] == "at,ctx,kind,msg" and item["event_count"] == 3
+    assert set(expected["schema_issue"]["sample_fields_include"]) <= item["sample_fields"].keys()
+    original = (await client.get(f"/v1/events/{item['sample_event_id']}")).json()
+    assert original["status"] == expected["event"]["status"]
+    async with inbox_pool.connection() as conn:
+        notices = await (await conn.execute("SELECT channel, recipient FROM notifications")).fetchall()
+        assert [{"channel": channel, "recipient": to} for channel, to in notices] == expected["notifications"]
+
+
+async def test_resolved_shape_can_reopen_without_a_second_notice(client, inbox_pool):
+    await send(client)
+    assert (await client.post("/v1/schemas", json=DRAFT, headers=OPS)).json()["reprocessed"] == 1
+    other = await send(client, {"app": {"other": "x"}, "signal": "amber"})
+    issue, = (await client.get("/v1/schema-issues")).json()["items"]
+    assert issue["event_count"] == 2 and issue["sample_event_id"] == other["event_ids"][0]
+    async with inbox_pool.connection() as conn:
+        assert await (await conn.execute("SELECT status FROM alerts")).fetchall() == [("open",)]
+        assert await (await conn.execute("SELECT count(*) FROM notifications")).fetchone() == (1,)
+
+
+async def test_database_broadcasts_one_new_issue_and_the_confirmed_version(client, inbox_pool):
+    token = uuid4().hex
+    barrier = "review_done_" + token
+    raw = dict(RAW, **{token: True})
+    shape = fingerprint(raw)
+    draft = dict(DRAFT, id="notice-" + token)
+    async with inbox_pool.connection() as listener:
+        await listener.execute("LISTEN schema_issues")
+        await listener.execute("LISTEN config")
+        await listener.execute(sql.SQL("LISTEN {}").format(sql.Identifier(barrier)))
+        await listener.commit()
+        await send(client, raw)
+        await send(client, raw)
+        assert (await client.post("/v1/schemas", headers=OPS, json=draft)).status_code == 200
+        async with inbox_pool.connection() as conn:
+            await conn.execute("SELECT pg_notify(%s, 'done')", (barrier,))
+        statuses, versions = [], []
+        async for notice in listener.notifies(timeout=3):
+            if notice.channel == barrier:
+                break
+            message = json.loads(notice.payload)
+            if notice.channel == "schema_issues" and message["data"]["fingerprint"] == shape:
+                statuses.append(message["data"]["status"])
+            if notice.channel == "config" and message["id"] == draft["id"]:
+                versions.append((message["kind"], message["version"], message["type"]))
+    assert statuses == ["open", "resolved"] and versions == [("schema", 1, "config.changed")]
 
 
 async def test_review_preview_publish_and_original_event_handoff(client, inbox_pool):
@@ -148,9 +210,17 @@ async def test_redacted_identity_cannot_be_reconstructed_by_guessing(client):
     assert result.status_code == 409 and "masked field" in result.json()["detail"]
 
 
-async def test_rows_from_previous_release_are_listed_and_replayed(client, inbox_pool):
-    from psycopg.types.json import Jsonb
+async def test_live_identity_template_keeps_masked_values_out_of_the_event_response(client):
+    assert (await client.post("/v1/schemas", headers=OPS, json=dict(DRAFT, event_id="{{token}}"))).status_code == 200
+    raw = dict(RAW, token="synthetic-private-id")
+    first = await send(client, raw)
+    again = await send(client, raw)
+    assert again["duplicates"] == 1 and again["event_ids"] == first["event_ids"]
+    event = (await client.get(f"/v1/events/{first['event_ids'][0]}")).json()
+    assert event["source_event_id"].startswith("sha256-id:") and "synthetic-private-id" not in json.dumps(event)
 
+
+async def test_rows_from_previous_release_are_listed_and_replayed(client, inbox_pool):
     async with inbox_pool.connection() as conn:
         cursor = await conn.execute("""
             INSERT INTO events (source_id, transport, source_event_id, payload_hash, raw, fields, status)
@@ -180,8 +250,6 @@ async def test_new_version_preserves_file_ownership_and_refuses_stale_edits(clie
 
 
 async def test_log_import_reads_the_approved_mapping(client, inbox_pool, tmp_path):
-    from alerting.ingest.logfile import import_file
-
     assert (await client.post("/v1/schemas", json=DRAFT, headers=OPS)).status_code == 200
     source = {"id": "vendor-log", "transport": "logfile", "parser": {"pattern": "(?P<pairs>.*)", "kv_group": "pairs"}}
     path = tmp_path / "vendor.log"

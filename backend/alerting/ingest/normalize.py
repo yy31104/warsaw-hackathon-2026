@@ -220,6 +220,13 @@ def _project(original, public, source, schemas, digest, received_at, message_id,
     fields = flatten(public)
     fields.update(metadata)
     fields.update(_labels(fields, schema))
+    template = schema.get("event_id")
+    if template and source_event_id and not (message_id and message_id.strip()):
+        private_key = render(template, original)
+        if source_event_id == storage_key(private_key) and private_key != render(template, fields):
+            # A configured ID may reference masked data. Keep the key usable for
+            # retransmissions without revealing its underlying value via GET /events.
+            source_event_id = "sha256-id:" + hashlib.sha256(private_key.encode()).hexdigest()
     return CanonicalEvent(
         source_id=source["id"], transport=source["transport"], payload_hash=digest,
         source_event_id=source_event_id, schema_id=schema.get("id"),
