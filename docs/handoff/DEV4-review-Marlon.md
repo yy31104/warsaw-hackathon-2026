@@ -78,6 +78,14 @@ For each one, record PASS / FAIL / NOT_RUN plus the evidence:
 8. **Tier 2 items that are marked done** in [IMPROVEMENTS.md](../IMPROVEMENTS.md): run each one's acceptance check as written.
 9. **Unseen format:** time from paste to the first correct alert, and LLM-suggested vs correct fields (n/N).
 
+## You own the expected answers
+Yi builds the golden runner, but **the expected results are yours**:
+- Check `fixtures/golden/expectations.yaml` line by line against the printed task.
+- Rule on any case Yi marks `DISPUTED`.
+- Keep the private holdout private, and add hidden cases of your own.
+
+An implementer never changes an expected value.
+
 ## Full target list (all required) — updated Fri 22:00
 - ☐ Tasks 1–6 above.
 - ☐ Adversarial checks 1–9 above.

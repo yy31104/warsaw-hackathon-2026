@@ -6,6 +6,7 @@
 - Code: `backend/alerting/rules/`, `routing/`, `delivery/`, `runbooks/` (match, render, actions, approvals), `api/routes_alerts.py`, `routes_notifications.py`, `routes_runbooks.py`
 - Tests: `backend/tests/processing/`, `backend/tests/delivery/`
 - Migrations: `db/migrations/1xx_*.sql`
+- Moved to you (Fri 22:00): `mocks/mock_ops/`, `loadtest/golden_runner.py`
 - As tech lead, the shared files: `docs/CONTRACT.md`, `AGENTS.md`, `contracts.py`, `llm.py`, `templates.py`, `clock.py`, `db.py`, `api/app.py`, `001_init.sql`, `.github/`
 **Others call your pure functions:** `rules.dsl.compile`, `rules.engine.evaluate`, `routing.plan`, `runbooks.render` (daizhongtian uses them for schema detection, rule validation, the simulator and runbook structuring). Keep their signatures stable.
 **Don't read:** `../private-holdout/` (Marlon runs it at G3; you write the engine it tests).
@@ -178,7 +179,8 @@ Done ✅ = merged or verified in a PR. Everything else is a target. Details are 
 
 **Moved to you from daizhongtian**
 - ☐ mock-ops `mocks/mock_ops/`: `/health` toggle, `/workflows/{id}/retry` (fail N then succeed), `/services/{name}/restart`, `/tickets`, `/metrics/pool`, `/deployments`. Every call is deduplicated by `Idempotency-Key`, and `GET /executions/<key>` reports it. Simulated data is labelled. Compose alias `counterparty-service`.
-- ☐ Golden runner `loadtest/golden_runner.py`: black box over the public API, fake-telecom `/messages` and the Mailpit API; reset between cases; writes the PASS/FAIL table into GATES.md. All 32 cases in `fixtures/golden/expectations.yaml`.
+- ☐ Golden runner `loadtest/golden_runner.py`: black box over the public API, fake-telecom `/messages` and the Mailpit API; reset between cases; writes the PASS/FAIL table into GATES.md. Covers all cases in `fixtures/golden/expectations.yaml`.
+  - **You build the runner; you don't own the answers.** Expected results come from the task text (the golden file) and Marlon's private holdout. If a case fails, fix the code or mark the case `DISPUTED` with a reason for Marlon to decide. Never edit an expected value to make a test pass.
 
 **Tier 2**
 - ☐ #4 late events never reopen an old episode

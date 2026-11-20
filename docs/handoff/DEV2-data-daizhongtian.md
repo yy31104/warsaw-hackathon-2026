@@ -6,7 +6,8 @@
 **You own:**
 - **Backend packages:** `backend/alerting/ingest/`, `schemas/`, `config/`, `assist/`, `simulate/`.
 - **API routes:** `api/routes_ingest.py`, `routes_schemas.py`, `routes_rules.py`, `routes_teams.py`, `routes_config.py`, `routes_stream.py`, `routes_ops.py`.
-- **Infra and tools:** `mocks/` (fake-telecom, mock-ops), `loadtest/`, `tools/`, `docker-compose.yml`, `backend/Dockerfile`.
+- **Infra and tools:** `mocks/fake_telecom/`, `loadtest/` (everything **except** `golden_runner.py`), `tools/`, `docker-compose.yml`, `backend/Dockerfile`.
+- **Not yours (moved to Yi):** `mocks/mock_ops/`, `loadtest/golden_runner.py`.
 - **Tests and migrations:** `backend/tests/ingest/`, `db/migrations/2xx_*.sql`.
 
 **You call (Yi's pure functions):** `rules.dsl.compile`, `rules.engine.evaluate`, `routing.plan`, `runbooks.render`. Until they land, use a local `exists`/`eq` matcher.

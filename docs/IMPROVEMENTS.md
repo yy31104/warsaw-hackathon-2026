@@ -1,6 +1,6 @@
 # Improvement backlog — everything we keep, in order
 
-**All tiers are targets — we complete every item.** The order is the build sequence: **core chain → Tier 0 → Tier 1 → Tier 2 → Tier 3**, so that a later item never breaks an earlier one. Each person's ordered checklist is the "Full target list" at the end of their handoff.
+**All tiers are targets — we plan to complete every item.** *Target* means planned. An item is **done** only when its acceptance check PASSes on the integrated `main` and is recorded in `docs/GATES.md`; unit tests alone don't count. The order is the build sequence: **core chain → Tier 0 → Tier 1 → Tier 2 → Tier 3**. Nobody starts Tier 2/3 work in their lane until their part of the end-to-end chain (RabbitMQ → inbox → rules → outbox → fake-telecom → live UI) PASSes on `main`. Each person's ordered checklist is the "Full target list" at the end of their handoff.
 Every claimed improvement needs a before/after measurement on the same input, with N.
 
 ## Tier 0 — P0 hardening (BRIEF §4, Yi)
