@@ -1,3 +1,3 @@
-# mock-ops (owner: DEV2 daizhongtian)
+# mock-ops (owner: DEV1 Yi — moved from daizhongtian Fri 22:00)
 
-Runbook action targets (workflow retry, restart, tickets, health). Compose alias `counterparty-service`. Spec: docs/handoff/DEV2-data-daizhongtian.md task 13.
+Runbook action targets and read-only investigation endpoints (simulated, labelled). Compose alias `counterparty-service`. Spec: docs/handoff/DEV1-backend-Yi.md, "Full target list".

@@ -1,8 +1,7 @@
 # Improvement backlog — everything we keep, in order
 
-The order in BRIEF §4 stands: **P0 hardening → P1 → the tiers below.**
-Nothing that improves reliability, cost or the judged criteria is dropped. Items are only *ordered*, so they never put the core chain at risk.
-When your earlier items PASS, take the next item in your column. Every claimed improvement needs a before/after measurement on the same input, with N.
+**All tiers are targets — we complete every item.** The order is the build sequence: **core chain → Tier 0 → Tier 1 → Tier 2 → Tier 3**, so that a later item never breaks an earlier one. Each person's ordered checklist is the "Full target list" at the end of their handoff.
+Every claimed improvement needs a before/after measurement on the same input, with N.
 
 ## Tier 0 — P0 hardening (BRIEF §4, Yi)
 Poison-event isolation · approval security · DB timeouts · stale recovery never closes a newer episode · action timeout = `unknown`.
@@ -30,21 +29,22 @@ Sample-based source verification · Rule Safety Checker · impact preview + AI p
 | 9 | **LLM guardrails:** concurrency cap, budget cap, a breaker that falls back to heuristics for 5 min after 3 failures, cache per fingerprint | The LLM provider is slow, down or expensive | daizhongtian | With the LLM down, onboarding still answers ("heuristic"); the call count stays bounded under a storm of new formats |
 | 10 | **Sensitive fields masked in notifications** (schema `sensitive: [paths]`; masked in SMS/email, visible in the UI to authorised users) | Account numbers and PII leaking into SMS | daizhongtian (schema) + Yi (render) | A sample with an account number → the SMS shows `****1234` |
 | 11 | **Correlation IDs in logs** (`event_id`, `alert_id`, `notification_id`, `run_id` on every log line) | "What happened to this event?" at 3 a.m. | everyone | One grep over the logs follows a single event end-to-end |
-| 12 | **End-to-end canary** (a synthetic event every 60 s over HTTP → … → a reserved canary number on fake-telecom; never a human; on a miss, a bypass alert that doesn't use our outbox) | Our own alerting is broken and nobody knows | daizhongtian (sender) + Yi (bypass) | Stop the delivery worker → the canary alarm fires through the bypass within the target time; continuous e2e latency is visible |
+| 12 | **End-to-end canary** (a synthetic event every 60 s over HTTP → … → a reserved canary number on fake-telecom; never a human; on a miss, a bypass alert that doesn't use our outbox) | Our own alerting is broken and nobody knows | Yi (sender + bypass) | Stop the delivery worker → the canary alarm fires through the bypass within the target time; continuous e2e latency is visible |
 | 13 | **Dynamic escalation with guards** (opt-in `escalate_on_spike`; requires count ≥ N absolute **and** ≥ k × EWMA baseline; raises priority and re-notifies) | Warnings that are suddenly getting much worse | Yi | A spike from 2/min to 200/min escalates; a low-traffic jump from 1 to 3 does not |
 | 14 | **"No action needed" feedback → suggestion** (a resolve reason; after N of them, propose a digest with an impact preview; a human approves) | Rules that wake people up for nothing | daizhongtian + zhaoqinghe | After 10 "no action" resolves → a proposal with a preview appears |
 
 ## Tier 3 — valuable, needs more design (after Tier 2, or as P2)
-| # | Improvement | Guardrail |
-|---|---|---|
-| 15 | Cross-rule notification merging | Opt-in `merge_group`; same recipient + channel + event only; never delays a critical alert; each alert keeps its own notification link and audit |
-| 16 | Cost ladder (UI → email → SMS → phone) | Opt-in per rule; never overrides a rule's explicit channels; stops on ack |
-| 17 | Incident Investigator | Read-only, async, ≤ 3 allow-listed calls, simulated data labelled, never the action registry |
-| 18 | Shadow rules (live dry-run) | Separate state for counts and cooldowns; never sends |
-| 19 | SLO / error-budget priority | Only with real request totals (a denominator) |
-| 20 | Incident memory cards | Only human-confirmed resolutions; old cases are hints, not answers |
-| 21 | Webhook HMAC signatures per source | Optional per source; rotate via config |
-| 22 | Fair claiming across teams/sources | Only if the load test shows starvation |
+| # | Improvement | Owner | Guardrail |
+|---|---|---|---|
+| 15 | Cross-rule notification merging | Yi | Opt-in `merge_group`; same recipient + channel + event only; never delays a critical alert; each alert keeps its own notification link and audit |
+| 16 | Cost ladder (UI → email → SMS → phone) | Yi (+ zhaoqinghe display) | Opt-in per rule; never overrides a rule's explicit channels; stops on ack |
+| 17 | Incident Investigator | daizhongtian (tools + LLM) + zhaoqinghe (panel) | Read-only, async, ≤ 3 allow-listed calls, simulated data labelled, never the action registry |
+| 18 | Shadow rules (live dry-run) | Yi (engine state) + daizhongtian (API) + zhaoqinghe (diff view) | Separate state for counts and cooldowns; never sends |
+| 19 | SLO / error-budget priority | daizhongtian (request totals source) + Yi (scoring) + zhaoqinghe | Only with real request totals (a denominator); simulated totals labelled |
+| 20 | Incident memory cards | Yi (store + lookup) + zhaoqinghe (hint card) | Only human-confirmed resolutions; old cases are hints, not answers |
+| 21 | Webhook HMAC signatures per source | daizhongtian | Optional per source; rotate via config |
+| 22 | Fair claiming across teams/sources | Yi | Claim round-robin by source/team; prove with the noisy-neighbour load test |
 
-## Measure first (no change without evidence)
+## Measure first (the measurement is a target; the change follows the evidence)
+Owner of the measurements: daizhongtian (load tests). Owner of any resulting backend change: Yi.
 COPY staging tables · GIN index changes · compacting `NO_MATCH` decisions · partitioning or retention · Redis. The trigger is a load-test result showing the bottleneck; the change must keep "why wasn't I notified" answerable and must never delete audit history.

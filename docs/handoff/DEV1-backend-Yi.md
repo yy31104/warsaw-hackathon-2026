@@ -152,3 +152,52 @@ Status at this point: PR #1 merged, PR #2 open (hot reload, scoped approvals, pi
 
 **Prompt for round 2:**
 > Read AGENTS.md, docs/BRIEF.md §4, docs/CONTRACT.md §4, §5, §8, §9 and the "Round 2" section of docs/handoff/DEV1-backend-Yi.md. Merge origin/main first. Implement R1–R5 in order on feat/backend-yi, each test-first against real PostgreSQL, one commit per item. Then R6 and R7. Don't redesign the architecture and don't add the "Not now" items. Report per item: PASS / FAIL / NOT_RUN, with the exact test or command.
+
+## Full target list (all required, in order) — updated Fri 22:00
+Done ✅ = merged or verified in a PR. Everything else is a target. Details are in the sections above, in CONTRACT and in [IMPROVEMENTS.md](../IMPROVEMENTS.md).
+
+**Done**
+- ✅ Round 1 tasks 1–14 (PR #1, merged).
+- ✅ Hot reload, scoped approval codes, API shapes pinned to `fixtures/api`, NOTIFY envelopes, canonical-event contract test, inbox→delivery e2e (PR #2: clean merge with main, 81 tests, CI green → merge it).
+
+**Integration**
+- ☐ When daizhongtian's `ingest/normalize.py` lands: replace the test mini-normaliser, and run e2e from a real RabbitMQ publish.
+- ☐ Keep merging teammates' PRs.
+
+**Tier 0 — hardening**
+- ☐ R1 poison-event isolation
+- ☐ R2 approval security (6 digits, attempt limit, `X-Provider-Secret`)
+- ☐ R3 DB timeouts
+- ☐ R4 stale recovery (`episode_key`, `STALE_RESOLVE`)
+- ☐ R5 action timeout = `unknown` + verification
+
+**Tier 1**
+- ☐ R6 Rule Safety Checker (declared requirements only)
+- ☐ R7 engine support for `/schemas/verify` (draft schema + transforms, deciding fields)
+- ☐ R8 hysteresis `stable_for` + measured decision volume
+
+**Moved to you from daizhongtian**
+- ☐ mock-ops `mocks/mock_ops/`: `/health` toggle, `/workflows/{id}/retry` (fail N then succeed), `/services/{name}/restart`, `/tickets`, `/metrics/pool`, `/deployments`. Every call is deduplicated by `Idempotency-Key`, and `GET /executions/<key>` reports it. Simulated data is labelled. Compose alias `counterparty-service`.
+- ☐ Golden runner `loadtest/golden_runner.py`: black box over the public API, fake-telecom `/messages` and the Mailpit API; reset between cases; writes the PASS/FAIL table into GATES.md. All 32 cases in `fixtures/golden/expectations.yaml`.
+
+**Tier 2**
+- ☐ #4 late events never reopen an old episode
+- ☐ #5 DST tests
+- ☐ #1 silences (`SILENCED`)
+- ☐ #2 unacked escalation
+- ☐ #3 heartbeat / deadman rules
+- ☐ #6 graceful shutdown (workers)
+- ☐ #10 masking of `sensitive` fields in render
+- ☐ #13 guarded dynamic escalation
+- ☐ #12 canary: sender + bypass alarm
+- ☐ #11 correlation IDs in your logs
+
+**Tier 3**
+- ☐ #15 cross-rule merging (opt-in)
+- ☐ #16 cost ladder (opt-in, never overrides explicit channels)
+- ☐ #18 shadow-rule engine state (separate counts and cooldowns, never sends)
+- ☐ #19 SLO scoring from request totals
+- ☐ #20 incident memory (store + lookup of human-confirmed resolutions)
+- ☐ #22 fair claiming across sources/teams
+
+**Measure first:** act on daizhongtian's load-test evidence (e.g. compact `NO_MATCH` only if decisions dominate).

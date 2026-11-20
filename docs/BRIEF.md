@@ -59,6 +59,7 @@ A judge, or a team that's new to the system, can:
 | | Yi · DEV1 · backend core | daizhongtian · DEV2 · data & platform | zhaoqinghe · DEV3 · frontend |
 |---|---|---|---|
 | Layers | L3 grouping, L4 decision, L5 routing + delivery, L6 runbook actions | L1 ingest, L2 normalise, config, LLM assist, live stream, infra, measurement | L6 user experience, dashboard |
+| Moved to Yi (Fri 22:00, to balance load) | mock-ops, golden runner, canary, incident memory | ← from daizhongtian | |
 | Core | Rule DSL + **pure** engine, rule-worker (grouping, counting, P0–P3 priority), incidents API, pure `routing.plan` (preferences, time windows, on-call), delivery worker (retries, breaker), providers, runbook render + actions + approvals + audit | HTTP / RabbitMQ / log-file ingest, normalise + schema registry + dedup, unknown schemas + event query API, config store + hot reload + all config CRUD APIs, LLM assists, rule simulator, SSE, fake-telecom + mock-ops, compose + Dockerfile, golden runner + load/chaos | Live feed (SSE), incident detail + timeline + explain, runbook panel + approvals, rule editor + impact preview, preferences, onboarding page for unknown formats, funnel dashboard |
 | Also | Tech lead: shared files, CI, reviews and merges PRs into `main` | | Starts on mock data in `fixtures/api/`, switches to the real API screen by screen |
 

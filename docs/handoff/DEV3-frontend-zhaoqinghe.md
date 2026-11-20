@@ -99,3 +99,38 @@ No new top-level pages; extend the existing ones (APIs in CONTRACT §9, §10):
 - **R4 SSE:** handle coalesced `alert.updated`; refetch the open detail after a reconnect.
 - **Tier 2 UI** ([IMPROVEMENTS.md](../IMPROVEMENTS.md)): #1 silences (create from an incident: matcher prefilled, expiry; show "Silenced by X until T"), #2 escalation steps in the timeline, #14 a "No action needed" resolve reason and the resulting proposal card.
 - **P2:** an Investigation panel on incident detail (tool, time, evidence, unknowns; label simulated data as simulated).
+
+## Full target list (all required, in order) — updated Fri 22:00
+**Please push work in progress to `feat/frontend-zhaoqinghe` now and every hour.** Yi's backend is already on `main`, so screens 1–3 can switch to the real API (`/v1/alerts`, `/v1/alerts/{id}`, notifications, runbook, ack/resolve) as soon as you're ready.
+
+**Screens**
+- ☐ 1 live feed
+- ☐ 2 incident detail + explain
+- ☐ 3 runbook panel + approvals
+- ☐ 3b Propose fix
+- ☐ 4 rules editor
+- ☐ 5 people/preferences
+- ☐ 6 onboarding
+- ☐ 7 impact preview + proposals
+- ☐ 8 dashboard
+- ☐ 9 NL rule box
+
+**Round 2**
+- ☐ R1 "Verify with samples" (expected vs actual)
+- ☐ R2 Safety check panel
+- ☐ R3 states: delivery at risk, format changed, result unknown, old recovery ignored, quarantined
+- ☐ R4 SSE coalescing + refetch on reconnect
+
+**Tier 2**
+- ☐ #1 silences
+- ☐ #2 escalation steps in the timeline
+- ☐ #14 "No action needed" + proposal card
+
+**Tier 3**
+- ☐ #17 investigation panel
+- ☐ #18 shadow-rule diff view
+- ☐ #19 SLO / error-budget view
+- ☐ #20 "similar past incident" hint card
+- ☐ #16 cost-ladder steps in the timeline
+
+Label simulated data as simulated.

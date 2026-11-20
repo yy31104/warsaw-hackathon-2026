@@ -77,3 +77,8 @@ For each one, record PASS / FAIL / NOT_RUN plus the evidence:
 7. **Time edge:** Anna at 07:59 / 08:00 / 19:59 / 20:00 and on the DST weekend (25 Oct 2026, Europe/Warsaw).
 8. **Tier 2 items that are marked done** in [IMPROVEMENTS.md](../IMPROVEMENTS.md): run each one's acceptance check as written.
 9. **Unseen format:** time from paste to the first correct alert, and LLM-suggested vs correct fields (n/N).
+
+## Full target list (all required) — updated Fri 22:00
+- ☐ Tasks 1–6 above.
+- ☐ Adversarial checks 1–9 above.
+- ☐ For every Tier 0–3 item marked done in a handoff, run its acceptance check from [IMPROVEMENTS.md](../IMPROVEMENTS.md) and record PASS / FAIL / NOT_RUN with evidence in GATES.md.

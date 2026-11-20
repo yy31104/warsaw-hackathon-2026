@@ -130,3 +130,56 @@ The core chain comes first: RabbitMQ → inbox, fake-telecom and SSE are still t
   - Read-only, runs async after the incident is created, ≤ 3 calls to allow-listed mock-ops GET endpoints (`/health`, `/metrics/pool`, `/deployments`), each returning clearly labelled simulated data.
   - Never uses the action registry. Stores {tool, time, result, unknowns} on the alert.
   - The LLM only summarises the evidence it actually received.
+
+## Full target list (all required, in order) — updated Fri 22:00
+**Please push work in progress to `feat/data-daizhongtian` now and every hour.** Nothing has reached GitHub yet, and your ingest + fake-telecom + SSE are the critical path for everyone.
+
+**Moved to Yi** (don't build these): mock-ops (task 13), golden runner (task 14), the Tier 2 #12 canary, the Tier 3 #20 incident memory. Yi also writes `rules.safety.check`; you only expose its route.
+
+**Core (Round 1)**
+- ☐ 1 normaliser
+- ☐ 2 RabbitMQ consumer
+- ☐ 3 publisher tool
+- ☐ 4 HTTP ingest
+- ☐ 5 fake-telecom
+- ☐ 6 SSE
+- ☐ 7 log tailer
+- ☐ 8 unknown schema
+- ☐ 9 event query API
+- ☐ 10 config store + hot reload
+- ☐ 11 config APIs
+- ☐ 11b minimal Propose fix
+- ☐ 12 ops endpoints
+- ☐ 15 schema suggestion (LLM)
+- ☐ 16 runbook structuring (LLM)
+- ☐ 17 load + chaos
+- ☐ 18 full compose
+- ☐ 19 simulator, NL rule draft, proposals
+
+**Round 2**
+- ☐ R1 provider secret in fake-telecom replies
+- ☐ R3 normaliser `transforms` + `$episode`
+- ☐ R4 `/schemas/verify` (incl. expected recipients/channels)
+- ☐ R5 `/rules/check` route
+- ☐ R6 delivery-risk metrics
+- ☐ R7 SSE coalescing
+- ☐ R8 schema-drift flag
+- ☐ R9 experiments (a)–(d)
+- (R2 mock-ops idempotency is now Yi's.)
+
+**Tier 2**
+- ☐ #7 RabbitMQ hardening
+- ☐ #8 admission control + per-source quotas
+- ☐ #9 LLM guardrails
+- ☐ #6 graceful shutdown (consumers)
+- ☐ #10 `sensitive` fields in schemas
+- ☐ #11 correlation IDs
+- ☐ #14 "no action needed" → proposals
+
+**Tier 3**
+- ☐ #17 Incident Investigator (read-only tools + LLM summary of real tool output only)
+- ☐ #18 shadow-rules API
+- ☐ #19 request-totals source for SLO priority (labelled if simulated)
+- ☐ #21 webhook HMAC per source
+
+**Measure first:** run the measurements (COPY vs multi-row insert, GIN index cost, decisions per 1,000 events) and hand the evidence to Yi.
