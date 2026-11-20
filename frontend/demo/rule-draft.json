@@ -1,0 +1,40 @@
+{
+  "id": "new-rule",
+  "owner": "user:anna",
+  "origin": "ui",
+  "version": 1,
+  "enabled": true,
+  "match": {
+    "all": [
+      {
+        "field": "$schema",
+        "op": "glob",
+        "value": "trade.rejected.*"
+      },
+      {
+        "field": "payload.desk",
+        "op": "eq",
+        "value": "fx"
+      }
+    ]
+  },
+  "route": [
+    {
+      "to": "user:anna",
+      "channels": [
+        "sms"
+      ]
+    }
+  ],
+  "present": {
+    "title": "Trade rejected on {{payload.desk}}",
+    "color": "blue",
+    "fields": [
+      "payload.desk"
+    ]
+  },
+  "group": {
+    "mode": "immediate",
+    "cooldown": "10m"
+  }
+}

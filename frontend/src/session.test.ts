@@ -1,0 +1,4 @@
+import {expect,it} from 'vitest';
+import {session,mockAction,mockTransition,applyStream} from './session';
+it('shares action approvals and incident changes across timeline and activity',()=>{session.actions=[];mockAction(101,2,'request','sam',false);expect(()=>mockAction(101,2,'approve','sam',false)).toThrow();mockAction(101,2,'approve','lee',false);expect(session.actions.at(-1)?.state).toBe('succeeded');expect(session.timelines[101].at(-1)?.text).toContain('lee: approve');mockTransition(101,'ack','sam');expect(session.alerts.find(a=>a.id===101)?.status).toBe('acknowledged');expect(session.activity[0].text).toContain('acknowledged');});
+it('updates notification identities independently from incidents',()=>{const count=session.alerts.length;applyStream({type:'notification.updated',data:{id:'6f1c…a2',alert_id:101}});expect(session.alerts).toHaveLength(count);});
