@@ -28,7 +28,7 @@ from alerting.rules.storage import (
     alert_changed,
     close_settings,
     delivery_plan,
-    enqueue,
+    enqueue_event_plans,
     get_settings,
 )
 
@@ -36,7 +36,7 @@ COLUMNS = (
     "id rule_id rule_version alert_key status severity priority lane team_id title body color fields group_values "
     "runbook_id occurrence_count count_since_notify first_seen_at last_seen_at last_notified_at "
     "representative_event_id resolved_by resolved_at resolve_reason score score_breakdown next_notify_at latest_episode "
-    "resolve_pending_at resolve_due_at resolve_episode resolve_event_id"
+    "resolve_pending_at resolve_due_at resolve_episode resolve_event_id sensitive_paths"
 ).split()
 
 
@@ -278,6 +278,7 @@ async def apply_events(cur, settings, lane, events):
                     group_values=op.group_values,
                     representative_event_id=event.id,
                     schema_id=event.schema_id,
+                    sensitive_paths=ruleset.schemas.get(event.schema_id, {}).get("sensitive", []),
                     last_seen_at=at,
                     occurrence_count=row["occurrence_count"] + 1,
                     count_since_notify=row["count_since_notify"] + 1,
@@ -331,9 +332,10 @@ async def apply_events(cur, settings, lane, events):
         decisions.extend((event.id, d) for d in result.decisions)
     for row in dirty.values():
         await persist(cur, row)
+    planned = []
     for snapshot, transition, rule, fields, clock, decision in intents:
         routing = await delivery_plan(cur, snapshot, transition, rule, fields, settings, clock)
-        await enqueue(cur, routing.intents, snapshot["team_id"])
+        planned.append((snapshot, rule, routing.intents))
         decision["reason"]["notifications"] = [i.dedup_key for i in routing.intents]
         summaries = [
             i.rendered.meta["throttle_bucket"]
@@ -344,6 +346,7 @@ async def apply_events(cur, settings, lane, events):
             decision["reason"]["throttle_buckets"] = summaries
         if routing.intents and len(summaries) == len(routing.intents):
             decision["outcome"] = "SUPPRESSED_THROTTLE"
+    await enqueue_event_plans(cur, planned)
     await cur.executemany(
         "insert into decisions(event_id,rule_id,rule_version,outcome,reason,alert_id) "
         "values (%s,%s,%s,%s,%s,%s)",
