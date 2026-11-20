@@ -1,1 +1,1 @@
-"""Owner: DELIVERY. Runbook store/format detection/matching/rendering; approvals; audit; auto-resolve; LLM structuring (P0.5)."""
+"""Owner: BACKEND. Runbook store/format detection/matching/rendering; action registry; approvals; audit; auto-resolve. (Runbook store/CRUD + LLM structuring: DATA.)"""

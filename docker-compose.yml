@@ -35,13 +35,13 @@ services:
 
   # --- added at G1 by their owners (keep the names; other services depend on them) ---
   # fake-telecom:   DATA      port 8100   (SMS/phone gateway mock with a phone-like web UI)
-  # mock-ops:       DELIVERY  port 8200   network alias: counterparty-service (runbook targets)
+  # mock-ops:       DATA      port 8200   network alias: counterparty-service (runbook targets)
   # api:            shared    port 8000   uvicorn alerting.api.app:app
   # ingest-amqp:    DATA      python -m alerting.ingest.amqp
   # ingest-logtail: DATA      python -m alerting.ingest.logtail
-  # rule-worker:    RULES     python -m alerting.rules.worker --lane normal   (+ one --lane critical)
-  # scheduler:      RULES     python -m alerting.rules.scheduler              (digests, cooldown, escalations)
-  # delivery-worker: DELIVERY python -m alerting.delivery.worker
+  # rule-worker:    BACKEND     python -m alerting.rules.worker --lane normal   (+ one --lane critical)
+  # scheduler:      BACKEND     python -m alerting.rules.scheduler              (digests, cooldown, escalations)
+  # delivery-worker: BACKEND python -m alerting.delivery.worker
   # frontend:       UI        port 5173
 
 volumes:

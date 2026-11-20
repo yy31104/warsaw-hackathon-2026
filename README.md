@@ -6,8 +6,8 @@ Team workspace for the 2026 Goldman Sachs Warsaw Hackathon (Software Engineering
 
 ## Team: start here
 1. Read [docs/BRIEF.md](docs/BRIEF.md) (what, scope, gates, ownership), then [docs/CONTRACT.md](docs/CONTRACT.md).
-2. Open your handoff: [DATA](docs/handoff/DATA.md) · [RULES](docs/handoff/RULES.md) · [DELIVERY](docs/handoff/DELIVERY.md) · [UI](docs/handoff/UI.md).
-3. Check out your branch: `data/platform`, `rules/engine`, `delivery/runbooks`, `ui/frontend`.
+2. Open your handoff: [BACKEND](docs/handoff/BACKEND.md) · [DATA](docs/handoff/DATA.md) · [UI](docs/handoff/UI.md) · [REVIEW & PRESENT](docs/handoff/REVIEW.md) (joins at G3).
+3. Check out your branch: `backend/core`, `data/platform`, `ui/frontend`, `review/present`.
 4. Run the base:
    ```bash
    cp .env.example .env          # add ANTHROPIC_API_KEY locally if you work on an assist feature
@@ -24,9 +24,9 @@ config/            sources, schemas, rules, teams/preferences, runbooks (hot-rel
 fixtures/events/   Appendix A sample events (+ a pricing log file)
 fixtures/golden/   black-box acceptance cases derived from the task text
 fixtures/api/      mock API responses for UI work
-db/migrations/     001 shared; 0xx DATA, 1xx RULES, 2xx DELIVERY
+db/migrations/     001 shared; 0xx DATA, 1xx BACKEND
 backend/alerting/  contracts.py, llm.py, templates.py, clock.py, db.py (shared) + ingest/ schemas/ config/ rules/ routing/ delivery/ runbooks/ assist/ api/
-mocks/             fake_telecom (DATA), mock_ops (DELIVERY)
+mocks/             fake_telecom, mock_ops (DATA)
 loadtest/          load generator, collector, reports (DATA)
 frontend/          React app (UI)
 ```

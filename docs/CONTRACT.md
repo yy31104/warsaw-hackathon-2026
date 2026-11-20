@@ -76,26 +76,26 @@ priority: P1..P4                                 # optional override; else from 
 ## 6. Module interfaces (Python, see `contracts.py`)
 
 ```python
-# RULES — pure, no I/O. Used by rule-worker AND by the simulator.
+# BACKEND — pure, no I/O. Used by rule-worker AND by the simulator.
 rules.engine.evaluate(event: CanonicalEvent, ruleset: Ruleset, state: AlertStateView, clock: Clock) -> Evaluation
 #   Evaluation = decisions[] + alert_ops[] (upsert/increment/resolve with transition)
 
-# DELIVERY — pure, no I/O. Called by rule-worker INSIDE its transaction.
+# BACKEND — pure, no I/O. Called by rule-worker INSIDE its transaction.
 routing.plan(alert: AlertSnapshot, transition: Transition, rule: dict, event_fields: dict,
              directory: dict, runbooks: list[dict], recent_sends: dict, clock: Clock) -> Plan
-#   Plan = intents[] + runbook_id (DELIVERY picks the runbook; the worker stores it on the alert)
+#   Plan = intents[] + runbook_id (BACKEND picks the runbook; the worker stores it on the alert)
 #   recent_sends[(recipient, channel)] = count in the throttle window (queried by the worker)
 
 # SHARED — templates (backend/alerting/templates.py): render(template, fields) with ‹missing: path›
 # SHARED — config files (backend/alerting/config/files.py): sources() schemas() rules() directory() runbooks()
 #          DATA later adds alerting/config/loader.py (DB-versioned, hot reload) with the same function names.
 
-# DELIVERY — providers (one class per channel; a real provider = one new class)
+# BACKEND — providers (one class per channel; a real provider = one new class)
 class ChannelProvider(Protocol):
     channel: Channel
     async def send(self, msg: RenderedMessage, contact: str, idempotency_key: str) -> SendResult
 
-# DELIVERY — runbook actions (one class per action; new action = one file + registry entry)
+# BACKEND — runbook actions (one class per action; new action = one file + registry entry)
 class Action(Protocol):
     name: str; default_approval: Literal["none","required"]; params_schema: dict
     async def execute(self, params: dict, ctx: ActionContext) -> ActionResult
@@ -108,7 +108,7 @@ The rule-worker transaction, in order: claim a batch of events (`FOR UPDATE SKIP
 
 ## 7. Database (owner of `001_init.sql`: shared, merged by Yi)
 
-Tables: `config_objects, events, ingest_rejections, schema_issues, decisions, alerts, alert_occurrences (sampled, last 50 per alert), notifications, delivery_attempts, action_runs, audit_log, rule_proposals`. See the SQL file for columns. New tables or columns go in your migration range (`0xx` DATA, `1xx` RULES, `2xx` DELIVERY).
+Tables: `config_objects, events, ingest_rejections, schema_issues, decisions, alerts, alert_occurrences (sampled, last 50 per alert), notifications, delivery_attempts, action_runs, audit_log, rule_proposals`. See the SQL file for columns. New tables or columns go in your migration range (`0xx` DATA, `1xx` BACKEND).
 
 ## 8. Channels and delivery
 
@@ -120,14 +120,15 @@ Delivery states: `pending → sending → delivered | retrying | unknown | faile
 | Method & path | Purpose | Owner |
 |---|---|---|
 | `POST /events/{source_id}` | Body = one object or array. Headers: `X-Api-Key`, optional `Idempotency-Key`, `X-Gen-Sent-At` (epoch ms), `X-Demo-Clock`. → `202 {accepted, duplicates, conflicts, rejected:[{index, reason}], event_ids}` | DATA |
-| `GET /events/{id}` · `GET /events/{id}/explain` | Raw + fields; decision trace (schema detection, each rule's match trace, alert op, notifications planned) | DATA · RULES |
+| `GET /events/{id}` · `GET /events/{id}/explain` | Raw + fields; decision trace (schema detection, each rule's match trace, alert op, notifications planned) | DATA · BACKEND |
 | `GET /sources` · `GET/POST /schemas` · `GET /schema-issues` · `POST /schemas/suggest {sample}` | Registry and onboarding (`suggest` = heuristic + LLM, returns a draft) | DATA |
-| `GET/POST /rules` · `PUT /rules/{id}` · `POST /rules/test {rule, event}` · `POST /rules/{id}/preview {draft, last_n}` · `POST /rules/draft {text}` · `GET/POST /proposals` · `POST /proposals/{id}/approve` | Rule CRUD (new version on write), match trace, simulator diff, NL draft, propose-fix flow | RULES |
-| `GET /alerts?team=&status=&q=` · `GET /alerts/{id}` · `POST /alerts/{id}/ack` · `POST /alerts/{id}/resolve` | Feed and detail (incl. occurrences sample, score breakdown, timeline) | RULES |
-| `GET /alerts/{id}/notifications` · `GET /notifications?state=` | Delivery state + attempts | DELIVERY |
-| `GET /runbooks` · `POST /runbooks` (any format) · `GET /alerts/{id}/runbook` (rendered steps) · `POST /runbooks/structure {text}` (LLM) | Runbooks | DELIVERY |
-| `POST /alerts/{id}/actions {step_index}` · `POST /action-runs/{id}/approve` · `POST /action-runs/{id}/reject` · `POST /inbound/{channel} {from, body}` | Execute, approve (UI or reply), audit | DELIVERY |
-| `GET/PUT /teams` · `GET/PUT /users/{id}/preferences` | Directory and preferences | DELIVERY |
+| `GET/POST /rules` · `PUT /rules/{id}` · `POST /rules/test {rule, event}` · `POST /rules/{id}/preview {draft, last_n}` · `POST /rules/draft {text}` · `GET/POST /proposals` · `POST /proposals/{id}/approve` | Rule CRUD (new version on write), match trace, simulator diff, NL draft, propose-fix flow | DATA (calls BACKEND's pure engine) |
+| `GET /alerts?team=&status=&q=` · `GET /alerts/{id}` · `POST /alerts/{id}/ack` · `POST /alerts/{id}/resolve` | Feed and detail (incl. occurrences sample, score breakdown, timeline) | BACKEND |
+| `GET /alerts/{id}/notifications` · `GET /notifications?state=` | Delivery state + attempts | BACKEND |
+| `GET /runbooks` · `POST /runbooks` (any format) · `POST /runbooks/structure {text}` (LLM) | Runbook store + structuring | DATA |
+| `GET /alerts/{id}/runbook` | Rendered steps for an alert | BACKEND |
+| `POST /alerts/{id}/actions {step_index}` · `POST /action-runs/{id}/approve` · `POST /action-runs/{id}/reject` · `POST /inbound/{channel} {from, body}` | Execute, approve (UI or reply), audit | BACKEND |
+| `GET/PUT /teams` · `GET/PUT /users/{id}/preferences` | Directory and preferences | DATA |
 | `GET /stream?team=` (SSE) | Live events, §10 | DATA |
 | `GET /stats/funnel?window=15m` · `GET /health` · `GET /metrics` (Prometheus text) · `POST /debug/reset` (DEMO_MODE) | Dashboard + ops | DATA |
 

@@ -46,18 +46,18 @@ The judges will bring an **unseen event schema and an unseen runbook** to the de
 
 **P0.5 — LLM onboarding assist (directly answers "judges bring an unseen schema/runbook")**
 - `assist.suggest_schema(sample)`: detect + aliases + severity map + event_id/alert_key templates (DATA).
-- `assist.structure_runbook(text)`: steps mapped onto the registered action list, with approval flags (DELIVERY).
+- `assist.structure_runbook(text)`: steps mapped onto the registered action list, with approval flags (DATA, using BACKEND's action registry).
 - Each has a deterministic fallback (name-similarity aliases; Markdown numbered list → manual checklist).
 
 **P1 — differentiators, in order**
-1. Rule impact simulator / Propose fixes: replay the last N events through the same pure engine with old vs draft rules and show the diff (RULES + UI).
-2. NL → rule draft with the LLM, then validate, preview and save (RULES + UI).
-3. Reply-to-approve over SMS (`YES 4821`) (DELIVERY).
-4. Critical lane: separate worker pool + delivery priority (RULES + DELIVERY).
-5. Weighted score with an explanation, used for feed sort and lane (RULES).
+1. Rule impact simulator / Propose fixes: replay the last N events through the same pure engine with old vs draft rules and show the diff (DATA + UI).
+2. NL → rule draft with the LLM, then validate, preview and save (DATA + UI).
+3. Reply-to-approve over SMS (`YES 4821`) (BACKEND).
+4. Critical lane: separate worker pool + delivery priority (BACKEND).
+5. Weighted score with an explanation, used for feed sort and lane (BACKEND).
 6. Funnel dashboard: raw → accepted → grouped → notified → critical, plus throughput, backlog and retries (DATA + UI).
-7. Channel fallback after the circuit opens, e.g. SMS down → email (DELIVERY).
-8. LLM "suggest a fix" for noisy alerts, and LLM runbook update from the audit trail of a resolved alert (2.6 optional) (RULES / DELIVERY).
+7. Channel fallback after the circuit opens, e.g. SMS down → email (BACKEND).
+8. LLM "suggest a fix" for noisy alerts, and LLM runbook update from the audit trail of a resolved alert (2.6 optional) (DATA).
 
 **P2:** related-alerts panel (time window + `config/dependencies.yaml`), LLM alert summary, threshold rule type (`count ≥ N in window`), deadman rule.
 **CUT:** real SMS/phone providers, SSO/RBAC beyond API keys and approver lists, Kafka + RabbitMQ both, Redis, K8s, multi-region, ML root cause.
@@ -70,7 +70,7 @@ The judges will bring an **unseen event schema and an unseen runbook** to the de
  RabbitMQ consumer ─┐                                  rule-worker (lane=critical|normal)  delivery-worker/channel   API: alerts, runbooks,
  HTTP /v1/events  ──┼─► flatten + schema detect ─► events (INBOX) ─► pure engine ─► alerts ─► notifications (OUTBOX) ─► Mailpit / fake-telecom / UI
  log tailer ────────┘    + aliases + identity        SKIP LOCKED     group/count/score  + routing.plan()    retries, breaker   actions → mock-ops
-                         (commit, then ACK)                          (same transaction) (pure, by DELIVERY)  attempts table     approvals, audit
+                         (commit, then ACK)                          (same transaction) (pure, by BACKEND)   attempts table     approvals, audit
                                                                                                                                 │
  Postgres LISTEN/NOTIFY ──► API SSE /v1/stream ──► React UI (feed, alert detail, rules + preview, onboarding, preferences, funnel)
  config/*.yaml ──watch──► config_objects (versioned) ──NOTIFY config_changed──► workers reload
@@ -79,23 +79,27 @@ The judges will bring an **unseen event schema and an unseen runbook** to the de
 
 Processes: `api` (FastAPI, scales horizontally), `ingest-amqp`, `ingest-logtail`, `rule-worker` ×N (one or more with `--lane critical`), `delivery-worker` ×N, `scheduler` (digests, escalation timers), plus infra `postgres`, `rabbitmq`, `mailpit` and mocks `fake-telecom` and `mock-ops` (network alias `counterparty-service`).
 
-## 6. Team & ownership (roughly equal load; everyone ships one LLM feature)
+## 6. Team & ownership (three builders + one reviewer/presenter who joins at the end)
 
 | Role | Owner | Branch | Owns (directories) | Layer |
 |---|---|---|---|---|
-| **DATA** — Data & Platform | *suggested: Yi* | `data/platform` | `backend/alerting/ingest/`, `schemas/`, `config/` loader, `api/routes_ingest.py`, `routes_schemas.py`, `routes_ops.py`, `routes_stream.py`, `mocks/fake_telecom/`, `loadtest/`, `docker-compose.yml`, `db/migrations/0xx` | L1, L2, SSE, infra, measurement |
-| **RULES** — Backend: rules & alert engine ("algorithm") | teammate | `rules/engine` | `backend/alerting/rules/`, `api/routes_rules.py`, `routes_alerts.py`, `db/migrations/1xx` | L3, L4, simulator |
-| **DELIVERY** — Backend: routing, delivery & runbooks ("API") | teammate | `delivery/runbooks` | `backend/alerting/routing/`, `delivery/`, `runbooks/`, `api/routes_runbooks.py`, `routes_teams.py`, `routes_notifications.py`, `mocks/mock_ops/`, `db/migrations/2xx` | L5, L6 backend |
-| **UI** — Frontend | teammate | `ui/frontend` | `frontend/` | L6 UI, dashboard |
+| **BACKEND** — rules, alerts, routing, delivery, runbook actions | **Yi** | `backend/core` | `backend/alerting/rules/`, `routing/`, `delivery/`, `runbooks/`, `api/routes_alerts.py`, `routes_notifications.py`, `routes_runbooks.py`, `db/migrations/1xx` | L3–L6 core (pure functions + workers) |
+| **DATA** — ingest, config, AI assist, simulators, measurement | teammate | `data/platform` | `backend/alerting/ingest/`, `schemas/`, `config/`, `assist/`, `simulate/`, `api/routes_ingest.py`, `routes_schemas.py`, `routes_rules.py`, `routes_teams.py`, `routes_config.py`, `routes_stream.py`, `routes_ops.py`, `mocks/`, `loadtest/`, `tools/`, `docker-compose.yml`, `db/migrations/0xx` | L1, L2, config APIs, all LLM features, SSE, load test |
+| **UI** — frontend | teammate | `ui/frontend` | `frontend/` | L6 UX, dashboard |
+| **REVIEW & PRESENT** — joins at G3 | 4th teammate | `review/present` | `docs/REVIEW_FINDINGS.md`, `docs/QA.md`, judge README, video | Fresh-eyes review, hidden-input rehearsal, evidence audit, video |
 
-**Shared files (change only via a PR that mentions everyone):** `docs/CONTRACT.md`, `backend/alerting/contracts.py`, `backend/alerting/llm.py`, `backend/alerting/db.py`, `backend/alerting/clock.py`, `backend/alerting/api/app.py`, `db/migrations/001_init.sql`, `config/*.yaml` formats.
-Yi does the final acceptance (golden + private holdout + chaos) on top of the DATA role.
+Handoffs: [BACKEND](handoff/BACKEND.md) · [DATA](handoff/DATA.md) · [UI](handoff/UI.md) · [REVIEW](handoff/REVIEW.md).
+
+**The seam between BACKEND and DATA:** BACKEND writes **pure functions** (`rules.dsl.compile`, `rules.engine.evaluate`, `routing.plan`, `runbooks.render`) plus the workers that call them. DATA calls the same pure functions for schema detection, rule validation, the simulator and runbook structuring. Neither re-implements the other's logic.
+
+**Shared files (change only via a PR that mentions everyone):** `docs/CONTRACT.md`, `backend/alerting/contracts.py`, `llm.py`, `templates.py`, `db.py`, `clock.py`, `api/app.py`, `db/migrations/001_init.sql`, `config/*.yaml` formats.
+**Acceptance:** Yi merges and runs the golden cases at each gate. The private holdout goes to the REVIEW person, because Yi writes the engine it tests and should not see it.
 
 ## 7. Working agreement
 
 - **Branches:** each person works on their own branch, cut from `main`. Rebase on `main` at least every 2 h. Open a PR into `main` at every gate (smaller PRs welcome). Yi merges.
 - **Contract changes:** never silently. Edit `CONTRACT.md` and `contracts.py` in a tiny PR first, post in the team chat, then implement.
-- **Migrations:** numbered ranges avoid conflicts: `0xx` DATA, `1xx` RULES, `2xx` DELIVERY. Only add files; never edit a merged migration.
+- **Migrations:** numbered ranges avoid conflicts: `0xx` DATA, `1xx` BACKEND. Only add files; never edit a merged migration.
 - **AI agents:** one coding agent per person, working only inside that person's directories. Give it your handoff file as the task. Tests must pass before you push. Agent-written code isn't "done" until you've run it.
 - **Status words:** PASS / FAIL / NOT_RUN in `docs/GATES.md`. Don't write "should work".
 - **Secrets:** `ANTHROPIC_API_KEY` lives only in your local `.env` (git-ignored). Only synthetic data. Redact before any LLM call (see CONTRACT §11).
@@ -109,8 +113,8 @@ The deadline is unconfirmed (one plan says Sat 23:00; the 18-hour format suggest
 | G0 contract | Fri 21:00 | Everyone has read BRIEF + CONTRACT + own handoff. `make infra` runs on every laptop. Open questions asked to a mentor |
 | G1 vertical slice | Sat 00:00 | RabbitMQ `workflow_failed.json` → inbox → rule → alert → outbox → fake-telecom shows phone + SMS → UI card appears live (SSE). Merged to `main` |
 | G2 all four example rules | Sat 04:00 | Golden cases for Settlements, Rates, Anna, Pricing, dedup, storm-500, unknown-schema, approval all PASS. Three runbook formats render |
-| G3 feature freeze | Sat 07:30 | P0.5 + top P1 items. Holdout run by Yi. Chaos (channel down) reconciles to 0 lost. Load-test raw results committed. Fresh-clone timing measured |
-| G4 safe submission | Sat 10:30 | README, video uploaded to Lockbox `All Teams/<team>` + repo link text file |
+| G3 feature freeze | Sat 07:30 | P0.5 + top P1 items. Holdout run by the REVIEW person. Chaos (channel down) reconciles to 0 lost. Load-test raw results committed. Fresh-clone timing measured |
+| G4 safe submission | Sat 10:30 | REVIEW person: judge README, video uploaded to Lockbox `All Teams/<team>` + repo link text file |
 
 If G2 slips: cut P1 items, never P0. Don't move G3.
 
@@ -132,8 +136,9 @@ If G2 slips: cut P1 items, never P0. Don't move G3.
 | Risk | Mitigation |
 |---|---|
 | Integration at the end | G1 vertical slice by midnight. UI builds against `fixtures/api/` mocks until then |
+| Only 3 builders tonight | Pure-function seam, P1 cut first, REVIEW person takes polish + video from G3 |
 | Two people editing shared files | Ownership table + migration ranges + contract-change PRs |
-| Hidden judge inputs | Generic flatten + `needs_review` + LLM assist + Yi's private holdout at G3 |
+| Hidden judge inputs | Generic flatten + `needs_review` + LLM assist + private holdout rehearsed by the REVIEW person at G3 |
 | LLM latency or outage during the demo | Assist is never on the alert path. 20 s timeout. Deterministic fallback. Cache suggestions per schema fingerprint |
 | Deadline ambiguity | Safe submission at 10:30 regardless |
 | A storm on one alert row | Batch claim + in-batch pre-aggregation (`count = count + k` once per key per batch) |

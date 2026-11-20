@@ -1,1 +1,1 @@
-"""Owner: DELIVERY. One module per channel implementing contracts.ChannelProvider."""
+"""Owner: BACKEND. One module per channel implementing contracts.ChannelProvider."""

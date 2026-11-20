@@ -1,5 +1,5 @@
 -- 001_init.sql — shared base schema (see docs/CONTRACT.md §7).
--- Ranges for later files: 0xx DATA, 1xx RULES, 2xx DELIVERY. Add files; never edit merged ones.
+-- Ranges for later files: 0xx DATA, 1xx BACKEND. Add files; never edit merged ones.
 -- Applied automatically on a fresh volume (docker-entrypoint-initdb.d). `make reset-db` to re-apply.
 
 create extension if not exists pgcrypto;

@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from alerting.api import (
     routes_alerts,
+    routes_config,
     routes_ingest,
     routes_notifications,
     routes_ops,
@@ -48,10 +49,11 @@ for module in (
     routes_ingest,         # DATA
     routes_schemas,        # DATA
     routes_stream,         # DATA
-    routes_rules,          # RULES
-    routes_alerts,         # RULES
-    routes_notifications,  # DELIVERY
-    routes_runbooks,       # DELIVERY
-    routes_teams,          # DELIVERY
+    routes_rules,          # DATA (config CRUD + simulator + drafts)
+    routes_teams,          # DATA
+    routes_config,         # DATA (runbook store + structuring)
+    routes_alerts,         # BACKEND
+    routes_notifications,  # BACKEND
+    routes_runbooks,       # BACKEND
 ):
     app.include_router(module.router)

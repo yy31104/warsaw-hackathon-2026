@@ -1,3 +1,3 @@
-# mock-ops (owner: DELIVERY)
+# mock-ops (owner: DATA)
 
-Runbook action targets (workflow retry, restart, tickets, health). Compose alias `counterparty-service`. Spec: docs/handoff/DELIVERY.md task 6.
+Runbook action targets (workflow retry, restart, tickets, health). Compose alias `counterparty-service`. Spec: docs/handoff/DATA.md task 16.
