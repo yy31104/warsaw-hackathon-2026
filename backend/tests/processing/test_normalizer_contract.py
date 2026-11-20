@@ -1,4 +1,4 @@
-"""The DEV2 producer and DEV1 fixture adapter can both pass their output to this assertion."""
+"""Pin the production normaliser output consumed by the rule engine."""
 
 import json
 from datetime import datetime
