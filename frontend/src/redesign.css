@@ -69,3 +69,31 @@
 @keyframes overview-scroll-hint{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
 @media(max-width:800px){.overview-hero .status-landscape{flex-direction:column;align-items:stretch;justify-content:center;padding:28px 0;gap:30px}.overview-hero .status-signals{flex-direction:row;flex-wrap:wrap;justify-content:space-between;padding:0;gap:20px}.overview-hero .status-main{flex:0}.overview-hero .status-orbit{width:140px;height:140px}.overview-hero .status-orbit>strong{font-size:56px}.overview-hero .status-bubble strong{width:58px;height:58px;font-size:28px}.overview-hero .severity-legend{font-size:12px}.overview-hero .status-main h2{font-size:28px}}
 @media(prefers-reduced-motion:reduce){.overview-scroll>span:last-child{animation:none}}
+
+/* Integrate the live trace into the opening canvas, without a chart card. */
+.overview-hero .status-landscape{padding:20px 0 24px;min-height:230px}
+.overview-hero .status-orbit{width:clamp(140px,13vw,185px);height:clamp(140px,13vw,185px)}
+.overview-hero .status-orbit>strong{font-size:clamp(54px,5vw,74px)}
+.overview-hero .live-trend-embedded{background:none;border:0;border-radius:0;box-shadow:none;padding:0;margin:12px 0 18px;min-width:0}
+.live-trend-embedded .chart-heading{align-items:center;margin-bottom:0}
+.live-trend-embedded .chart-heading h2{font-size:14px;font-weight:500;margin:0}
+.live-trend-embedded .chart-heading p{max-width:none;margin:6px 0 0;font-size:11px}
+.overview-hero .live-trend-embedded svg{display:block;width:100%;height:clamp(130px,20vh,200px);overflow:visible}
+.live-trend-embedded svg g line{opacity:.18;stroke-dasharray:2 6}
+.live-trend-embedded svg g text,.live-trend-embedded svg>text{display:none}
+.live-trend-embedded svg>g circle{opacity:0;transition:opacity .2s}
+.live-trend-embedded svg>g circle[r="6"],.live-trend-embedded svg>g:hover circle{opacity:1}
+.live-trend-embedded .chart-scrubber{display:flex;align-items:center;gap:18px;margin:0;color:var(--quiet);font-size:11px}
+.live-trend-embedded .chart-scrubber input{flex:1;max-width:280px;accent-color:var(--motion-purple)}
+.live-trend-embedded .chart-scrubber strong{margin-left:auto;font-size:12px;font-weight:400;color:var(--secondary)}
+.overview-insights-content{grid-template-columns:1fr}
+@media(max-width:650px){.live-trend-embedded .chart-scrubber{flex-wrap:wrap;gap:10px}.live-trend-embedded .chart-scrubber strong{margin-left:0}.overview-hero .status-landscape{min-height:0}.overview-hero .live-trend-embedded svg{height:130px}}
+
+/* Count-driven diameter: bounded square-root scale, exact values stay readable. */
+.overview-hero .status-orbit{width:var(--count-size);height:var(--count-size);transition:width .65s ease,height .65s ease}
+.overview-hero .status-orbit>strong{font-size:clamp(38px,calc(var(--count-size) * .38),78px)}
+.overview-hero .status-bubble strong{width:var(--count-size);height:var(--count-size);font-size:clamp(26px,calc(var(--count-size) * .42),42px);transition:width .65s ease,height .65s ease,background .25s,border-color .25s}
+.overview-hero .status-approval-inline strong{display:grid;place-items:center;box-sizing:border-box;width:var(--count-size);height:var(--count-size);border-radius:50%;border:1px solid color-mix(in srgb,var(--motion-pink) 45%,var(--line));font-size:clamp(22px,calc(var(--count-size) * .42),34px);transition:width .65s ease,height .65s ease}
+.overview-hero .status-approval-inline .status-dot{display:none}
+.overview-hero .status-bubbles{align-items:center;min-height:145px}
+@media(prefers-reduced-motion:reduce){.overview-hero .status-orbit,.overview-hero .status-bubble strong,.overview-hero .status-approval-inline strong{transition:none}}
