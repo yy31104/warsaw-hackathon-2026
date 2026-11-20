@@ -1,0 +1,30 @@
+{
+  "logtail_event_id": 7,
+  "project": "dev2perffinal-critical-outage",
+  "startup_seconds": 38.8564234,
+  "trial": {
+    "Duration": 6,
+    "CriticalRate": 2,
+    "Name": "critical-outage",
+    "NormalRate": 0,
+    "Outage": 30,
+    "Tag": "platform-critical-outage",
+    "Workers": 1
+  },
+  "services": [
+    "api|running|healthy",
+    "delivery-worker|running|",
+    "fake-telecom|running|healthy",
+    "frontend|running|healthy",
+    "ingest-amqp|running|",
+    "ingest-logtail|running|",
+    "mailpit|running|healthy",
+    "mock-ops|running|",
+    "postgres|running|healthy",
+    "rabbitmq|running|healthy",
+    "rule-worker|running|",
+    "rule-worker-critical|running|",
+    "scheduler|running|"
+  ],
+  "backend_image": "sha256:f26f9152acf03dc004dda837a6ad8e814da26afa942cbcd7519d5a9e321c7be0"
+}

@@ -2,6 +2,7 @@
 
 infra:            ## start postgres, rabbitmq, mailpit
 	docker compose up -d postgres rabbitmq mailpit
+	docker compose run --rm db-upgrade
 
 down:
 	docker compose down

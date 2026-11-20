@@ -4,13 +4,14 @@ import json
 import re
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, StringConstraints, field_validator, model_validator
 
 from alerting.contracts import Severity
-from alerting.rules.dsl import compile as compile_match
+from alerting.rules.dsl import compile as compile_match, number
 
 Text = Annotated[str, StringConstraints(min_length=1)]
 Alias = Literal["service", "severity", "environment", "error_code", "message", "time"]
+Unit = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 
 
 def fingerprint(raw: dict) -> str:
@@ -37,6 +38,20 @@ def _check_groups(node, depth=0):
         _check_groups(node["not"], depth + 1)
 
 
+class FieldTransform(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    scale: StrictInt | StrictFloat | Text = 1
+    unit: Unit | None = None
+
+    @field_validator("scale")
+    @classmethod
+    def finite_scale(cls, value):
+        if number(value) is None:
+            raise ValueError("scale must be a finite number")
+        return value
+
+
 class SchemaDraft(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -50,6 +65,8 @@ class SchemaDraft(BaseModel):
     event_id: Text | None = None
     alert_key: Text | None = None
     resolve_when: dict | None = None
+    transforms: dict[Text, FieldTransform] | None = None
+    episode_key: Text | None = None
 
     @field_validator("detect", "resolve_when")
     @classmethod

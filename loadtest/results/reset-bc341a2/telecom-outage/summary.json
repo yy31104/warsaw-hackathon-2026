@@ -1,0 +1,264 @@
+{
+  "status": "PASS",
+  "problems": [],
+  "normal_workers": 1,
+  "critical_workers": 1,
+  "workload_tag": "platform-outage",
+  "workload_sha256": "6ce6a99dbb0723109c8531cd34770ebf589a7a441c8c8ef474ff8370e85aff99",
+  "duration_s": 6,
+  "offered_normal_events_per_s": 2,
+  "offered_critical_events_per_s": 0,
+  "normal_grouping": "per event",
+  "distinct_normal_keys": 12,
+  "scheduled": 12,
+  "broker_confirmed": 12,
+  "dropped": 0,
+  "publish_errors": 0,
+  "missing_event_ids": [],
+  "generation_trace_mismatches": [],
+  "max_absolute_schedule_lag_ms": 2,
+  "throughput": {
+    "ingest": {
+      "count": 12,
+      "elapsed_s": 6,
+      "per_s": 2.0,
+      "within_offered_window": 12
+    },
+    "processed": {
+      "count": 12,
+      "elapsed_s": 6.1345849609375,
+      "per_s": 1.956122553752379,
+      "within_offered_window": 11
+    },
+    "telecom_confirmed": {
+      "count": 24,
+      "elapsed_s": 39.0126259765625,
+      "per_s": 0.6151854534072742,
+      "within_offered_window": 0
+    },
+    "telecom_received": {
+      "count": 24,
+      "elapsed_s": 39.008,
+      "per_s": 0.6152584085315832,
+      "within_offered_window": 0
+    }
+  },
+  "peak_processing_backlog": 1,
+  "peak_delivery_backlog": 24,
+  "peak_oldest_pending_s": 38.063155,
+  "decisions": 48,
+  "decisions_per_1000": 4000.0,
+  "sms_phone_receipts_per_1000": 2000.0,
+  "receiver": {
+    "lost_count": 0,
+    "expected_slots": [
+      [
+        "platform-outage-normal-000001",
+        "phone"
+      ],
+      [
+        "platform-outage-normal-000001",
+        "sms"
+      ],
+      [
+        "platform-outage-normal-000002",
+        "phone"
+      ],
+      [
+        "platform-outage-normal-000002",
+        "sms"
+      ],
+      [
+        "platform-outage-normal-000003",
+        "phone"
+      ],
+      [
+        "platform-outage-normal-000003",
+        "sms"
+      ],
+      [
+        "platform-outage-normal-000004",
+        "phone"
+      ],
+      [
+        "platform-outage-normal-000004",
+        "sms"
+      ],
+      [
+        "platform-outage-normal-000005",
+        "phone"
+      ],
+      [
+        "platform-outage-normal-000005",
+        "sms"
+      ],
+      [
+        "platform-outage-normal-000006",
+        "phone"
+      ],
+      [
+        "platform-outage-normal-000006",
+        "sms"
+      ],
+      [
+        "platform-outage-normal-000007",
+        "phone"
+      ],
+      [
+        "platform-outage-normal-000007",
+        "sms"
+      ],
+      [
+        "platform-outage-normal-000008",
+        "phone"
+      ],
+      [
+        "platform-outage-normal-000008",
+        "sms"
+      ],
+      [
+        "platform-outage-normal-000009",
+        "phone"
+      ],
+      [
+        "platform-outage-normal-000009",
+        "sms"
+      ],
+      [
+        "platform-outage-normal-000010",
+        "phone"
+      ],
+      [
+        "platform-outage-normal-000010",
+        "sms"
+      ],
+      [
+        "platform-outage-normal-000011",
+        "phone"
+      ],
+      [
+        "platform-outage-normal-000011",
+        "sms"
+      ],
+      [
+        "platform-outage-normal-000012",
+        "phone"
+      ],
+      [
+        "platform-outage-normal-000012",
+        "sms"
+      ]
+    ],
+    "lost_slots": [],
+    "missing_plan_slots": [],
+    "unexpected_plan_slots": [],
+    "duplicate_plan_slots": [],
+    "expected_outbox_ids": [
+      "07110972-4c35-4d4d-b23f-d8d1a192b721",
+      "0fb136ab-6dd4-4b06-8fd4-05a37345cf5e",
+      "120a467b-5acd-4f25-8930-d6da0a6da175",
+      "165aebee-372e-454e-95d1-55e8cc0baffc",
+      "257fef52-caeb-4832-9f2b-39674d431599",
+      "2f142a66-d5bb-4d49-8fb3-746c0608e374",
+      "32ee2f69-2ca0-4a9f-8bf1-21a029386343",
+      "3fec8845-238c-4ae5-8e2f-2c586e365472",
+      "47de8bbb-940d-4f4f-8a0e-7199c104a1bf",
+      "48167bed-06dd-48ed-b783-7e966ebb9f5d",
+      "52299c63-3e66-4daf-9a74-d90156c46aba",
+      "5ab2789a-530a-45fb-a4e9-677a90b63ce6",
+      "72e54972-5142-40b1-9d93-62373ff5812c",
+      "776bba09-4d7e-4d3b-9686-4a72eb0c3261",
+      "830983e2-3764-4361-945a-2b88b7b2e9b2",
+      "a1deabd4-9592-45fc-8fa1-9fea1261b921",
+      "a5abb68e-5426-404e-942e-df14d1340178",
+      "d211e0c3-fadf-4be7-a58e-60ba5afcfd9e",
+      "dca9adda-246e-48f5-b50d-3d1af6d8891d",
+      "e4679700-4d4c-45bb-96b7-03db339312cb",
+      "ebc1233c-fac0-4db7-b0e9-3b2fe191c1a2",
+      "ef066d88-6d70-42b1-82ca-51a2f616cf56",
+      "f4e32749-274b-4495-bba1-ea74fa0111b7",
+      "fe748ab1-d89c-4f2c-b6e3-4bf453d4127e"
+    ],
+    "receiver_ids": [
+      "07110972-4c35-4d4d-b23f-d8d1a192b721",
+      "0fb136ab-6dd4-4b06-8fd4-05a37345cf5e",
+      "120a467b-5acd-4f25-8930-d6da0a6da175",
+      "165aebee-372e-454e-95d1-55e8cc0baffc",
+      "257fef52-caeb-4832-9f2b-39674d431599",
+      "2f142a66-d5bb-4d49-8fb3-746c0608e374",
+      "32ee2f69-2ca0-4a9f-8bf1-21a029386343",
+      "3fec8845-238c-4ae5-8e2f-2c586e365472",
+      "47de8bbb-940d-4f4f-8a0e-7199c104a1bf",
+      "48167bed-06dd-48ed-b783-7e966ebb9f5d",
+      "52299c63-3e66-4daf-9a74-d90156c46aba",
+      "5ab2789a-530a-45fb-a4e9-677a90b63ce6",
+      "72e54972-5142-40b1-9d93-62373ff5812c",
+      "776bba09-4d7e-4d3b-9686-4a72eb0c3261",
+      "830983e2-3764-4361-945a-2b88b7b2e9b2",
+      "a1deabd4-9592-45fc-8fa1-9fea1261b921",
+      "a5abb68e-5426-404e-942e-df14d1340178",
+      "d211e0c3-fadf-4be7-a58e-60ba5afcfd9e",
+      "dca9adda-246e-48f5-b50d-3d1af6d8891d",
+      "e4679700-4d4c-45bb-96b7-03db339312cb",
+      "ebc1233c-fac0-4db7-b0e9-3b2fe191c1a2",
+      "ef066d88-6d70-42b1-82ca-51a2f616cf56",
+      "f4e32749-274b-4495-bba1-ea74fa0111b7",
+      "fe748ab1-d89c-4f2c-b6e3-4bf453d4127e"
+    ],
+    "missing_receiver_ids": [],
+    "unexpected_receiver_ids": [],
+    "unconfirmed_outbox_ids": [],
+    "invalid_receipts": [],
+    "duplicate_receiver_count": 0,
+    "e2e": {
+      "n": 24,
+      "p50_ms": 28465,
+      "p95_ms": 38034,
+      "p99_ms": 38523
+    },
+    "critical_e2e": {
+      "n": 0,
+      "p50_ms": null,
+      "p95_ms": null,
+      "p99_ms": null
+    }
+  },
+  "outage": {
+    "kind": "stopped_container",
+    "requested_s": 30,
+    "first_unreachable_at_ms": 1795217404110,
+    "restored_mode": "ok",
+    "while_down": {
+      "observed_at_ms": 1795217431199,
+      "accepted": 12,
+      "processed": 12,
+      "processing_backlog": 0,
+      "planned": 24,
+      "delivered": 0,
+      "delivery_backlog": 24,
+      "terminal": 0,
+      "failed": 0,
+      "attempts": 7,
+      "oldest_pending_s": 26.519355
+    },
+    "last_unreachable_at_ms": 1795217431201,
+    "first_reachable_at_ms": 1795217431706,
+    "receipts_while_down": []
+  },
+  "telecom_recovered_after_retry_ids": [
+    "0fb136ab-6dd4-4b06-8fd4-05a37345cf5e",
+    "165aebee-372e-454e-95d1-55e8cc0baffc",
+    "257fef52-caeb-4832-9f2b-39674d431599",
+    "3fec8845-238c-4ae5-8e2f-2c586e365472",
+    "72e54972-5142-40b1-9d93-62373ff5812c",
+    "776bba09-4d7e-4d3b-9686-4a72eb0c3261",
+    "a1deabd4-9592-45fc-8fa1-9fea1261b921"
+  ],
+  "fallback": {
+    "replacement_count": 0,
+    "confirmed_email": 0,
+    "confirmed_ui": 0,
+    "confirmed_original_ids": [],
+    "loss_count_after_verified_replacements": 0
+  }
+}

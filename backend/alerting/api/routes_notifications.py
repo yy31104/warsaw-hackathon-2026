@@ -45,6 +45,14 @@ class Reply(BaseModel):
     body: str = Field(max_length=64)
 
 
+def approver_scope(directory, channel, sender):
+    users = [u["id"] for u in directory["users"] if u.get("contacts", {}).get(channel) == sender]
+    if len(users) != 1:
+        return None, []
+    actor = users[0]
+    return actor, [t["id"] for t in directory["teams"] if actor in t.get("approvers", ())]
+
+
 @router.post("/inbound/{channel}")
 async def inbound(
     channel: Literal["sms"],
@@ -83,13 +91,21 @@ async def inbound(
                 "insert into approval_failures(sender,failed_at) values(%s,%s)", (body.sender, now)
             )
             if failures == 4:
+                _, teams = approver_scope(cfg.directory, channel, body.sender)
+                await cur.execute(
+                    """select distinct r.alert_id from action_runs r join alerts a on a.id=r.alert_id
+                       where a.team_id=any(%s) and r.state='pending_approval'
+                       and r.approval_code is not null and r.approval_expires_at>%s order by r.alert_id""",
+                    (teams, now),
+                )
+                affected = [row["alert_id"] for row in await cur.fetchall()]
                 await audit(
                     cur,
                     "provider",
                     "approval.locked",
                     "sender",
                     body.sender,
-                    {"window_minutes": 15},
+                    {"window_minutes": 15, "alert_ids": affected},
                 )
                 error = HTTPException(429, "Approval attempt limit reached")
     if error:
@@ -101,14 +117,10 @@ async def consume_reply(cur, channel, body, cfg):
     match = re.fullmatch(r"(YES|NO)\s+([0-9]{6})", body.body.strip(), re.IGNORECASE)
     if not match:
         raise HTTPException(422, "Use YES or NO followed by the six-digit code")
-    users = [
-        u["id"] for u in cfg.directory["users"] if u.get("contacts", {}).get(channel) == body.sender
-    ]
-    if len(users) != 1:
+    actor, teams = approver_scope(cfg.directory, channel, body.sender)
+    if actor is None:
         raise HTTPException(403, "Unrecognized sender")
-    actor = users[0]
     approve = match[1].upper() == "YES"
-    teams = [t["id"] for t in cfg.directory["teams"] if actor in t.get("approvers", ())]
     if not teams:
         raise HTTPException(403, "Team approver required")
     code = match[2]

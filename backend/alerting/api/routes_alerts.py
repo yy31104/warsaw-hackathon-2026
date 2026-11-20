@@ -132,9 +132,12 @@ async def detail(id: int, db=Depends(get_db)):
                 from notifications where alert_id=%s
             union all select d.finished_at,'notification',concat(n.channel,' → ',n.recipient,': ',d.outcome,' (attempt ',d.attempt,')')
                 from delivery_attempts d join notifications n on n.id=d.notification_id where n.alert_id=%s and d.finished_at is not null
-            union all select at,'audit',concat(actor,' ',action) from audit_log where target_kind='alert' and target_id=%s
+            union all select at,'audit',concat(actor,' ',action) from audit_log
+                where (target_kind='alert' and target_id=%s)
+                   or (target_kind='sender' and action='approval.locked'
+                       and detail->'alert_ids' @> jsonb_build_array(%s::bigint))
             order by ts""",
-            (id, id, id, str(id)),
+            (id, id, id, str(id), id),
         )
         alert["timeline"] = await cur.fetchall()
         return alert

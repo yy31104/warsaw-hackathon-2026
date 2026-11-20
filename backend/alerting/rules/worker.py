@@ -32,6 +32,7 @@ from alerting.rules.storage import (
     delivery_plan,
     enqueue_event_plans,
     get_settings,
+    prepare_settings,
 )
 
 COLUMNS = (
@@ -180,7 +181,7 @@ async def process_batch(db, settings: Settings | None = None, lane="normal", bat
     if batch < 0:
         raise ValueError("batch must be nonnegative")
     if settings is None:
-        settings = await get_settings(db)
+        await prepare_settings(db)
     async with (
         db.connection() as conn,
         conn.transaction(),
@@ -188,6 +189,10 @@ async def process_batch(db, settings: Settings | None = None, lane="normal", bat
     ):
         rows = await claim_sources(cur, lane, batch, stop)
         if rows:
+            if settings is None:
+                # The claim can see events committed after a rule publish. Read the
+                # registry afterwards, on the same connection, before evaluating them.
+                settings = await get_settings(db, conn=conn)
             await isolate(conn, cur, settings, lane, rows)
         return len(rows)
 

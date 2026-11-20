@@ -90,7 +90,7 @@ def plan(alert, transition, rule, event_fields, directory, runbooks, recent_send
             destinations[(f"team:{fallback}", "ui")] = (None, False)
     if not destinations:
         result.unrouted_reason = "no recipient or contact resolved"
-    link = f"http://localhost:5173/a/{alert.id}"
+    link = f"{directory.get('public_ui_url', 'http://localhost:5173')}/a/{alert.id}"
     title = alert.title or alert.rule_id
     body = alert.body or ""
     if kind == "digest":

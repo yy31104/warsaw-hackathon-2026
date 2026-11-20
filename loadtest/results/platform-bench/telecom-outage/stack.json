@@ -1,0 +1,30 @@
+{
+  "logtail_event_id": 7,
+  "project": "dev2perffinal-telecom-outage",
+  "startup_seconds": 14.5000396,
+  "trial": {
+    "Duration": 6,
+    "CriticalRate": 0,
+    "Name": "telecom-outage",
+    "NormalRate": 2,
+    "Outage": 30,
+    "Tag": "platform-outage",
+    "Workers": 1
+  },
+  "services": [
+    "api|running|healthy",
+    "delivery-worker|running|",
+    "fake-telecom|running|healthy",
+    "frontend|running|healthy",
+    "ingest-amqp|running|",
+    "ingest-logtail|running|",
+    "mailpit|running|healthy",
+    "mock-ops|running|",
+    "postgres|running|healthy",
+    "rabbitmq|running|healthy",
+    "rule-worker|running|",
+    "rule-worker-critical|running|",
+    "scheduler|running|"
+  ],
+  "backend_image": "sha256:1ec163d4be0058662de3ed99debde4a109a72c18bf78871945f9f81ecc185b3d"
+}

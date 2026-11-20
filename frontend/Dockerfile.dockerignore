@@ -1,0 +1,16 @@
+**
+!frontend/
+!frontend/index.html
+!frontend/package.json
+!frontend/package-lock.json
+!frontend/tsconfig.json
+!frontend/vite.config.ts
+!frontend/src/
+!frontend/src/**
+!frontend/demo/
+!frontend/demo/**
+!config/
+!config/**
+!fixtures/
+!fixtures/api/
+!fixtures/api/**

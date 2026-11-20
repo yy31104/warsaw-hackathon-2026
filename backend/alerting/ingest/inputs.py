@@ -1,7 +1,7 @@
 """Common transport boundary for parsed JSON objects, broker bodies and log lines."""
 from datetime import datetime
 
-from alerting.clock import SYSTEM
+from alerting.clock import SYSTEM, demo_mode
 from alerting.contracts import CanonicalEvent
 from alerting.ingest.normalize import InvalidEvent, SchemaDetector, decode_json, normalize, parse_log_line
 from alerting.ingest.store import RejectedInput
@@ -12,6 +12,8 @@ def prepare(payload, source: dict, schemas: list[dict] | SchemaDetector, *, mess
     received_at = received_at or SYSTEM.now()
     headers = headers or {}
     trace = {}
+    if demo_mode() and headers.get("x-demo-fault") == "raise":
+        trace["demo_fault"] = "raise"
     try:
         trace["gen_sent_at"] = int(headers["x-gen-sent-at"])
     except (KeyError, ValueError, TypeError, OverflowError):
