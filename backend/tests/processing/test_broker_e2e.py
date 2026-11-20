@@ -1,56 +1,61 @@
 """Exercise the actual broker consumer, DB workers and network receiver on an isolated queue."""
 
 import asyncio
-import json
 import os
-from contextlib import contextmanager, suppress
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from threading import Thread
+import socket
+from contextlib import asynccontextmanager, suppress
 from uuid import uuid4
 
 import aio_pika
 import httpx
 import pytest
+import uvicorn
 
 from alerting.config import files
 from alerting.delivery.providers.telecom import Telecom
 from alerting.delivery.worker import deliver_one
 from alerting.ingest.amqp import consume
 from alerting.rules.worker import process_batch
-from .test_golden import ROOT
+from .test_golden import GOLD, ROOT
 
 
-@contextmanager
-def local_receiver():
-    recorded = []
+@asynccontextmanager
+async def telecom_receiver(tmp_path, monkeypatch):
+    external = os.getenv("E2E_FAKE_TELECOM_URL")
+    if external:
+        yield external.rstrip("/")
+        return
 
-    class Handler(BaseHTTPRequestHandler):
-        def do_POST(self):
-            payload = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
-            recorded.append((self.path, self.headers["Idempotency-Key"], payload["to"]))
-            self.send_response(200)
-            self.end_headers()
+    monkeypatch.syspath_prepend(str(ROOT))
+    monkeypatch.setenv("FAKE_TELECOM_DB", str(tmp_path / "receipts.sqlite3"))
+    from mocks.fake_telecom.app import create_app
 
-        def log_message(self, *args):
-            pass
-
-    with ThreadingHTTPServer(("127.0.0.1", 0), Handler) as server:
-        thread = Thread(target=server.serve_forever, daemon=True)
-        thread.start()
+    server = uvicorn.Server(uvicorn.Config(create_app(), log_config=None, access_log=False))
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        url = f"http://127.0.0.1:{sock.getsockname()[1]}"
+        serving = asyncio.create_task(server.serve(sockets=[sock]))
         try:
-            yield f"http://127.0.0.1:{server.server_port}", recorded
+            async with asyncio.timeout(10):
+                while not server.started:
+                    if serving.done():
+                        await serving
+                        pytest.fail("fake-telecom stopped before accepting requests")
+                    await asyncio.sleep(0.025)
+            yield url
         finally:
-            server.shutdown()
-            thread.join()
+            server.should_exit = True
+            await asyncio.wait_for(serving, timeout=10)
 
 
 @pytest.mark.e2e
-async def test_workflow_from_real_rabbit_publish(database, monkeypatch):
+async def test_workflow_from_real_rabbit_publish(database, monkeypatch, tmp_path):
     broker = os.getenv("INGEST_TEST_RABBITMQ_URL")
     if not broker:
         pytest.skip("set INGEST_TEST_RABBITMQ_URL to run the real RabbitMQ chain")
-    source = next(s for s in files.sources() if s["id"] == "workflow-bus")
-    body = (ROOT / "fixtures/events/workflow_failed.json").read_bytes()
+    case = next(c for c in GOLD["cases"] if c["id"] == "settlements-positive")
+    source = next(s for s in files.sources() if s["id"] == case["send"]["source"])
+    body = (ROOT / case["send"]["file"]).read_bytes()
     key = "broker-e2e-" + uuid4().hex
     source = dict(source, queue=key)
     async with await aio_pika.connect(broker, timeout=5) as connection:
@@ -83,38 +88,41 @@ async def test_workflow_from_real_rabbit_publish(database, monkeypatch):
             async with database.connection() as conn:
                 outbox = await (
                     await conn.execute(
-                        "select id,channel,contact,state from notifications order by channel"
+                        "select id,channel,state,recipient from notifications order by channel"
                     )
                 ).fetchall()
-                assert [(ch, state) for _, ch, _, state in outbox] == [
+                assert [(ch, state) for _, ch, state, _ in outbox] == [
                     ("phone", "pending"),
                     ("sms", "pending"),
                     ("ui", "delivered"),
                 ]
                 assert await (
                     await conn.execute("select rule_id,occurrence_count from alerts")
-                ).fetchall() == [("settlements-wf-failed", 1)]
-            with local_receiver() as (test_url, recorded):
-                real = os.getenv("E2E_FAKE_TELECOM_URL")
-                monkeypatch.setenv("FAKE_TELECOM_URL", real or test_url)
+                ).fetchall() == [(case["expect"]["alert"]["rule"], 1)]
+            assert {(recipient, ch) for _, ch, _, recipient in outbox} == {
+                (n["recipient"], n["channel"]) for n in case["expect"]["notifications"]
+            }
+            directory = {user["id"]: user for user in files.directory()["users"]}
+            expected = {
+                str(nid): (ch, directory[recipient]["contacts"][ch])
+                for nid, ch, _, recipient in outbox
+                if ch != "ui"
+            }
+            async with telecom_receiver(tmp_path, monkeypatch) as receiver:
+                monkeypatch.setenv("FAKE_TELECOM_URL", receiver)
                 async with httpx.AsyncClient(trust_env=False) as client:
                     for ch in ("phone", "sms"):
                         assert await deliver_one(database, {ch: Telecom(ch, client)}, [ch])
-                    if real:
-                        messages = await client.get(real.rstrip("/") + "/messages")
-                        messages.raise_for_status()
-                        rows = messages.json()
-                        if isinstance(rows, dict):
-                            rows = rows.get("messages", rows.get("items", []))
-                        assert {str(item[0]) for item in outbox if item[1] != "ui"} <= {
-                            str(r.get("idempotency_key", r.get("notification_id"))) for r in rows
-                        }
-                    else:
-                        assert set(recorded) == {
-                            ("/call" if ch == "phone" else "/sms", str(nid), contact)
-                            for nid, ch, contact, _ in outbox
-                            if ch != "ui"
-                        }
+                    messages = await client.get(receiver + "/messages")
+                    messages.raise_for_status()
+                    receipts = [
+                        (r["idempotency_key"], r["channel"], r["to"])
+                        for r in messages.json()["items"]
+                        if r["idempotency_key"] in expected
+                    ]
+                    assert sorted(receipts) == sorted(
+                        (key, *value) for key, value in expected.items()
+                    )
             async with database.connection() as conn:
                 assert await (await conn.execute("select status from events")).fetchall() == [
                     ("processed",)

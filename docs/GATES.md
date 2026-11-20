@@ -14,7 +14,7 @@ Status: **PASS / FAIL / NOT_RUN** only. Record who ran it, when, and the evidenc
 | Check | Status | Who / when | Evidence |
 |---|---|---|---|
 | RabbitMQ → PostgreSQL inbox → rule worker → outbox → loopback HTTP receiver | PASS | Yi · 2026-11-20 | Production code from integrated main `accfd72`. `cd backend && INGEST_TEST_RABBITMQ_URL=amqp://localhost:5672/ uv run pytest -q tests/processing/test_broker_e2e.py`. One RabbitMQ publish produced one alert, two HTTP receipts (phone and SMS), one UI delivery and two successful provider attempts. With the broker enabled, the full suite passed 131 tests. |
-| RabbitMQ `workflow_failed.json` → fake-telecom shows phone + SMS to sam | NOT_RUN | | |
+| RabbitMQ `workflow_failed.json` → fake-telecom shows phone + SMS to sam | PASS | Yi · 2026-11-20 | Production services from main `b45e604`, test `49b1d68`. `cd backend && INGEST_TEST_RABBITMQ_URL=amqp://localhost:5672/ uv run pytest -q tests/processing/test_broker_e2e.py`. The production consumer wrote the inbox row. The rule worker created one alert, two pending phone/SMS notifications and a delivered UI notification. `/messages` returned one receipt for each expected notification ID, channel and on-call number. Both provider attempts were recorded as delivered. |
 | Same event → UI card appears without refresh (SSE) | NOT_RUN | | |
 | Branches merged into `main`, `make test` green | NOT_RUN | | |
 
