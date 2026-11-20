@@ -43,11 +43,17 @@ async def database():
 
 
 @pytest_asyncio.fixture
-async def api(database):
+async def api(database, monkeypatch):
+    from secrets import token_urlsafe
+
+    secret = token_urlsafe()
+    monkeypatch.setenv("INBOUND_SECRET", secret)
     app.dependency_overrides[get_db] = lambda: database
     try:
         async with httpx.AsyncClient(
-            transport=httpx.ASGITransport(app=app), base_url="http://test"
+            transport=httpx.ASGITransport(app=app),
+            base_url="http://test",
+            headers={"X-Provider-Secret": secret},
         ) as client:
             yield client
     finally:

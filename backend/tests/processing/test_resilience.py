@@ -50,11 +50,11 @@ async def test_inbound_sms(api, database):
     assert (await reply("+15550100003", "NO " + pin)).json()["state"] == "rejected"
     assert (await reply("+15550100003", "YES " + pin)).status_code in (404, 409)
     pin = await code()
-    assert (await reply("+15550100003", "YES " + pin)).json()["state"] == "succeeded"
-    pin = await code()
     async with database.connection() as conn:
         await conn.execute(
             "update action_runs set approval_expires_at=now()-interval '1 minute' where approval_code=%s",
             (pin,),
         )
     assert (await reply("+15550100003", "YES " + pin)).status_code == 409
+    pin = await code()
+    assert (await reply("+15550100003", "YES " + pin)).json()["state"] == "succeeded"

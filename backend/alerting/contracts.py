@@ -52,6 +52,10 @@ class Outcome(str, Enum):
     NOTIFIED = "NOTIFIED"
     UNROUTED = "UNROUTED"
     RESOLVED = "RESOLVED"
+    STALE_RESOLVE = "STALE_RESOLVE"
+    QUARANTINED = "QUARANTINED"
+    RULE_FAULT = "RULE_FAULT"
+    SILENCED = "SILENCED"
 
 
 class Transition(str, Enum):
@@ -86,7 +90,7 @@ class CanonicalEvent(BaseModel):
     raw: dict[str, Any]
     fields: dict[str, Any] = Field(default_factory=dict)  # flattened paths + "$alias" keys
     lane: Lane = "normal"
-    status: Literal["pending", "processed", "needs_review", "rejected"] = "pending"
+    status: Literal["pending", "processed", "needs_review", "rejected", "quarantined"] = "pending"
     trace: dict[str, Any] = Field(default_factory=dict)  # gen_sent_at, received_at, demo_clock, ...
 
 

@@ -35,6 +35,7 @@ schemas:
       time: startsAt
     severity_map: {info: info, warning: warning, critical: critical, page: critical}
     alert_key: "{{alertname}}|{{labels.service}}|{{labels.region}}"
+    episode_key: "{{startsAt}}"
     resolve_when: {field: status, op: eq, value: resolved}
 
   - id: business-envelope
