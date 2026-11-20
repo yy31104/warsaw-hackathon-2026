@@ -3,7 +3,7 @@ from datetime import timedelta
 
 import pytest
 
-from alerting.clock import FixedClock
+from alerting.clock import SYSTEM, FixedClock
 from alerting.rules.engine import Ruleset
 from alerting.rules.scheduler import tick
 from alerting.rules.storage import Settings
@@ -66,3 +66,43 @@ async def test_ack_stops_escalation_before_the_next_step(database, api):
         assert await (await conn.execute(
             "select count(*) from audit_log where action='alert.escalate'"
         )).fetchone() == (1,)
+
+
+async def test_live_poll_times_policy_steps_from_incident_creation(database):
+    cfg, _ = await open_incident(database, {"escalate_after": "1m", "ladder": ["ui", "sms@1m"]})
+    # A historical demo clock may put first_seen_at well before the actual creation.
+    async with database.connection() as conn:
+        await conn.execute("update alerts set first_seen_at=%s", (SYSTEM.now() - timedelta(days=30),))
+    assert await tick(database, cfg) == 0
+    async with database.connection() as conn:
+        await conn.execute("update alerts set created_at=now()-interval '61 seconds'")
+    assert await tick(database, cfg) == 1
+
+
+async def test_unrelated_invalid_or_disabled_policy_never_blocks_an_escalation(database):
+    cfg, at = await open_incident(database, {"escalate_after": "1m"})
+    active = cfg.ruleset.rules[0][0]
+    cfg.ruleset = Ruleset([
+        active,
+        {"id": "disabled", "enabled": False, "escalate_after": "invalid"},
+        {"id": "broken", "owner": None, "escalate_after": "invalid", "ladder": ["ui", "sms@1m"], "route": [{}]},
+    ])
+    assert await tick(database, cfg, FixedClock(at + timedelta(minutes=1))) == 1
+
+
+async def test_throttled_unacked_stages_keep_each_incidents_ack_boundary(database):
+    cfg, at = await open_incident(database, {
+        "escalate_after": "1m",
+        "throttle": {"per_recipient": 0, "per": "1h"},
+        "group": {"by": ["workflowId"], "cooldown": "2h"},
+    })
+    await seed(database, count=2)
+    await process_batch(database, cfg)
+    assert await tick(database, cfg, FixedClock(at + timedelta(seconds=61))) == 2
+    async with database.connection() as conn:
+        rows = await (await conn.execute(
+            """select alert_id,rendered->'meta'->'requires_open_alert',throttle_bucket
+               from notifications where recipient='lee' and kind='throttle_summary' order by alert_id"""
+        )).fetchall()
+    assert [(aid, gated) for aid, gated, _ in rows] == [(1, True), (2, True)]
+    assert rows[0][2] != rows[1][2]

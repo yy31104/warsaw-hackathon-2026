@@ -13,7 +13,7 @@ from alerting.db import close_pool, open_pool, pool
 from alerting.delivery.shutdown import termination_event, wait_or_stop
 from alerting.routing.directory import by_id, team_for
 from alerting.routing.ladder import step_rule, steps
-from alerting.routing.throttle import lock_rules
+from alerting.routing.throttle import lock_rules, scope_to_open_alert
 from alerting.rules.engine import duration
 from alerting.rules.failures import transient
 from alerting.rules.heartbeat import check_deadlines
@@ -81,7 +81,8 @@ def timer_policies(rules, directory):
     teams = by_id(directory["teams"])
     policies = []
     for rule in rules.values():
-        team = teams.get(team_for(rule.get("owner", ""), directory), {})
+        owner = rule.get("owner")
+        team = teams.get(team_for(owner, directory), {}) if isinstance(owner, str) else {}
         interval = rule.get("escalate_after", team.get("escalate_after"))
         try:
             seconds = int(duration(interval).total_seconds()) if interval else 0
@@ -90,7 +91,10 @@ def timer_policies(rules, directory):
             seconds = 0
         delays = [int(offset.total_seconds()) for _, offset in steps(rule)[1:]]
         if seconds or delays:
-            policies.append({"id": rule["id"], "unacked": seconds or None, "ladder": delays})
+            policies.append({
+                "id": rule["id"], "unacked": seconds or None, "ladder": delays,
+                "digest": bool(delays) and (rule.get("group") or {}).get("mode") == "digest",
+            })
     return policies
 
 
@@ -110,7 +114,8 @@ async def escalate(cur, row, rule, fields, settings, clock):
     # The route planner's generic critical fallback is not a secondary or designated approver.
     intents = [i for i in routing.intents if i.recipient in people]
     for intent in intents:
-        intent.rendered.meta.update(requires_open_alert=True, escalation_step=step)
+        scope_to_open_alert(intent)
+        intent.rendered.meta["escalation_step"] = step
         if intent.kind == "escalation":
             intent.dedup_key = f"{row['id']}:escalation:{intent.recipient}:{intent.channel.value}:{step}"
     await enqueue(cur, intents, row["team_id"])
@@ -125,7 +130,8 @@ async def advance_ladder(cur, row, rule, fields, settings, clock):
     channel, _ = steps(rule)[stage]
     routing = await delivery_plan(cur, row, "ladder_step", step_rule(rule, channel), fields, settings, clock)
     for intent in routing.intents:
-        intent.rendered.meta.update(ladder_stage=stage, requires_open_alert=True)
+        scope_to_open_alert(intent)
+        intent.rendered.meta["ladder_stage"] = stage
         if intent.kind == "ladder_step":
             intent.dedup_key = f"{row['id']}:ladder_step:{intent.recipient}:{channel}:{stage}"
     await enqueue(cur, routing.intents, row["team_id"])
@@ -150,33 +156,51 @@ async def tick(db, settings=None, clock=SYSTEM, stop=None):
         if stop is not None and stop.is_set():
             return missed
         await cur.execute(
-            """select a.*,e.fields as event_fields,e.trace,e.schema_id,t.unacked_due,t.ladder_due
-               from alerts a left join events e on e.id=a.representative_event_id
-               left join jsonb_to_recordset(%s) as p(id text,unacked bigint,ladder bigint[])
-               on p.id=a.rule_id
-               cross join lateral (select coalesce(a.first_seen_at,a.created_at) as opened) anchor
+            """select a.*,e.fields as event_fields,e.trace,e.schema_id,anchor.recovery_due,
+                 t.unacked_at<=cutoff.epoch as escalate,t.ladder_at<=cutoff.epoch as advance
+               from alerts a
+               left join events e on e.id=a.representative_event_id
+               left join events recovery on recovery.id=a.resolve_event_id
+               left join jsonb_to_recordset(%(policies)s) as p(id text,unacked bigint,ladder bigint[],digest bool)
+                 on p.id=a.rule_id
+               cross join (select extract(epoch from %(now)s::timestamptz) as epoch) cutoff
                cross join lateral (select
-                 case when a.escalation_stage<2 then anchor.opened +
-                   (a.escalation_stage+1)*p.unacked*interval '1 second' end as unacked_due,
-                 anchor.opened + p.ladder[a.ladder_stage+1]*interval '1 second' as ladder_due) t
-               where (a.status<>'resolved' and a.resolve_due_at<=%s)
-                  or (a.status='open' and least(a.next_notify_at,t.unacked_due,t.ladder_due)<=%s)
-               order by least(a.next_notify_at,a.resolve_due_at,t.unacked_due,t.ladder_due),a.id
+                 extract(epoch from case when %(live)s then a.created_at
+                   else coalesce(a.first_seen_at,a.created_at) end) as opened_epoch,
+                 case when %(live)s and recovery.trace ? 'demo_clock'
+                   then recovery.received_at + (a.resolve_due_at-a.resolve_pending_at)
+                   else a.resolve_due_at end as recovery_due) anchor
+               left join lateral (select extract(epoch from
+                     (n.rendered#>>'{meta,ladder_started_at}')::timestamptz) as started_epoch
+                 from notifications n where p.digest and a.status='open' and a.last_notified_at is not null
+                   and p.ladder[a.ladder_stage+1] is not null and n.alert_id=a.id
+                   and n.rendered->'meta' ? 'ladder_started_at'
+                 order by n.created_at,n.id limit 1) first_digest on true
+               cross join lateral (select
+                 case when a.escalation_stage<2 then anchor.opened_epoch +
+                   (a.escalation_stage+1)*p.unacked end as unacked_at,
+                 (case when p.digest then first_digest.started_epoch else anchor.opened_epoch end)
+                   + p.ladder[a.ladder_stage+1] as ladder_at) t
+               where (a.status<>'resolved' and anchor.recovery_due<=%(now)s)
+                  or (a.status='open' and least(extract(epoch from a.next_notify_at),
+                       t.unacked_at,t.ladder_at)<=cutoff.epoch)
+               order by least(extract(epoch from a.next_notify_at),extract(epoch from anchor.recovery_due),
+                       t.unacked_at,t.ladder_at),a.id
                limit 200 for update of a skip locked""",
-            (Jsonb(timer_policies(rules, settings.directory)), now, now),
+            {"policies": Jsonb(timer_policies(rules, settings.directory)), "live": clock is SYSTEM, "now": now},
         )
         rows = await cur.fetchall()
         for row in rows:
-            if row["resolve_due_at"] is not None and row["resolve_due_at"] <= now:
+            if row["recovery_due"] is not None and row["recovery_due"] <= now:
                 if await finish_recovery(cur, row, now):
                     continue
             if row["status"] != "open":
                 continue
             rule = rules.get(row["rule_id"])
             fields = {**(row["event_fields"] or {}), "gen_sent_at": (row["trace"] or {}).get("gen_sent_at")}
-            if row["unacked_due"] is not None and row["unacked_due"] <= now:
+            if row["escalate"]:
                 await escalate(cur, row, rule, fields, settings, clock)
-            if row["ladder_due"] is not None and row["ladder_due"] <= now:
+            if row["advance"]:
                 await advance_ladder(cur, row, rule, fields, settings, clock)
             if row["next_notify_at"] is None or row["next_notify_at"] > now:
                 continue
@@ -200,6 +224,10 @@ async def tick(db, settings=None, clock=SYSTEM, stop=None):
                     settings,
                     effective,
                 )
+                if digest:
+                    for intent in routing.intents:
+                        if intent.rendered.meta.get("ladder_stage") == 0:
+                            intent.rendered.meta["ladder_started_at"] = now.isoformat()
                 await enqueue(cur, routing.intents, row["team_id"])
                 if routing.intents:
                     await cur.execute(

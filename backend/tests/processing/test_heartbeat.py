@@ -98,3 +98,30 @@ async def test_old_evidence_does_not_resolve_or_rearm_a_missed_heartbeat(databas
         assert await (await conn.execute(
             "select status from alerts order by id"
         )).fetchall() == [("resolved",), ("open",)]
+
+
+async def test_live_poll_waits_one_interval_after_demo_heartbeat_arrives(database, monkeypatch):
+    monkeypatch.setenv("DEMO_MODE", "1")
+    cfg = heartbeat_settings()
+    await beat(database, cfg, SYSTEM.now() - timedelta(days=30), "A")
+    assert await tick(database, cfg) == 0
+    async with database.connection() as conn:
+        await conn.execute("update events set received_at=now()-interval '2 minutes' where id=1")
+    assert await tick(database, cfg) == 1
+
+
+async def test_deadman_keeps_schema_masking_for_outbound_and_future_steps(database, monkeypatch):
+    monkeypatch.setenv("DEMO_MODE", "1")
+    cfg = heartbeat_settings()
+    rule = cfg.ruleset.rules[0][0]
+    rule["route"][0]["channels"] = ["email", "ui"]
+    cfg.ruleset.schemas["gauges"]["sensitive"] = ["sensor"]
+    value = "GAUGE-SYNTHETIC-1234"
+    at = SYSTEM.now()
+    await beat(database, cfg, at, value)
+    assert await tick(database, cfg, FixedClock(at + timedelta(minutes=1))) == 1
+    async with database.connection() as conn:
+        assert await (await conn.execute("select sensitive_paths from alerts")).fetchone() == (["sensor"],)
+        assert await (await conn.execute(
+            "select channel,rendered->>'title' from notifications order by channel"
+        )).fetchall() == [("email", "Missing gauge ****1234"), ("ui", f"Missing gauge {value}")]

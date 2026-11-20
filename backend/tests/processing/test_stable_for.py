@@ -93,3 +93,16 @@ async def test_scheduler_rechecks_episode_even_for_preexisting_pending_row(datab
         assert await (await conn.execute(
             "select status, resolve_pending_at, resolve_due_at from alerts"
         )).fetchone() == ("open", None, None)
+
+
+async def test_live_poll_waits_for_real_elapsed_time_after_historical_demo_evidence(database, monkeypatch):
+    monkeypatch.setenv("DEMO_MODE", "1")
+    cfg = recovery_settings()
+    historical = SYSTEM.now() - timedelta(days=30)
+    await signal(database, cfg, historical, "high", "A")
+    await signal(database, cfg, historical + timedelta(seconds=1), "ok", "A")
+    assert await tick(database, cfg) == 0
+    # Simulate elapsed wall time without sleeping or changing the event's demonstration timestamp.
+    async with database.connection() as conn:
+        await conn.execute("update events set received_at=now()-interval '3 minutes' where id=2")
+    assert await tick(database, cfg) == 1

@@ -91,9 +91,12 @@ async def check_deadlines(cur, settings, clock):
         return 0
     await cur.execute(
         """select w.*, e.fields, e.trace, e.environment, e.schema_id from heartbeat_watches w
-           join events e on e.id=w.last_event_id where w.due_at<=%s and w.rule_id=any(%s)
-           order by w.due_at,w.rule_id,w.alert_key limit 200 for update of w skip locked""",
-        (clock.now(), list(rules)),
+           join events e on e.id=w.last_event_id
+           cross join lateral (select case when %(live)s and e.trace ? 'demo_clock'
+               then e.received_at + (w.due_at-w.last_seen_at) else w.due_at end as due) timer
+           where w.due_at is not null and timer.due<=%(now)s and w.rule_id=any(%(rules)s)
+           order by timer.due,w.rule_id,w.alert_key limit 200 for update of w skip locked""",
+        {"live": clock is SYSTEM, "now": clock.now(), "rules": list(rules)},
     )
     watches = await cur.fetchall()
     for watch in watches:
@@ -115,11 +118,12 @@ async def raise_missed(cur, rule, watch, settings, clock):
     severity = rule.get("severity", "warning")
     priority, total, parts = score(severity, watch["environment"], 1, rule)
     team = team_for(rule.get("owner", ""), settings.directory)
+    sensitive = settings.ruleset.schemas.get(watch["schema_id"], {}).get("sensitive", [])
     await cur.execute(
         """insert into alerts(rule_id,rule_version,alert_key,team_id,occurrence_count,count_since_notify,
            severity,priority,score,score_breakdown,lane,first_seen_at,last_seen_at,title,body,color,
-           fields,group_values,representative_event_id) values(%s,%s,%s,%s,1,1,%s,%s,%s,%s,%s,%s,%s,
-           %s,%s,%s,%s,%s,%s) on conflict(rule_id,alert_key) where status<>'resolved' do nothing
+           fields,group_values,representative_event_id,sensitive_paths) values(%s,%s,%s,%s,1,1,%s,%s,%s,%s,%s,%s,%s,
+           %s,%s,%s,%s,%s,%s,%s) on conflict(rule_id,alert_key) where status<>'resolved' do nothing
            returning *""",
         (
             rule["id"], watch["rule_version"], watch["alert_key"], team, severity, priority, total,
@@ -127,7 +131,7 @@ async def raise_missed(cur, rule, watch, settings, clock):
             watch["due_at"], render(present.get("title") or rule["id"], fields),
             render(present.get("body"), fields) or f"No heartbeat for {rule['expect']['every']}.",
             present.get("color"), Jsonb({p: lookup(fields, p) for p in present.get("fields", [])}),
-            Jsonb(watch["group_values"]), watch["last_event_id"],
+            Jsonb(watch["group_values"]), watch["last_event_id"], sensitive,
         ),
     )
     alert = await cur.fetchone()
