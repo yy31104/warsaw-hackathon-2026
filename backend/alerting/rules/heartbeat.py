@@ -11,6 +11,17 @@ from alerting.rules.storage import alert_changed, audit, delivery_plan, enqueue
 from alerting.templates import lookup, render
 
 
+def heartbeat_deadline(expect, fields, seen):
+    paths = expect["key"]
+    if not isinstance(paths, list) or not all(isinstance(p, str) and p for p in paths):
+        raise ValueError("expect.key must be a list of field paths")
+    interval = duration(expect["every"])
+    if interval.total_seconds() <= 0:
+        raise ValueError("expect.every must be positive")
+    key, values = grouping({"group": {"by": paths}}, {}, fields) if paths else ("", {})
+    return key, values, seen + interval
+
+
 async def record_heartbeats(cur, settings, event, clock):
     """Use the ordinary compiled rule predicate, including its recorded field trace."""
     matched = False
@@ -24,14 +35,7 @@ async def record_heartbeats(cur, settings, event, clock):
             if not ok:
                 continue
             matched = True
-            expect = rule["expect"]
-            paths = expect["key"]
-            if not isinstance(paths, list) or not all(isinstance(p, str) and p for p in paths):
-                raise ValueError("expect.key must be a list of field paths")
-            interval = duration(expect["every"])
-            if not interval.total_seconds():
-                raise ValueError("expect.every must be positive")
-            key, values = grouping({"group": {"by": paths}}, {}, event.fields) if paths else ("", {})
+            key, values, due = heartbeat_deadline(rule["expect"], event.fields, seen)
             version = rule.get("version", 1)
             await cur.execute(
                 """insert into heartbeat_watches as w
@@ -41,7 +45,7 @@ async def record_heartbeats(cur, settings, event, clock):
                    last_seen_at=excluded.last_seen_at,last_event_id=excluded.last_event_id,
                    due_at=excluded.due_at where (w.last_seen_at,w.last_event_id)
                    < (excluded.last_seen_at,excluded.last_event_id) returning alert_id""",
-                (rule["id"], key, version, Jsonb(values), seen, event.id, seen + interval),
+                (rule["id"], key, version, Jsonb(values), seen, event.id, due),
             )
             watch = await cur.fetchone()
             aid = watch["alert_id"] if watch else None
@@ -53,7 +57,7 @@ async def record_heartbeats(cur, settings, event, clock):
                 )
                 incident = await cur.fetchone()
                 closed = incident["status"] == "resolved"
-                fresh = seen >= incident["first_seen_at"] and seen + interval > clock.now()
+                fresh = seen >= incident["first_seen_at"] and due > clock.now()
                 if fresh or closed:
                     if not closed:
                         await cur.execute(

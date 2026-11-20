@@ -8,6 +8,12 @@ This local integration runs the React frontend, ingestion, rule workers, deliver
 docker compose up -d --build --wait
 ```
 
+If you already have a database volume from `main`, use the same command. The
+`db-upgrade` service applies the config registry and log checkpoint migrations
+in one transaction before the API and workers start. Repeated runs preserve
+existing events, rules and audit history. To check the upgrade, run
+`docker compose logs db-upgrade`.
+
 Open the frontend on port 5173 and the simulated phone on port 8100. The frontend uses the real API. The local acceptance report includes the browser demonstration, current test results, measured throughput and outage recovery. [Integration report](loadtest/results/dev2-integration/README.md)
 
 ## Team: start here

@@ -107,9 +107,23 @@ async def test_callback_secret_and_persistent_lock(api, database, monkeypatch):
         ).fetchone()
     assert len(pin) == 6 and pin.isdecimal()
     assert abs(lifetime - timedelta(minutes=5)) < timedelta(seconds=2)
+    lock_visibility = {1: 1}
+    async with database.connection() as conn:
+        # The sender can also approve a second live request, but the other two are out of scope.
+        for offset, (team, minutes) in enumerate((("settlements", 5), ("settlements", -1), ("pricing", 5)), 1):
+            (alert_id,) = await (await conn.execute(
+                """insert into alerts(rule_id,rule_version,alert_key,team_id)
+                   values('lock-scope',1,%s,%s) returning id""", (f"{team}/{minutes}", team),
+            )).fetchone()
+            await conn.execute(
+                """insert into action_runs(alert_id,action,state,approval,approval_code,approval_expires_at,requested_by)
+                   values(%s,'escalate','pending_approval','required',%s,now()+%s,'sam')""",
+                (alert_id, f"{(int(pin) + offset) % 1000000:06}", timedelta(minutes=minutes)),
+            )
+            lock_visibility[alert_id] = int(team == "settlements" and minutes > 0)
     api.headers.pop("X-Provider-Secret")
     sender = "+15550100003"
-    wrong = "000001" if pin == "000000" else "000000"
+    wrong = f"{(int(pin) + 10) % 1000000:06}"
 
     async def reply(code, headers):
         return await api.post(
@@ -122,11 +136,17 @@ async def test_callback_secret_and_persistent_lock(api, database, monkeypatch):
     results = await asyncio.gather(*(reply(wrong, headers) for _ in range(5)))
     assert sorted(r.status_code for r in results) == [404, 404, 404, 404, 429]
     assert (await reply(pin, headers)).status_code == 429
+    for alert_id, expected_count in lock_visibility.items():
+        response = await api.get(f"/v1/alerts/{alert_id}")
+        assert response.status_code == 200, response.text
+        timeline = response.json()["timeline"]
+        assert sum(row["text"] == "provider approval.locked" for row in timeline) == expected_count
+        assert all(sender not in row["text"] and pin not in row["text"] for row in timeline)
     async with database.connection() as conn:
         assert await (
             await conn.execute("select count(*) from audit_log where action='approval.locked'")
         ).fetchone() == (1,)
-        assert await (await conn.execute("select state from action_runs")).fetchone() == (
+        assert await (await conn.execute("select state from action_runs where alert_id=1")).fetchone() == (
             "pending_approval",
         )
         await conn.execute("update approval_failures set failed_at=failed_at-interval '16 minutes'")

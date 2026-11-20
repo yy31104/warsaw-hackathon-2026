@@ -6,9 +6,14 @@ from psycopg import sql
 from psycopg.types.json import Jsonb
 
 from alerting.api.routes_rule_assist import router
+from alerting.clock import FixedClock
 from alerting.config import files
 from alerting.contracts import CanonicalEvent
 from alerting.db import pool
+from alerting.rules.engine import Ruleset
+from alerting.rules.scheduler import tick
+from alerting.rules.storage import Settings
+from alerting.rules.worker import process_batch
 from alerting.simulate.history import preview_history
 
 
@@ -53,6 +58,71 @@ def test_due_digest_credits_every_queued_event_and_stops_at_history_end():
     assert report["current"] == {"alerts": 2, "matched_events": 3, "notifications": {"sam/sms": 1}}
     assert report["draft"]["notifications"] == {}
     assert report["lost_all_notifications"] == [1, 2]
+
+
+def test_on_time_heartbeats_refresh_the_watch_without_sending_an_alert():
+    rule = {**CURRENT, "expect": {"every": "1m", "key": ["inventory.bin"]}}
+    samples = [event(1), event(2, minutes=1), event(3, minutes=2)]
+    replay = preview_history(samples, rule, rule, [], files.directory(), [])
+    assert replay["current"] == replay["draft"] == {
+        "matched_events": 3, "alerts": 0, "notifications": {},
+    }
+
+
+def test_heartbeat_deadlines_are_per_key_and_rearm_only_after_a_new_match():
+    rule = {**CURRENT, "expect": {"every": "2m", "key": ["inventory.bin"]}}
+    samples = [
+        event(1), event(2, bin="b", minutes=1), event(3, bin="b", minutes=2),
+        event(4, count=99, minutes=7), event(5, minutes=8), event(6, count=99, minutes=10),
+    ]
+    replay = preview_history(samples, rule, {**rule, "enabled": False}, [], files.directory(), [])
+    assert replay["current"] == {"matched_events": 4, "alerts": 3, "notifications": {"sam/sms": 3}}
+    assert replay["draft"] == {"matched_events": 0, "alerts": 0, "notifications": {}}
+    assert replay["lost_all_notifications"] == [1, 3, 5]
+
+
+def test_synthetic_heartbeat_does_not_start_a_watch_for_a_business_rule():
+    rule = {**CURRENT, "expect": {"every": "1m", "key": []}}
+    synthetic = event(1).model_copy(update={"trace": {"synthetic": True}})
+    result = preview_history([synthetic, event(2, minutes=4, count=99)], None, rule, [], files.directory(), [])
+    assert result["draft"] == {"matched_events": 0, "alerts": 0, "notifications": {}}
+
+
+async def test_heartbeat_preview_matches_live_alerts_and_deliveries(client, inbox_pool, monkeypatch):
+    monkeypatch.setenv("DEMO_MODE", "1")
+    rule = {**CURRENT, "expect": {"every": "1m", "key": ["inventory.bin"]}}
+    cfg = Settings.load()
+    cfg.ruleset = Ruleset([rule])
+    async with inbox_pool.connection() as conn:
+        await conn.execute("""
+            insert into config_objects(kind,id,version,spec,content_hash,origin)
+            values ('rule',%s,1,%s,'heartbeat-test','ui')
+        """, (rule["id"], Jsonb(rule)))
+
+    # Two healthy beats, a missed deadline, a recovery, then another missed deadline.
+    for sample, expected in [
+        (event(1), 0), (event(2, minutes=1), 0), (event(3, minutes=3, count=99), 1),
+        (event(4, minutes=4), 1), (event(5, minutes=5, count=99), 2),
+    ]:
+        async with inbox_pool.connection() as conn:
+            await conn.execute("""
+                insert into events(source_id,transport,payload_hash,raw,fields,received_at,trace)
+                values (%s,'http',%s,'{}',%s,%s,%s)
+            """, (sample.source_id, sample.payload_hash, Jsonb(sample.fields), sample.received_at,
+                  Jsonb({"demo_clock": sample.received_at.isoformat()})))
+        assert await process_batch(inbox_pool, cfg) == 1
+        await tick(inbox_pool, cfg, FixedClock(sample.received_at))
+        response = await client.post(f"/v1/rules/{rule['id']}/preview", json={"draft": {}})
+        assert response.status_code == 200, response.text
+        async with inbox_pool.connection() as conn:
+            alerts, sends = await (await conn.execute("""
+                select (select count(*) from alerts), (select count(*) from notifications)
+            """)).fetchone()
+        assert alerts == sends == expected
+        for version in ("current", "draft"):
+            projection = response.json()[version]
+            assert projection["alerts"] == alerts
+            assert projection["notifications"] == ({"sam/sms": sends} if sends else {})
 
 
 def test_historical_clock_selects_preferences_and_throttle_bucket_counts_logical_intents():

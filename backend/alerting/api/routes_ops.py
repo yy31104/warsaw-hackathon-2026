@@ -24,7 +24,7 @@ RESET_RUNTIME_TABLES = (
     "events", "heartbeat_watches", "incident_memory", "ingest_rejections",
     "notifications", "rule_proposals", "schema_issues", "shadow_alerts", "silences",
 )
-RESET_SQL = sql.SQL("TRUNCATE TABLE {} RESTART IDENTITY CASCADE").format(
+RESET_SQL = sql.SQL("TRUNCATE TABLE {} RESTART IDENTITY RESTRICT").format(
     sql.SQL(", ").join(map(sql.Identifier, RESET_RUNTIME_TABLES))
 )
 

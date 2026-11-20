@@ -9,8 +9,10 @@ from alerting.clock import SYSTEM, FixedClock, clock_for_event
 from alerting.contracts import Transition
 from alerting.routing import plan
 from alerting.routing.directory import team_for
+from alerting.routing.event_policy import eligible_ruleset
 from alerting.routing.throttle import window
 from alerting.rules.engine import Ruleset, duration, episode_for, evaluate
+from alerting.rules.heartbeat import heartbeat_deadline
 
 
 def historical_time(event):
@@ -77,7 +79,7 @@ class Replay:
 
     def apply(self, event, at):
         self.due_digests(at)
-        evaluation = evaluate(event, self.ruleset, self, FixedClock(at))
+        evaluation = evaluate(event, eligible_ruleset(event, self.ruleset), self, FixedClock(at))
         self.matched_events += any(d["reason"].get("matched") for d in evaluation.decisions)
         for op in evaluation.alert_ops:
             row = self.open_alerts.get(op.key)
@@ -113,6 +115,43 @@ class Replay:
                     row["next_digest_at"] = due
                     heappush(self.digests, (due, row["id"], op.key))
 
+    def run(self, timed):
+        if not timed or not self.ruleset.rules:
+            return
+        if "expect" in self.rule:
+            self.replay_heartbeats(timed)
+            return
+        for at, event in timed:
+            self.apply(event, at)
+        self.due_digests(timed[-1][0])
+
+    def replay_heartbeats(self, timed):
+        watches, missed = {}, []
+        for at, event in timed:
+            for rule, predicate in eligible_ruleset(event, self.ruleset).rules:
+                matches, _ = predicate(event.fields)
+                if not matches:
+                    continue
+                self.matched_events += 1
+                key, _, due = heartbeat_deadline(rule["expect"], event.fields, at)
+                previous = watches.get(key)
+                # A beat exactly on its own deadline renews that watch first.
+                if previous and previous[0] < at:
+                    missed.append(previous)
+                watches[key] = (due, key, event)
+
+        through = timed[-1][0]
+        missed.extend(watch for watch in watches.values() if watch[0] <= through)
+        for due, key, event in sorted(missed, key=lambda item: (item[0], item[1])):
+            self.alerts += 1
+            row = {
+                "id": self.alerts, "rule_id": self.rule["id"], "rule_version": self.rule.get("version", 1),
+                "alert_key": key, "status": "open", "severity": self.rule.get("severity", "warning"),
+                "team_id": team_for(self.rule.get("owner", ""), self.directory),
+                "event_fields": event.fields, "occurrence_count": 1,
+            }
+            self.route(row, Transition.heartbeat_missed, [event.id], due)
+
     def summary(self):
         return {"alerts": self.alerts, "matched_events": self.matched_events,
                 "notifications": dict(sorted(self.notifications.items()))}
@@ -122,12 +161,8 @@ def preview_history(events, current, draft, schemas, directory, runbooks):
     timed = sorted(((historical_time(event), event) for event in events), key=lambda pair: (pair[0], pair[1].id))
     prior = Replay(current or {}, Ruleset([current] if current else [], schemas), directory, runbooks)
     proposed = Replay(draft, Ruleset([draft], schemas), directory, runbooks)
-    for at, event in timed:
-        prior.apply(event, at)
-        proposed.apply(event, at)
-    if timed:
-        prior.due_digests(timed[-1][0])
-        proposed.due_digests(timed[-1][0])
+    prior.run(timed)
+    proposed.run(timed)
 
     before = set().union(*prior.recipients.values())
     after = set().union(*proposed.recipients.values())
@@ -142,7 +177,7 @@ def preview_history(events, current, draft, schemas, directory, runbooks):
     return {
         "rule_id": draft["id"], "base_version": current.get("version", 1) if current else None,
         "events_replayed": len(timed), "starts_from_empty_state": True,
-        "replay_basis": "Selected rule, stored event fields and times, current directory, event-driven sends and digests due within the sample.",
+        "replay_basis": "Selected rule, stored event fields and times, current directory, event-driven sends, digests and missed heartbeat deadlines within the sample.",
         "current": prior.summary(), "draft": proposed.summary(),
         "lost_all_notifications": lost_all, "lost_recipients": sorted(before - after), "new_recipients": sorted(after - before),
         "events_with_recipient_loss": losses,
