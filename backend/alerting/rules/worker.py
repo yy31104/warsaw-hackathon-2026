@@ -12,12 +12,13 @@ from alerting.contracts import CanonicalEvent, SEVERITY_ORDER
 from alerting.db import pool, open_pool, close_pool
 from alerting.routing import plan
 from alerting.routing.directory import team_for
-from alerting.rules.engine import evaluate, grouping
+from alerting.rules.engine import duration, evaluate, grouping
+from alerting.rules.scoring import score
 from alerting.rules.storage import Settings, alert_changed, enqueue
 
 COLUMNS = ("id rule_id rule_version alert_key status severity priority lane team_id title body color fields group_values "
            "runbook_id occurrence_count count_since_notify first_seen_at last_seen_at last_notified_at "
-           "representative_event_id resolved_by resolved_at resolve_reason").split()
+           "representative_event_id resolved_by resolved_at resolve_reason score score_breakdown next_notify_at").split()
 
 
 async def lock_open(cur, keys):
@@ -91,6 +92,8 @@ async def process_batch(db, settings, lane="normal", batch=200):
                            count_since_notify=row["count_since_notify"]+1)
                 if SEVERITY_ORDER.get(event.severity, -1) > SEVERITY_ORDER.get(row["severity"], -1):
                     row["severity"] = event.severity.value
+                row["priority"], row["score"], row["score_breakdown"] = score(
+                    row["severity"], event.environment or event.fields.get("$environment"), row["occurrence_count"], rule)
                 fields = {**event.fields, "gen_sent_at": event.trace.get("gen_sent_at")}
                 routing = plan(row, op.transition, rule, fields, settings.directory, settings.runbooks, {}, clock)
                 row["runbook_id"] = routing.runbook_id
@@ -102,6 +105,13 @@ async def process_batch(db, settings, lane="normal", batch=200):
                 elif op.notify and routing.unrouted_reason:
                     decision.update(outcome="UNROUTED")
                     decision["reason"]["routing"] = routing.unrouted_reason
+                if row["count_since_notify"] and not row.get("next_notify_at"):
+                    group = rule.get("group", {})
+                    interval = duration(group.get("every","5m") if group.get("mode")=="digest" else group.get("cooldown","10m"))
+                    anchor = row["last_notified_at"] or row["first_seen_at"]
+                    row["next_notify_at"] = SYSTEM.now() + max(anchor + interval - at, duration("0s"))
+                elif not row["count_since_notify"]:
+                    row["next_notify_at"] = None
             decisions.extend((event.id, d["rule_id"], d["rule_version"], d["outcome"], Jsonb(d["reason"]),
                               d.get("alert_id")) for d in result.decisions)
         for row in dirty.values():

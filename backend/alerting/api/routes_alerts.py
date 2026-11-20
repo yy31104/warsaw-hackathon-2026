@@ -84,3 +84,21 @@ async def ack(id: int, x_user: str = Header(...), db=Depends(get_db)):
 @router.post("/alerts/{id}/resolve")
 async def resolve(id: int, x_user: str = Header(...), db=Depends(get_db)):
     return await change(db,id,x_user,True)
+
+
+@router.get("/events/{id}/explain")
+async def explain(id: int, db=Depends(get_db)):
+    async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+        await cur.execute("select id,schema_id,schema_name,schema_version,trace,status from events where id=%s",(id,))
+        event = await cur.fetchone()
+        if not event:
+            raise HTTPException(404, "Event not found")
+        await cur.execute("select rule_id,rule_version,outcome,reason,alert_id from decisions where event_id=%s order by id",(id,))
+        decisions = await cur.fetchall()
+        outcome = next((d["outcome"] for d in decisions if d["outcome"]!="NO_MATCH"), None)
+        keys = [key for d in decisions for key in (d["reason"] or {}).get("notifications", [])]
+        await cur.execute("select id,alert_id,kind,channel,recipient,state from notifications where dedup_key=any(%s)", (keys,))
+        return {**event, "schema_detection":event["trace"].get("schema_detection", {"schema_id":event["schema_id"]}),
+                "decisions":decisions, "notifications": await cur.fetchall(),
+                "outcome":outcome or ("NO_MATCH" if decisions else event["status"].upper())}
+
