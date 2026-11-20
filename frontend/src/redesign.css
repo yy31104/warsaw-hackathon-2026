@@ -99,15 +99,6 @@
 @media(prefers-reduced-motion:reduce){.overview-hero .status-orbit,.overview-hero .status-bubble strong,.overview-hero .status-approval-inline strong{transition:none}}
 
 
-/* Preserve the main severity ring; group only the three secondary signals. */
-.right-status-cluster{position:relative;flex:none;width:290px;height:245px;margin-right:20px}
-.right-status-cluster .right-count{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:var(--count-size);height:var(--count-size);border-radius:50%;text-align:center;text-decoration:none;transition:width .6s,height .6s,filter .2s}
-.right-count strong{font-size:34px;line-height:1.1;font-weight:400;font-variant-numeric:tabular-nums}
-.right-count>span{font-size:12px;line-height:1.4}
-.right-critical{left:24px;top:16px;color:var(--motion-orange)!important;background:color-mix(in srgb,var(--motion-orange) 12%,var(--canvas));border:1px solid color-mix(in srgb,var(--motion-orange) 40%,var(--line));z-index:2}
-.right-delivery{left:124px;top:0;color:var(--motion-cyan)!important;background:color-mix(in srgb,var(--motion-cyan) 9%,var(--canvas));border:1px solid color-mix(in srgb,var(--motion-cyan) 30%,var(--line));z-index:1}
-.right-pending{left:101px;top:91px;background:var(--highlight);color:var(--motion-pink)!important;border:1px solid color-mix(in srgb,var(--motion-pink) 35%,var(--line));z-index:3}
-.right-count:hover{filter:brightness(1.12);z-index:4}.right-count:focus-visible{outline:2px solid var(--accent);outline-offset:4px;z-index:4}
 /* The trace flows across the canvas with offset labels, no framed plotting grid. */
 .overview-hero .live-trend-embedded{position:relative;margin:0 -20px 12px;padding-top:30px}
 .live-trend-embedded .chart-heading{position:relative;padding-left:8%;padding-right:3%;z-index:1}
@@ -117,3 +108,31 @@
 .live-trend-embedded .chart-scrubber input{max-width:160px}
 @media(max-width:800px){.right-status-cluster{align-self:center;margin:0}.overview-hero .live-trend-embedded{margin:0 0 16px;padding-top:12px}.live-trend-embedded .chart-heading{padding:0}.live-trend-embedded .chart-scrubber{padding:0;margin-top:0}.overview-hero .live-trend-embedded svg{margin-top:0}}
 @media(prefers-reduced-motion:reduce){.right-status-cluster .right-count{transition:none}}
+
+.trend-trace{stroke-dasharray:6 3;animation:trend-flow 6s linear infinite}
+.trend-latest{animation:trend-point-glow 2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.trend-update-pulse{opacity:0;transform-box:fill-box;transform-origin:center;animation:trend-arrival 1.8s ease-out infinite}
+@keyframes trend-flow{to{stroke-dashoffset:-90}}
+@keyframes trend-point-glow{0%,100%{filter:drop-shadow(0 0 1px var(--motion-cyan))}50%{filter:drop-shadow(0 0 5px var(--motion-cyan))}}
+@keyframes trend-arrival{0%{transform:scale(.65);opacity:.85}100%{transform:scale(2.6);opacity:0}}
+@media(max-width:420px){.right-status-cluster{width:300px}.right-status-cluster .right-delivery{left:175px}.right-status-cluster .right-pending{left:120px}}
+@media(prefers-reduced-motion:reduce){.right-status-cluster .right-count,.trend-trace,.trend-latest,.trend-update-pulse{animation:none!important}.trend-update-pulse{display:none}}
+
+/* One left-aligned overview: alert identity, delivery health, then approvals. */
+.overview-hero .status-unified{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:22px;padding:24px 0 32px}
+.overview-hero .status-unified .status-main{flex:none;width:100%;justify-content:flex-start;gap:clamp(28px,5vw,76px)}
+.status-unified .status-main>.status-arrow{margin-left:0;align-self:center;margin-top:0}
+.overview-hero .status-unified .status-orbit>strong{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px}
+.status-orbit>strong>small{font-size:12px;letter-spacing:0;font-weight:400;color:var(--secondary)}
+.status-definition{font-size:13px;color:var(--secondary);margin:-10px 0 22px;line-height:1.6}
+.status-inline-health{display:flex;align-items:center;flex-wrap:wrap;gap:20px 36px;padding-top:6px}
+.status-inline-health a{display:flex;align-items:baseline;gap:12px;font-size:15px}
+.status-inline-health strong{font-size:30px;font-weight:400;font-variant-numeric:tabular-nums}
+.health-delivery strong{color:var(--motion-cyan)}.health-critical strong{color:var(--motion-orange)}
+.status-inline-health a>span:last-child{font-size:13px;color:var(--quiet)}
+.approval-status-link{display:flex;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--line);min-width:310px;font-size:14px}
+.approval-status-link strong{color:var(--motion-pink);font-size:22px;font-weight:400}
+.approval-status-link>span:last-child{margin-left:auto;font-size:12px;color:var(--secondary)}
+.approval-status-dot{width:6px;height:6px;border-radius:50%;background:var(--motion-pink)}
+.approval-status-link:hover>span:last-child,.status-inline-health a:hover{color:var(--accent)}
+@media(max-width:650px){.overview-hero .status-unified .status-main{flex-wrap:wrap;gap:22px}.approval-status-link{min-width:0;width:100%}.status-inline-health{gap:20px}.status-definition{margin-top:0}.status-unified .status-main>.status-arrow{display:none}}
