@@ -179,6 +179,21 @@ async function settlementG1({context, frontend, api, telecom, output, run}) {
   assert.equal(await phoneCards.getByText('SMS', {exact: true}).count(), 1);
   assert.equal(await phoneCards.getByText('Incoming call', {exact: true}).count(), 1);
 
+  const smsCard = phoneCards.filter({has: phone.getByText('SMS', {exact: true})});
+  const renderedSms = await smsCard.locator('.body').textContent();
+  const linkText = renderedSms?.match(/https?:\/\/[^\s]+/)?.[0];
+  assert(linkText, 'The rendered SMS must contain an incident link');
+  const receiptLink = new URL(linkText);
+  assert(['127.0.0.1', 'localhost', '[::1]'].includes(receiptLink.hostname), 'The SMS must link to the isolated frontend');
+  assert.equal(receiptLink.protocol, frontend.protocol);
+  assert.equal(receiptLink.port, frontend.port, 'The SMS must use the published frontend port');
+  assert.equal(receiptLink.pathname, `/a/${alertId}`);
+  const incident = await context.newPage();
+  const opened = await incident.goto(receiptLink.href);
+  assert.equal(opened?.status(), 200);
+  await incident.getByRole('heading', {name: title, exact: true}).waitFor();
+  await incident.getByText(`Incident #${alertId} · settlements · 1 occurrences`, {exact: true}).waitFor();
+
   assert.equal(await pricingCard.count(), 0);
   const beforeReload = pricing.lists.length;
   await pricing.page.reload();
@@ -196,6 +211,7 @@ async function settlementG1({context, frontend, api, telecom, output, run}) {
     saveScreenshot(settlements.page, output, 'settlements-timeout.png'),
     saveScreenshot(pricing.page, output, 'pricing-reloaded.png'),
     saveScreenshot(phone, output, 'sam-phone.png'),
+    saveScreenshot(incident, output, 'sam-sms-opens-alert.png'),
   ]);
 
   const switchRequestOffset = settlements.requests.length;
@@ -217,6 +233,7 @@ async function settlementG1({context, frontend, api, telecom, output, run}) {
     event: {id: event.id, source_event_id: event.source_event_id, status: event.status, transport: event.transport},
     alert: {id: alertId, title, rule_id: detail.rule_id, owner: detail.team_id, occurrence_count: detail.occurrence_count},
     receipts,
+    receipt_link: {url: receiptLink.href, browser_status: opened.status(), opened_alert_id: alertId},
     settlements: {created: created.data, navigations_after_publish: 0, lists: settlements.lists.slice(settlementListOffset, switchListOffset)},
     pricing: {foreign_stream_events: pricingLeaks.length, matching_cards_after_reload: 0,
       lists: pricingLists, requests: pricingRequests, switched_actor_requests: switchedRequests},
