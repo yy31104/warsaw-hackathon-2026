@@ -17,6 +17,15 @@ router = APIRouter(tags=["ops"])
 WINDOW_UNITS = {"s": 1, "m": 60, "h": 3600, "d": 86400}
 NOTIFICATION_STATES = ("pending", "sending", "delivered", "retrying", "unknown", "failed", "fallback", "cancelled")
 LATENCY_BUCKETS = [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10, 30, 60]
+RESET_RUNTIME_TABLES = (
+    "action_runs", "alert_occurrences", "alerts", "approval_failures", "audit_log",
+    "decisions", "delivery_attempts", "delivery_breakers", "delivery_team_turns", "delivery_windows",
+    "events", "heartbeat_watches", "incident_memory", "ingest_rejections", "log_tail_checkpoints",
+    "notifications", "rule_proposals", "schema_issues", "shadow_alerts", "silences",
+)
+RESET_SQL = sql.SQL("TRUNCATE TABLE {} RESTART IDENTITY CASCADE").format(
+    sql.SQL(", ").join(map(sql.Identifier, RESET_RUNTIME_TABLES))
+)
 
 
 @router.get("/health")
@@ -188,12 +197,7 @@ async def reset(db=Depends(pool)) -> dict:
         try:
             async with db.connection() as conn:
                 await conn.execute("SET LOCAL lock_timeout = '500ms'")
-                await conn.execute("""
-                    TRUNCATE delivery_attempts, delivery_breakers, delivery_windows, approval_failures,
-                        action_runs, notifications, decisions, alert_occurrences, incident_memory,
-                        rule_proposals, audit_log, shadow_alerts, silences, alerts, schema_issues,
-                        ingest_rejections, events
-                """)
+                await conn.execute(RESET_SQL)
             return {"status": "reset"}
         except (LockNotAvailable, DeadlockDetected) as exc:
             if attempt == 4:

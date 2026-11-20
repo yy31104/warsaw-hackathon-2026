@@ -5,6 +5,7 @@ import httpx
 
 from alerting.clock import SYSTEM
 from alerting.contracts import Channel, SendResult
+from alerting.delivery.render import merged_telecom_text
 
 
 def retry_after(raw):
@@ -30,9 +31,11 @@ class Telecom:
         headers = {"Idempotency-Key": idempotency_key}
         if msg.meta.get("gen_sent_at") is not None:
             headers["X-Gen-Sent-At"] = str(msg.meta["gen_sent_at"])
+        members = msg.meta.get("merged_alerts")
+        text = merged_telecom_text(members, self.channel, msg.meta.get("event_id")) if members else msg.short
         try:
             res = await self.client.post(
-                self.url, headers=headers, json={"to": contact, "text": msg.short}, timeout=3
+                self.url, headers=headers, json={"to": contact, "text": text}, timeout=3
             )
         except httpx.TimeoutException as exc:
             return SendResult(outcome="unknown", error=str(exc))

@@ -13,7 +13,10 @@ from psycopg.rows import dict_row
 from alerting.clock import SYSTEM
 from alerting.contracts import RenderedMessage
 from alerting.db import close_pool, open_pool, pool
+from alerting.delivery.fair import next_notification
+from alerting.delivery.guard import can_dispatch
 from alerting.delivery.providers import registry
+from alerting.delivery.shutdown import termination_event, wait_or_stop
 from alerting.rules.storage import close_settings, emit
 
 
@@ -23,20 +26,11 @@ def exhausted(row, now):
     return row["attempts"] >= 8 or now >= deadline
 
 
-async def claim(db, channels, clock):
+async def claim(db, channels, clock, stop=None):
     now = clock.now()
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-        await cur.execute(
-            """select n.*, a.team_id from notifications n join alerts a on a.id=n.alert_id
-            left join delivery_breakers b on b.channel=n.channel
-            where n.channel=any(%s) and (b.probe_after is null or b.probe_after<=%s)
-            and ((n.state in ('pending','retrying','unknown') and n.next_attempt_at<=%s)
-            or (n.state='sending' and n.locked_until<=%s))
-            order by n.priority,n.next_attempt_at,n.id limit 1 for update of n skip locked""",
-            (list(channels), now, now, now),
-        )
-        row = await cur.fetchone()
-        if not row:
+        row = await next_notification(cur, channels, now)
+        if not row or (stop is not None and stop.is_set()):
             return None
         if row["state"] == "sending":
             await cur.execute(
@@ -44,6 +38,8 @@ async def claim(db, channels, clock):
                 where notification_id=%s and attempt=%s and finished_at is null""",
                 (now, row["id"], row["attempts"]),
             )
+        if not await can_dispatch(cur, row):
+            return None
         if exhausted(row, now):
             await cur.execute(
                 "update notifications set state='failed',locked_by=null,locked_until=null where id=%s",
@@ -94,14 +90,15 @@ async def claim(db, channels, clock):
         return row
 
 
-async def deliver_one(db, providers, channels, clock=SYSTEM):
+async def deliver_one(db, providers, channels, clock=SYSTEM, stop=None):
     from alerting.delivery.fallback import fallback_one
 
-    if await fallback_one(db, channels, clock):
-        return True
-    row = await claim(db, channels, clock)
+    rerouted = await fallback_one(db, channels, clock)
+    if stop is not None and stop.is_set():
+        return rerouted
+    row = await claim(db, channels, clock, stop)
     if not row:
-        return False
+        return rerouted
     start = monotonic()
     result = await providers[row["channel"]].send(
         RenderedMessage.model_validate(row["rendered"]), row["contact"], str(row["id"])
@@ -168,16 +165,17 @@ async def deliver_one(db, providers, channels, clock=SYSTEM):
 
 
 async def main(channels):
-    await open_pool()
-    try:
-        async with httpx.AsyncClient() as client:
-            providers = registry(client)
-            while True:
-                if not await deliver_one(pool(), providers, channels):
-                    await asyncio.sleep(0.15)
-    finally:
-        await close_settings(pool())
-        await close_pool()
+    with termination_event() as stop:
+        await open_pool()
+        try:
+            async with httpx.AsyncClient() as client:
+                providers = registry(client)
+                while not stop.is_set():
+                    if not await deliver_one(pool(), providers, channels, stop=stop):
+                        await wait_or_stop(stop, 0.15)
+        finally:
+            await close_settings(pool())
+            await close_pool()
 
 
 if __name__ == "__main__":

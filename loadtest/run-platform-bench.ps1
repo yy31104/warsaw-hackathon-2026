@@ -2,7 +2,7 @@ param(
     [string]$RepoPath = (Join-Path $PSScriptRoot '..'),
     [string]$Output = (Join-Path $PSScriptRoot 'results/tmp/platform-bench'),
     [string]$ProjectPrefix = ('dev2perf-' + [DateTime]::UtcNow.ToString('yyyyMMddHHmmss')),
-    [ValidateSet('one-normal', 'two-normal', 'telecom-outage', 'critical-outage')]
+    [ValidateSet('one-normal', 'two-normal', 'one-spread', 'two-spread', 'telecom-outage', 'critical-outage')]
     [string[]]$Trials = @('one-normal', 'two-normal', 'telecom-outage')
 )
 
@@ -99,6 +99,8 @@ function Start-ProviderOutage {
 $benchTrials = @(
     @{Name = 'one-normal'; Workers = 1; Tag = 'platform-compare'; Duration = 20; NormalRate = 700; CriticalRate = 2; Outage = 0},
     @{Name = 'two-normal'; Workers = 2; Tag = 'platform-compare'; Duration = 20; NormalRate = 700; CriticalRate = 2; Outage = 0},
+    @{Name = 'one-spread'; Workers = 1; NormalKeys = 256; Tag = 'platform-compare'; Duration = 20; NormalRate = 700; CriticalRate = 2; Outage = 0},
+    @{Name = 'two-spread'; Workers = 2; NormalKeys = 256; Tag = 'platform-compare'; Duration = 20; NormalRate = 700; CriticalRate = 2; Outage = 0},
     @{Name = 'telecom-outage'; Workers = 1; Tag = 'platform-outage'; Duration = 6; NormalRate = 2; CriticalRate = 0; Outage = 30},
     @{Name = 'critical-outage'; Workers = 1; Tag = 'platform-critical-outage'; Duration = 6; NormalRate = 0; CriticalRate = 2; Outage = 30}
 )
@@ -169,7 +171,8 @@ foreach ($benchTrial in ($benchTrials | Where-Object { $_.Name -in $Trials })) {
                 '-v', "${trialOutput}:/bench-output", 'rule-worker', 'python', '-m', 'loadtest.platform_bench',
                 '--output', '/bench-output', '--tag', $benchTrial.Tag, '--duration', "$($benchTrial.Duration)",
                 '--normal-rate', "$($benchTrial.NormalRate)", '--critical-rate', "$($benchTrial.CriticalRate)",
-                '--normal-workers', "$($benchTrial.Workers)", '--stopped-provider-seconds', "$($benchTrial.Outage)")
+                '--normal-workers', "$($benchTrial.Workers)", '--normal-keys', [string]($benchTrial.NormalKeys ?? 1),
+                '--stopped-provider-seconds', "$($benchTrial.Outage)")
         }
         finally {
             if ($providerJob) {
@@ -208,9 +211,10 @@ foreach ($benchTrial in ($benchTrials | Where-Object { $_.Name -in $Trials })) {
 if ($benchFailed) {
     throw "Some trials failed ($($benchFailed -join ', ')). View the available evidence in $benchOutput."
 }
-if ('one-normal' -in $Trials -and 'two-normal' -in $Trials) {
-    $one = Get-Content -Raw -LiteralPath (Join-Path $benchOutput 'one-normal/summary.json') | ConvertFrom-Json
-    $two = Get-Content -Raw -LiteralPath (Join-Path $benchOutput 'two-normal/summary.json') | ConvertFrom-Json
+foreach ($shape in 'normal','spread') {
+    if ("one-$shape" -notin $Trials -or "two-$shape" -notin $Trials) { continue }
+    $one = Get-Content -Raw -LiteralPath (Join-Path $benchOutput "one-$shape/summary.json") | ConvertFrom-Json
+    $two = Get-Content -Raw -LiteralPath (Join-Path $benchOutput "two-$shape/summary.json") | ConvertFrom-Json
     if ($one.workload_sha256 -ne $two.workload_sha256) {
         throw 'The worker trials used different input schedules.'
     }

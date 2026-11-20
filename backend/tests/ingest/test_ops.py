@@ -1,6 +1,13 @@
 import asyncio
 
 import pytest
+from psycopg import sql
+
+from alerting.api.routes_ops import RESET_RUNTIME_TABLES
+
+
+# Schemas, rules, teams, users and runbooks share the versioned config registry.
+PRESERVED_TABLES = {"config_objects", "config_state", "backend_file_rule_revisions"}
 
 
 @pytest.fixture
@@ -76,21 +83,78 @@ async def test_metrics_reflect_outbox_and_inbox(client, activity, monkeypatch):
         assert line in response.text.splitlines()
 
 
+async def test_debug_reset_classifies_every_migrated_table(inbox_pool):
+    runtime = set(RESET_RUNTIME_TABLES)
+    async with inbox_pool.connection() as conn:
+        tables = await conn.execute("SELECT tablename FROM pg_tables WHERE schemaname = current_schema()")
+        migrated = {name for name, in await tables.fetchall()}
+        assert runtime.isdisjoint(PRESERVED_TABLES)
+        assert migrated == runtime | PRESERVED_TABLES
+
+        # A foreign key from a preserved table into runtime data would let CASCADE clear it.
+        links = await conn.execute("""
+            SELECT child.relname, parent.relname FROM pg_constraint fk
+            JOIN pg_class child ON child.oid = fk.conrelid
+            JOIN pg_class parent ON parent.oid = fk.confrelid
+            WHERE fk.contype = 'f' AND child.relnamespace = current_schema()::regnamespace
+              AND parent.relnamespace = child.relnamespace
+        """)
+        assert not [(child, parent) for child, parent in await links.fetchall()
+                    if child in PRESERVED_TABLES and parent in runtime]
+
+
+async def demo_table_rows(pool):
+    rows = {}
+    async with pool.connection() as conn:
+        for table in (*RESET_RUNTIME_TABLES, *PRESERVED_TABLES):
+            result = await conn.execute(sql.SQL("SELECT to_jsonb(t) FROM {} t ORDER BY 1").format(sql.Identifier(table)))
+            rows[table] = await result.fetchall()
+    return rows
+
+
 async def test_debug_reset_is_demo_only_and_preserves_config(client, activity, inbox_pool, monkeypatch):
     async with inbox_pool.connection() as conn:
         await conn.execute("""
             INSERT INTO config_objects (kind,id,version,spec,content_hash,origin)
-            VALUES ('rule','repo-rule',1,'{}','hash','file'), ('rule','demo-rule',1,'{}','other','ui')
+            VALUES ('rule','repo-rule',1,'{"name":"Heartbeat"}','hash','file'),
+                   ('rule','demo-rule',2,'{"name":"Web edit"}','other','ui'),
+                   ('schema','workflow',1,'{}','schema','file'), ('team','desk',1,'{}','team','api'),
+                   ('runbook','retry',1,'{}','runbook','ui')
         """)
+        await conn.execute("INSERT INTO backend_file_rule_revisions VALUES ('repo-rule','hash',1)")
+        await conn.execute("""
+            INSERT INTO heartbeat_watches (rule_id,alert_key,rule_version,group_values,last_seen_at,last_event_id,alert_id)
+            SELECT a.rule_id,a.alert_key,a.rule_version,'{}',now(),e.id,a.id
+            FROM events e CROSS JOIN alerts a WHERE e.payload_hash='one' AND a.rule_id='demo'
+        """)
+        await conn.execute("""
+            INSERT INTO silences (team_id,matcher,created_by,created_at,expires_at)
+            VALUES ('desk','{}','sam',now(),now()+interval '1 hour')
+        """)
+        await conn.execute("""
+            INSERT INTO delivery_team_turns (channels,fallback,priority,team_id) VALUES (ARRAY['sms'],false,1,'desk')
+        """)
+        await conn.execute("INSERT INTO log_tail_checkpoints (source_id,path,byte_offset) VALUES ('log','demo.log',42)")
+    before = await demo_table_rows(inbox_pool)
+    assert len(before["heartbeat_watches"]) == 1
     monkeypatch.setenv("DEMO_MODE", "0")
     assert (await client.post("/v1/debug/reset")).status_code == 404
+    assert await demo_table_rows(inbox_pool) == before
     assert (await client.get("/v1/stats/funnel")).json()["accepted"] == 4
+
     monkeypatch.setenv("DEMO_MODE", "1")
-    assert (await client.post("/v1/debug/reset")).json() == {"status": "reset"}
+    after = {table: rows if table in PRESERVED_TABLES else [] for table, rows in before.items()}
+    for _ in range(2):
+        response = await client.post("/v1/debug/reset")
+        assert response.status_code == 200
+        assert response.json() == {"status": "reset"}
+        assert await demo_table_rows(inbox_pool) == after
     assert (await client.get("/v1/stats/funnel")).json()["accepted"] == 0
     async with inbox_pool.connection() as conn:
-        rows = await conn.execute("SELECT id FROM config_objects ORDER BY id")
-        assert await rows.fetchall() == [("demo-rule",), ("repo-rule",)]
+        result = await conn.execute("""
+            INSERT INTO events (source_id,transport,payload_hash,raw) VALUES ('demo','http','next','{}') RETURNING id
+        """)
+        assert await result.fetchone() == (1,)
 
 
 async def test_demo_reset_survives_contention(client, inbox_pool, monkeypatch):

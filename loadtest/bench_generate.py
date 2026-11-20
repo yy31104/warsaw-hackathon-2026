@@ -25,7 +25,7 @@ class Send:
     payload: bytes
 
 
-def workload(fixture, tag, duration, normal_rate, critical_rate, *, unique_normal=False):
+def workload(fixture, tag, duration, normal_rate, critical_rate, *, unique_normal=False, normal_keys=1):
     template = json.loads(fixture.read_bytes())
     counts = {"normal": 0, "critical": 0}
     for tick in range(duration * TICKS_PER_SECOND):
@@ -35,7 +35,10 @@ def workload(fixture, tag, duration, normal_rate, critical_rate, *, unique_norma
             for _ in range(count):
                 counts[lane] += 1
                 event_id = f"{tag}-{lane}-{counts[lane]:06d}"
-                step = f"{tag}-hot" if lane == "normal" and not unique_normal else event_id
+                step = event_id
+                if lane == "normal" and not unique_normal:
+                    key = (counts[lane] - 1) % normal_keys
+                    step = f"{tag}-hot" if normal_keys == 1 else f"{tag}-key-{key:04d}"
                 event = dict(template, workflowId=event_id, step=step,
                              severity="ERROR" if lane == "normal" else "FATAL")
                 body = json.dumps(event, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()

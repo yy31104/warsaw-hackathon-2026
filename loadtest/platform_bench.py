@@ -147,7 +147,10 @@ def summarize(args, schedule, evidence, decisions, expected_slots):
         "duration_s": args.duration,
         "offered_normal_events_per_s": args.normal_rate,
         "offered_critical_events_per_s": args.critical_rate,
-        "normal_grouping": "per event" if args.stopped_provider_seconds else "one hot key",
+        "normal_grouping": "per event" if args.stopped_provider_seconds else (
+            "one hot key" if args.normal_keys == 1 else "round-robin"
+        ),
+        "distinct_normal_keys": len({event.step for batch in schedule for event in batch if event.lane == "normal"}),
         "scheduled": len(sent),
         "broker_confirmed": counts["confirmed"],
         "dropped": counts["dropped"],
@@ -181,7 +184,7 @@ def summarize(args, schedule, evidence, decisions, expected_slots):
 async def run(args):
     schedule = list(workload(
         args.fixture, args.tag, args.duration, args.normal_rate, args.critical_rate,
-        unique_normal=bool(args.stopped_provider_seconds),
+        unique_normal=bool(args.stopped_provider_seconds), normal_keys=args.normal_keys,
     ))
     expected_count = sum(len(batch) for batch in schedule)
     expected_slots = {(send.step, channel) for batch in schedule for send in batch for channel in ("sms", "phone")}
@@ -214,6 +217,7 @@ def main():
     parser.add_argument("--tag", required=True, help="Short synthetic ID prefix, reused for identical cohorts")
     parser.add_argument("--duration", type=int, default=20, help="Offered workload duration in seconds")
     parser.add_argument("--normal-rate", type=int, default=700, help="Normal events offered per second")
+    parser.add_argument("--normal-keys", type=int, default=1, help="Number of rotating normal alert keys in healthy trials")
     parser.add_argument("--critical-rate", type=int, default=2, help="Critical events offered per second")
     parser.add_argument("--normal-workers", type=int, required=True, help="Record the actual scale from Compose")
     parser.add_argument("--critical-workers", type=int, default=1, help="Record the actual scale from Compose")
@@ -224,8 +228,8 @@ def main():
     args = parser.parse_args()
     if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,40}", args.tag):
         parser.error("--tag needs 1–41 lowercase letters, digits or hyphens")
-    if min(args.duration, args.normal_workers, args.critical_workers, args.drain_timeout, args.max_in_flight) < 1:
-        parser.error("duration, worker counts, drain timeout and in-flight limit must be positive")
+    if min(args.duration, args.normal_keys, args.normal_workers, args.critical_workers, args.drain_timeout, args.max_in_flight) < 1:
+        parser.error("duration, normal keys, worker counts, drain timeout and in-flight limit must be positive")
     if min(args.normal_rate, args.critical_rate, args.stopped_provider_seconds) < 0 or not (args.normal_rate or args.critical_rate):
         parser.error("rates and outage must be nonnegative and total offered rate must be positive")
     if args.stopped_provider_seconds and args.duration >= args.stopped_provider_seconds:

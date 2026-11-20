@@ -2,6 +2,12 @@
 # No match -> event.status = needs_review, routed to the fallback team (docs/CONTRACT.md §3.6).
 # Templates use {{path}} over the raw (flattened) event.
 schemas:
+  - id: canary
+    detect: {field: $source, op: eq, value: canary}
+    name: system.canary
+    event_id: "{{probe_id}}"
+    severity_default: info
+
   - id: workflow
     detect:
       all:
