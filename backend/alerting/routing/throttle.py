@@ -29,6 +29,7 @@ def apply(intent, rule, recent_sends, clock):
     message = f"{suppressed} more alerts from {rule['id']}"
     link = intent.rendered.link or ""
     text = f"{message[: 159 - len(link)]} {link}".strip()
+    guard_open = intent.kind == "ladder_step" or intent.rendered.meta.get("requires_open_alert")
     intent.kind = "throttle_summary"
     intent.dedup_key = (
         f"{intent.alert_id}:throttle_summary:{intent.recipient}:{intent.channel.value}:{bucket}"
@@ -46,6 +47,17 @@ def apply(intent, rule, recent_sends, clock):
             },
         )
     )
+    return scope_to_open_alert(intent) if guard_open else intent
+
+
+def scope_to_open_alert(intent):
+    """An acknowledgement may cancel only the waiting stage of its own incident."""
+    meta = intent.rendered.meta
+    meta["requires_open_alert"] = True
+    if intent.kind == "throttle_summary" and not meta.get("open_alert_bucket"):
+        meta["throttle_bucket"] = json.dumps([meta["throttle_bucket"], intent.alert_id], separators=(",", ":"))
+        intent.dedup_key += ":open"
+        meta["open_alert_bucket"] = True
     return intent
 
 
