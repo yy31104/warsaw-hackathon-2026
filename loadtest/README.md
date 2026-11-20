@@ -30,5 +30,30 @@ Throughput divides stored, processed or receiver counts by the elapsed interval 
 
 Each result directory stores `stack.json`, `summary.json` and compressed `raw.json.gz` with its SHA-256. The raw data includes the actual send, broker, event, outbox, receiver and polling records. Successful trials also capture `funnel.json` and `metrics.prom`. The outage adds the host stop/start record in `outage-container.json`. The parent directory records the machine and Docker environment in `machine.json`.
 
+## HTTP ingress smoke test
+
+`http-ingest.js` starts one synthetic request per iteration with k6's `constant-arrival-rate` executor. It gives each event a distinct source identity, checks the durable-acceptance response and reports k6's `dropped_iterations`. The default load is 20 requests/s for five seconds. [Executor documentation](https://grafana.com/docs/k6/latest/using-k6/scenarios/executors/constant-arrival-rate/) · [Measured HTTP results](results/http-k6-smoke/README.md)
+
+Run from the repository root with Docker and PowerShell 7.
+
+```powershell
+$project = 'dev2perf-http-demo'
+$checkout = (Get-Location).Path
+$output = (New-Item -ItemType Directory -Force 'loadtest/results/tmp/http-k6').FullName
+$runId = 'http-smoke-' + [DateTime]::UtcNow.ToString('yyyyMMddHHmmss')
+$image = 'grafana/k6@sha256:3d8e5c7f1d53ec59408c2ffbd9943602a0985ffcbd4a2430ec00f3ffca89796e'
+
+docker compose --env-file loadtest/isolated-ports.env -p $project up -d --wait --build api rule-worker
+docker run --rm --network "${project}_default" `
+    --mount "type=bind,source=$checkout/loadtest,target=/bench/loadtest,readonly" `
+    --mount "type=bind,source=$checkout/fixtures/events,target=/bench/fixtures/events,readonly" `
+    --mount "type=bind,source=$output,target=/evidence" `
+    -e "HTTP_RUN_ID=$runId" -e HTTP_SUMMARY_FILE=/evidence/k6-summary.json `
+    $image run --quiet /bench/loadtest/http-ingest.js
+docker compose --env-file loadtest/isolated-ports.env -p $project down
+```
+
+Set `HTTP_RATE`, `HTTP_DURATION_S`, `HTTP_PREALLOCATED_VUS` or `HTTP_MAX_VUS` as container environment variables to adjust the workload. `HTTP_RUN_ID` must be fresh when reusing the database. The source and key default to the demo `generic-webhook` in `config/sources.yaml`.
+
 - `golden_runner.py` — owner DEV1 Yi (moved Fri 22:00).
 - `bench_generate.py`, `bench_collect.py` and `platform_bench.py` — DEV2 workload, telemetry and reconciliation.
