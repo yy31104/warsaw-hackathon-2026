@@ -95,13 +95,14 @@ async function selectOption(page, label, value) {
   await page.getByRole('option', {name: value, exact: true}).click();
 }
 
-function assertScopedLists(lists, team) {
+async function assertScopedLists(lists, team) {
   assert(lists.length > 0, `No ${team} alert list refresh was observed`);
   for (const list of lists) {
     assert.equal(list.status, 200);
     assert.equal(list.team, team, 'A filtered feed requested another team or an unscoped list');
-    assert(list.items?.every(item => item.team_id === team), `Foreign alert payload in ${team} list`);
   }
+  await until(`${team} list response bodies`, () => lists.every(list => list.items !== null));
+  assert(lists.every(list => list.items.every(item => item.team_id === team)), `Foreign alert payload in ${team} list`);
 }
 
 async function saveScreenshot(page, output, filename) {
@@ -148,7 +149,7 @@ async function settlementG1({context, frontend, api, telecom, output, run}) {
   assert.equal(created.data.team_id, 'settlements');
   await until('rendered alert in scoped list response', () => settlements.lists.slice(settlementListOffset).some(
     item => item.team === 'settlements' && item.items?.some(alert => alert.id === alertId)));
-  assertScopedLists(settlements.lists.slice(settlementListOffset), 'settlements');
+  await assertScopedLists(settlements.lists.slice(settlementListOffset), 'settlements');
 
   const detail = await json(new URL(`/v1/alerts/${alertId}`, api));
   assert.equal(detail.rule_id, 'settlements-wf-failed');
@@ -203,7 +204,7 @@ async function settlementG1({context, frontend, api, telecom, output, run}) {
   assert.equal(await pricingCard.count(), 0);
   const pricingLists = pricing.lists.slice(pricingListOffset);
   const pricingRequests = pricing.requests.slice(pricingRequestOffset);
-  assertScopedLists(pricingLists, 'pricing');
+  await assertScopedLists(pricingLists, 'pricing');
   assert(pricingRequests.every(request => request.team === 'pricing'), 'Pricing reload used another team’s scope');
   const pricingLeaks = pricing.messages.slice(pricingStreamOffset).filter(item => item.data.team_id === 'settlements');
   assert.deepEqual(pricingLeaks, [], 'Pricing stream disclosed an event owned by settlements');
@@ -223,7 +224,7 @@ async function settlementG1({context, frontend, api, telecom, output, run}) {
   const switchedRequests = settlements.requests.slice(switchRequestOffset);
   assert([...settlements.requests, ...pricing.requests].every(request => request.team), 'A browser issued an unscoped feed request');
   assert(switchedRequests.every(request => request.team === 'pricing'), 'Actor switch used another team’s scope');
-  assertScopedLists(settlements.lists.slice(switchListOffset), 'pricing');
+  await assertScopedLists(settlements.lists.slice(switchListOffset), 'pricing');
   assert.equal(await settlements.page.getByRole('textbox', {name: 'Filter by team'}).inputValue(), 'pricing');
   assert.deepEqual([...settlements.errors, ...pricing.errors], [], 'Uncaught browser errors');
 
