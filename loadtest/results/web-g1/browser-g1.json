@@ -1,0 +1,419 @@
+{
+  "run": "a38d87f7-124c-41d9-b9d0-97503f0160f2",
+  "started_at": "2026-11-20T22:40:51.250Z",
+  "status": "PASS",
+  "checks": {
+    "settlements": {
+      "status": "PASS",
+      "publisher": "RabbitMQ confirmed 1 on events.workflow (last message_id=web-g1-a38d87f7-124c-41d9-b9d0-97503f0160f2)",
+      "event": {
+        "id": 8,
+        "source_event_id": "web-g1-a38d87f7-124c-41d9-b9d0-97503f0160f2",
+        "status": "processed",
+        "transport": "rabbitmq"
+      },
+      "alert": {
+        "id": 3,
+        "title": "Settlement failed at validate-counterparty: TIMEOUT",
+        "rule_id": "settlements-wf-failed",
+        "owner": "settlements",
+        "occurrence_count": 1
+      },
+      "receipts": [
+        {
+          "idempotency_key": "1191905e-7f0f-44ac-a1ce-568aee23aaab",
+          "channel": "phone",
+          "to": "+15550100002",
+          "text": "Settlement failed at validate-counterparty: TIMEOUT http://localhost:5173/a/3 — press 1 to acknowledge",
+          "gen_sent_at": 1795214454278,
+          "received_at": 1795214454486
+        },
+        {
+          "idempotency_key": "097f4561-196d-4cf1-89f4-247ae75a4ff5",
+          "channel": "sms",
+          "to": "+15550100002",
+          "text": "Settlement failed at validate-counterparty: TIMEOUT http://localhost:5173/a/3",
+          "gen_sent_at": 1795214454278,
+          "received_at": 1795214454474
+        }
+      ],
+      "settlements": {
+        "created": {
+          "occurrence_count": 1,
+          "status": "open",
+          "severity": "error",
+          "priority": "P1",
+          "score": 60,
+          "id": 3,
+          "team_id": "settlements",
+          "ts": "2026-11-20T22:40:54.422826+00:00"
+        },
+        "navigations_after_publish": 0,
+        "lists": [
+          {
+            "team": "settlements",
+            "status": 200,
+            "items": [
+              {
+                "id": 3,
+                "team_id": "settlements"
+              }
+            ]
+          }
+        ]
+      },
+      "pricing": {
+        "foreign_stream_events": 0,
+        "matching_cards_after_reload": 0,
+        "lists": [
+          {
+            "team": "pricing",
+            "status": 200,
+            "items": [
+              {
+                "id": 2,
+                "team_id": "pricing"
+              },
+              {
+                "id": 1,
+                "team_id": "pricing"
+              }
+            ]
+          },
+          {
+            "team": "pricing",
+            "status": 200,
+            "items": [
+              {
+                "id": 2,
+                "team_id": "pricing"
+              },
+              {
+                "id": 1,
+                "team_id": "pricing"
+              }
+            ]
+          }
+        ],
+        "requests": [
+          {
+            "path": "/v1/alerts",
+            "team": "pricing"
+          },
+          {
+            "path": "/v1/stream",
+            "team": "pricing"
+          },
+          {
+            "path": "/v1/alerts",
+            "team": "pricing"
+          }
+        ],
+        "switched_actor_requests": [
+          {
+            "path": "/v1/alerts",
+            "team": "pricing"
+          },
+          {
+            "path": "/v1/stream",
+            "team": "pricing"
+          },
+          {
+            "path": "/v1/alerts",
+            "team": "pricing"
+          }
+        ]
+      },
+      "screenshots": [
+        "settlements-timeout.png",
+        "pricing-reloaded.png",
+        "sam-phone.png"
+      ]
+    },
+    "rule_hot_reload": {
+      "status": "PASS",
+      "id": "web-hot-reload-a38d87f7",
+      "saved_at": "2026-11-20T22:40:55.931Z",
+      "before": {
+        "event_id": 9,
+        "alert_id": 4,
+        "rule_version": 1,
+        "notifications": [
+          {
+            "id": "7ffa54fc-5f25-4718-ad35-0c2eca42b9c4",
+            "recipient": "sam",
+            "channel": "sms",
+            "state": "delivered"
+          }
+        ]
+      },
+      "after": {
+        "event_id": 10,
+        "alert_id": 5,
+        "rule_version": 2,
+        "notifications": [
+          {
+            "id": "228c3687-4c05-4b1f-b1e4-87a42e345279",
+            "recipient": "lee",
+            "channel": "phone",
+            "state": "delivered"
+          }
+        ]
+      },
+      "old_match_after_save": {
+        "event_id": 11,
+        "rule_version": 2,
+        "outcome": "NO_MATCH"
+      },
+      "screenshot": "rule-version-2.png"
+    },
+    "preferences_hot_reload": {
+      "status": "PASS",
+      "actor": "anna",
+      "browser_reload_retained": {
+        "when": "08:00-20:00",
+        "min_severity": "critical",
+        "channels": [
+          "phone"
+        ]
+      },
+      "before": {
+        "event_id": 12,
+        "alert_id": 6,
+        "rule_version": 1,
+        "notifications": [
+          {
+            "id": "1a62c533-09a8-4106-9884-7fdfae187b8c",
+            "recipient": "anna",
+            "channel": "sms",
+            "state": "delivered"
+          }
+        ]
+      },
+      "after": {
+        "event_id": 13,
+        "alert_id": 7,
+        "rule_version": 1,
+        "notifications": [
+          {
+            "id": "bcd52774-5f2c-40a9-ab6a-17c3aa5d5368",
+            "recipient": "anna",
+            "channel": "phone",
+            "state": "delivered"
+          }
+        ]
+      },
+      "screenshot": "anna-preferences-reloaded.png"
+    },
+    "unknown_format": {
+      "status": "PASS",
+      "suggestion_source": "heuristic",
+      "verification": {
+        "samples": [
+          {
+            "actual": {
+              "recipients": [
+                "ops"
+              ],
+              "channels": [
+                "ui"
+              ]
+            },
+            "expected": {
+              "recipients": [
+                "ops"
+              ],
+              "channels": [
+                "ui"
+              ]
+            },
+            "passed": true,
+            "deciding_fields": [
+              "$schema",
+              "signal.outcome"
+            ],
+            "fields": {
+              "signature": "browser-schema-a38d87f7.v1",
+              "signal": {
+                "id": "initial",
+                "outcome": "notify"
+              },
+              "signal.id": "initial",
+              "signal.outcome": "notify",
+              "$source": "generic-webhook",
+              "$transport": "http",
+              "$severity": "warning",
+              "$time": null,
+              "$schema": "browser-schema-a38d87f7.v1",
+              "$service": null,
+              "$environment": null,
+              "$error_code": "notify",
+              "$message": null
+            },
+            "unit_warnings": [],
+            "note": "Should notify"
+          },
+          {
+            "actual": {
+              "recipients": [],
+              "channels": []
+            },
+            "expected": "quiet",
+            "passed": true,
+            "deciding_fields": [
+              "$schema",
+              "$service",
+              "$severity",
+              "environment",
+              "instance",
+              "payload.desk",
+              "payload.notional",
+              "probe.phase",
+              "signal.outcome",
+              "workflowName"
+            ],
+            "fields": {
+              "signature": "browser-schema-a38d87f7.v1",
+              "signal": {
+                "id": "quiet",
+                "outcome": "quiet"
+              },
+              "signal.id": "quiet",
+              "signal.outcome": "quiet",
+              "$source": "generic-webhook",
+              "$transport": "http",
+              "$severity": "warning",
+              "$time": null,
+              "$schema": "browser-schema-a38d87f7.v1",
+              "$service": null,
+              "$environment": null,
+              "$error_code": "quiet",
+              "$message": null
+            },
+            "unit_warnings": [],
+            "note": "Should stay quiet"
+          }
+        ],
+        "all_pass": true
+      },
+      "published": {
+        "id": "browser-schema-a38d87f7",
+        "version": 1,
+        "origin": "ui",
+        "reprocessed": 1
+      },
+      "reprocessed": {
+        "event_id": 14,
+        "alert_id": 9,
+        "rule_version": 1,
+        "notifications": [
+          {
+            "id": "e943ed91-1c7c-4a1f-a7a5-62a9755a9f8a",
+            "recipient": "ops",
+            "channel": "ui",
+            "state": "delivered"
+          }
+        ]
+      },
+      "positive": {
+        "event_id": 15,
+        "alert_id": 10,
+        "rule_version": 1,
+        "notifications": [
+          {
+            "id": "01791860-7d98-420d-b853-04f1712baa53",
+            "recipient": "ops",
+            "channel": "ui",
+            "state": "delivered"
+          }
+        ]
+      },
+      "quiet": {
+        "event_id": 16,
+        "rule_version": 1,
+        "outcome": "NO_MATCH"
+      },
+      "screenshot": "schema-verify-and-publish.png"
+    },
+    "assists_and_proposal": {
+      "status": "PASS",
+      "rule_draft_source": "heuristic",
+      "runbook": {
+        "id": "web-runbook-a38d87f7",
+        "version": 1,
+        "source": "heuristic",
+        "required_approval_steps": 1
+      },
+      "proposal": {
+        "id": 1,
+        "prior_version": 2,
+        "published_version": 3,
+        "preview": {
+          "rule_id": "web-hot-reload-a38d87f7",
+          "base_version": 2,
+          "events_replayed": 16,
+          "starts_from_empty_state": true,
+          "replay_basis": "Selected rule, stored event fields and times, current directory, event-driven sends and digests due within the sample.",
+          "current": {
+            "alerts": 1,
+            "matched_events": 1,
+            "notifications": {
+              "lee/phone": 1
+            }
+          },
+          "draft": {
+            "alerts": 0,
+            "matched_events": 0,
+            "notifications": {}
+          },
+          "lost_all_notifications": [
+            10
+          ],
+          "lost_recipients": [
+            "lee"
+          ],
+          "new_recipients": [],
+          "events_with_recipient_loss": [
+            {
+              "event_id": 10,
+              "recipients": [
+                "lee"
+              ]
+            }
+          ],
+          "sample_event_ids": [
+            12,
+            13,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            14,
+            15,
+            16
+          ]
+        }
+      },
+      "screenshots": [
+        "runbook-saved.png",
+        "proposal-impact.png"
+      ]
+    }
+  },
+  "environment": {
+    "git_head": "4646e34c68b5ca7f94feb37e9c5443204fa8ec12",
+    "tracked_worktree_changes": [],
+    "chromium": "149.0.7827.55",
+    "frontend": "http://127.0.0.1:18173",
+    "api": "http://127.0.0.1:18100",
+    "telecom": "http://127.0.0.1:18110"
+  },
+  "finished_at": "2026-11-20T22:40:59.398Z"
+}
