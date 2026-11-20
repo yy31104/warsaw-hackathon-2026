@@ -1,14 +1,14 @@
 {
-  "run": "a38d87f7-124c-41d9-b9d0-97503f0160f2",
-  "started_at": "2026-11-20T22:40:51.250Z",
+  "run": "84b7a37e-c38c-4d98-9aa3-e36913ffd831",
+  "started_at": "2026-11-20T22:46:04.019Z",
   "status": "PASS",
   "checks": {
     "settlements": {
       "status": "PASS",
-      "publisher": "RabbitMQ confirmed 1 on events.workflow (last message_id=web-g1-a38d87f7-124c-41d9-b9d0-97503f0160f2)",
+      "publisher": "RabbitMQ confirmed 1 on events.workflow (last message_id=web-g1-84b7a37e-c38c-4d98-9aa3-e36913ffd831)",
       "event": {
         "id": 8,
-        "source_event_id": "web-g1-a38d87f7-124c-41d9-b9d0-97503f0160f2",
+        "source_event_id": "web-g1-84b7a37e-c38c-4d98-9aa3-e36913ffd831",
         "status": "processed",
         "transport": "rabbitmq"
       },
@@ -21,22 +21,27 @@
       },
       "receipts": [
         {
-          "idempotency_key": "1191905e-7f0f-44ac-a1ce-568aee23aaab",
+          "idempotency_key": "b17787b9-ff76-4fe6-8c4b-3f43c47e727d",
           "channel": "phone",
           "to": "+15550100002",
-          "text": "Settlement failed at validate-counterparty: TIMEOUT http://localhost:5173/a/3 — press 1 to acknowledge",
-          "gen_sent_at": 1795214454278,
-          "received_at": 1795214454486
+          "text": "Settlement failed at validate-counterparty: TIMEOUT http://127.0.0.1:18173/a/3 — press 1 to acknowledge",
+          "gen_sent_at": 1795214767120,
+          "received_at": 1795214767371
         },
         {
-          "idempotency_key": "097f4561-196d-4cf1-89f4-247ae75a4ff5",
+          "idempotency_key": "0d203cc1-c168-423f-a9b3-8c282bc515ed",
           "channel": "sms",
           "to": "+15550100002",
-          "text": "Settlement failed at validate-counterparty: TIMEOUT http://localhost:5173/a/3",
-          "gen_sent_at": 1795214454278,
-          "received_at": 1795214454474
+          "text": "Settlement failed at validate-counterparty: TIMEOUT http://127.0.0.1:18173/a/3",
+          "gen_sent_at": 1795214767120,
+          "received_at": 1795214767356
         }
       ],
+      "receipt_link": {
+        "url": "http://127.0.0.1:18173/a/3",
+        "browser_status": 200,
+        "opened_alert_id": 3
+      },
       "settlements": {
         "created": {
           "occurrence_count": 1,
@@ -46,7 +51,7 @@
           "score": 60,
           "id": 3,
           "team_id": "settlements",
-          "ts": "2026-11-20T22:40:54.422826+00:00"
+          "ts": "2026-11-20T22:46:07.293900+00:00"
         },
         "navigations_after_publish": 0,
         "lists": [
@@ -127,20 +132,21 @@
       "screenshots": [
         "settlements-timeout.png",
         "pricing-reloaded.png",
-        "sam-phone.png"
+        "sam-phone.png",
+        "sam-sms-opens-alert.png"
       ]
     },
     "rule_hot_reload": {
       "status": "PASS",
-      "id": "web-hot-reload-a38d87f7",
-      "saved_at": "2026-11-20T22:40:55.931Z",
+      "id": "web-hot-reload-84b7a37e",
+      "saved_at": "2026-11-20T22:46:09.026Z",
       "before": {
         "event_id": 9,
         "alert_id": 4,
         "rule_version": 1,
         "notifications": [
           {
-            "id": "7ffa54fc-5f25-4718-ad35-0c2eca42b9c4",
+            "id": "953c9e79-f97b-46e8-837b-05f2a31b50f8",
             "recipient": "sam",
             "channel": "sms",
             "state": "delivered"
@@ -153,7 +159,7 @@
         "rule_version": 2,
         "notifications": [
           {
-            "id": "228c3687-4c05-4b1f-b1e4-87a42e345279",
+            "id": "0d33e52c-6ee9-4e5f-8a54-3ebd1c062ead",
             "recipient": "lee",
             "channel": "phone",
             "state": "delivered"
@@ -183,7 +189,7 @@
         "rule_version": 1,
         "notifications": [
           {
-            "id": "1a62c533-09a8-4106-9884-7fdfae187b8c",
+            "id": "96df29bc-e6bf-408d-933c-2d7dbcc4fc4f",
             "recipient": "anna",
             "channel": "sms",
             "state": "delivered"
@@ -196,7 +202,7 @@
         "rule_version": 1,
         "notifications": [
           {
-            "id": "bcd52774-5f2c-40a9-ab6a-17c3aa5d5368",
+            "id": "c7fb874d-5027-4ce2-905b-f3e3ee7baf00",
             "recipient": "anna",
             "channel": "phone",
             "state": "delivered"
@@ -233,7 +239,7 @@
               "signal.outcome"
             ],
             "fields": {
-              "signature": "browser-schema-a38d87f7.v1",
+              "signature": "browser-schema-84b7a37e.v1",
               "signal": {
                 "id": "initial",
                 "outcome": "notify"
@@ -244,7 +250,7 @@
               "$transport": "http",
               "$severity": "warning",
               "$time": null,
-              "$schema": "browser-schema-a38d87f7.v1",
+              "$schema": "browser-schema-84b7a37e.v1",
               "$service": null,
               "$environment": null,
               "$error_code": "notify",
@@ -273,7 +279,7 @@
               "workflowName"
             ],
             "fields": {
-              "signature": "browser-schema-a38d87f7.v1",
+              "signature": "browser-schema-84b7a37e.v1",
               "signal": {
                 "id": "quiet",
                 "outcome": "quiet"
@@ -284,7 +290,7 @@
               "$transport": "http",
               "$severity": "warning",
               "$time": null,
-              "$schema": "browser-schema-a38d87f7.v1",
+              "$schema": "browser-schema-84b7a37e.v1",
               "$service": null,
               "$environment": null,
               "$error_code": "quiet",
@@ -297,7 +303,7 @@
         "all_pass": true
       },
       "published": {
-        "id": "browser-schema-a38d87f7",
+        "id": "browser-schema-84b7a37e",
         "version": 1,
         "origin": "ui",
         "reprocessed": 1
@@ -308,7 +314,7 @@
         "rule_version": 1,
         "notifications": [
           {
-            "id": "e943ed91-1c7c-4a1f-a7a5-62a9755a9f8a",
+            "id": "b51f1444-ef10-4636-ae73-68e1b903d082",
             "recipient": "ops",
             "channel": "ui",
             "state": "delivered"
@@ -321,7 +327,7 @@
         "rule_version": 1,
         "notifications": [
           {
-            "id": "01791860-7d98-420d-b853-04f1712baa53",
+            "id": "addfccf7-3851-4583-9390-ce03bcc6512b",
             "recipient": "ops",
             "channel": "ui",
             "state": "delivered"
@@ -339,7 +345,7 @@
       "status": "PASS",
       "rule_draft_source": "heuristic",
       "runbook": {
-        "id": "web-runbook-a38d87f7",
+        "id": "web-runbook-84b7a37e",
         "version": 1,
         "source": "heuristic",
         "required_approval_steps": 1
@@ -349,7 +355,7 @@
         "prior_version": 2,
         "published_version": 3,
         "preview": {
-          "rule_id": "web-hot-reload-a38d87f7",
+          "rule_id": "web-hot-reload-84b7a37e",
           "base_version": 2,
           "events_replayed": 16,
           "starts_from_empty_state": true,
@@ -408,12 +414,12 @@
     }
   },
   "environment": {
-    "git_head": "4646e34c68b5ca7f94feb37e9c5443204fa8ec12",
+    "git_head": "8e4d5c16bb993c74ee15d9717c3beff53e85a06a",
     "tracked_worktree_changes": [],
     "chromium": "149.0.7827.55",
     "frontend": "http://127.0.0.1:18173",
     "api": "http://127.0.0.1:18100",
     "telecom": "http://127.0.0.1:18110"
   },
-  "finished_at": "2026-11-20T22:40:59.398Z"
+  "finished_at": "2026-11-20T22:46:12.819Z"
 }
