@@ -42,8 +42,9 @@ Set the same `INBOUND_SECRET` on this service and the alert API. Compose reads i
 the project `.env`. Set `ALERTING_API_URL` to the base URL accessible from the simulator.
 Compose defaults to the host API on port 8000, and the native default is `http://127.0.0.1:8000`.
 
-Select the phone that received the notification, enter the reply (for example `YES 1234`),
-and press **Send**. The page posts `{"from":"<selected number>","body":"YES 1234"}` to
+Select the phone that received the approval request and type `YES` or `NO` followed by
+the exact code printed in that SMS, including any leading zeros. Press **Send**.
+The page posts `{"from":"<selected number>","body":"YES <code>"}` to
 `/reply`. The server forwards it to `/v1/inbound/sms` with `X-Provider-Secret`.
 The page reports success when the alert API accepts the reply and shows its reason
 when the reply is rejected.

@@ -111,7 +111,7 @@ async def test_phone_reply_forwards_sender_and_server_secret(gateway, monkeypatc
         return httpx.Response(200) if len(forwarded) == 1 else httpx.Response(409, json={"detail": "Approval expired"})
 
     transport = httpx.MockTransport(backend)
-    reply = {"from": NUMBER, "body": "YES 1234"}
+    reply = {"from": NUMBER, "body": "YES 001234"}
     async with client_for(gateway(inbound_transport=transport)) as client:
         page = await client.get("/")
         assert page.is_success and "test-provider-secret" not in page.text
@@ -164,8 +164,9 @@ async def test_settlement_delivery_and_reply_reach_yis_backend(gateway, inbox_po
             assert action.json()["state"] == "pending_approval"
             assert await deliver_one(inbox_pool, providers, ["sms"])
             approval = (await phone.get("/messages", params={"limit": 1})).json()["items"][0]
-            decline = re.search(r"\bNO \d{4}\b", approval["text"]).group()
-            reply = await phone.post("/reply", json={"from": approval["to"], "body": decline})
+            decline = re.search(r"\bNO [0-9]+\b", approval["text"])
+            assert decline is not None, approval["text"]
+            reply = await phone.post("/reply", json={"from": approval["to"], "body": decline.group()})
             assert reply.is_success, reply.text
             async with inbox_pool.connection() as conn:
                 row = await (await conn.execute(
