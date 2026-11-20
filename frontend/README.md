@@ -14,7 +14,7 @@ Preview: http://127.0.0.1:5173/. Hot updates are enabled. `VITE_MOCK=1` is the d
 
 ## Navigation
 
-- `/`: overview, current active alerts/critical count, pending action approvals, delivery risks, workflow grouping scenario, recent actions, functional shortcuts.
+- `/`: overview, current active alerts/critical count, pending action approvals, delivery risks, workflow grouping scenario, recent actions and contextual status links.
 - `/alerts`: original live feed with filters.
 - `/a/:id`: detail, acknowledgement/resolution, delivery attempts, timeline and runbook.
 - `/approvals`: shared mock runbook approval inbox. Configuration proposals are separate.
@@ -48,3 +48,7 @@ See VALIDATION.md for checks and remaining integration work. Commits and pushes 
 Active alerts use a severity-sorted lead incident plus a compact secondary queue. No user avatars are displayed. Summary values are unboxed. Replay resets only the synthetic workflow scenario (with confirmation when actions exist), preserves rules/preferences, and supports pause/resume/speed. The trend is derived from replay history and has a keyboard-accessible update scrubber.
 
 Known API mismatch: rendered pending steps have a run count/state but no action-run ID in the current fixture/backend renderer. Existing API approvals cannot be safely submitted until that ID is supplied. The UI disables those submissions; freshly requested runs can use their returned IDs. Check result refetches the runbook and never reruns an unknown action.
+
+## Recent activity
+
+Removed redundant Next actions links; navigation and Pending approvals are the primary entry points. After the fixed replay, an explicitly simulated push generator adds an occurrence to an open incident every ~3 seconds. This updates counts, trend, timeline and recent activity together; it is not backend throughput. Pause live mock stream stops generation. Pause view only freezes the displayed activity list and tracks unseen entries; filters and incident links remain usable.

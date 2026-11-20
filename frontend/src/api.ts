@@ -1,6 +1,6 @@
 import detailFixture from '../../fixtures/api/alert_detail.json';
 import notifications from '../../fixtures/api/notifications.json';
-import {session,startReplay,applyStream,mockTransition,mockRunbook,resetScenario,changed} from './session';
+import {session,startReplay,applyStream,mockTransition,mockRunbook,resetScenario,changed,emitMockOccurrence} from './session';
 import runbook from '../../fixtures/api/runbook.json';
 import replay from '../../fixtures/api/stream.ndjson?raw';
 import {type Alert,type StreamMessage} from './model';
@@ -21,7 +21,7 @@ export const api={
 };
 let replayIndex=0;
 export function subscribe(onMessage:(message:StreamMessage)=>void,onState:(state:string)=>void,team=''){
- if(MOCK_MODE){startReplay();onState('Simulated SSE replay');const rows=replay.trim().split('\n').map(row=>JSON.parse(row) as StreamMessage);let lastTick=0;const timer=setInterval(()=>{if(!session.replayRunning){onState(session.replayFinished?'Simulated SSE · replay complete':'Simulated SSE · paused');return;}if(Date.now()-lastTick<session.replayDelay)return;lastTick=Date.now();onState('Simulated SSE replay');if(replayIndex>=rows.length){session.replayRunning=false;session.replayFinished=true;applyStream({type:'alert.updated',data:{id:101,occurrence_count:500}});onMessage({type:'alert.updated',data:{id:101,occurrence_count:500}});onState('Simulated SSE · replay complete');return;}const message=rows[replayIndex++];applyStream(message);onMessage(message);},100);return()=>clearInterval(timer);}
+ if(MOCK_MODE){startReplay();onState('Simulated SSE replay');const rows=replay.trim().split('\n').map(row=>JSON.parse(row) as StreamMessage);let lastTick=0;const timer=setInterval(()=>{if(session.replayFinished&&session.simulationRunning){onState('Simulated SSE · streaming');if(Date.now()-lastTick>=3000){lastTick=Date.now();const event=emitMockOccurrence();if(event)onMessage(event);}return;}if(!session.replayRunning){onState(session.replayFinished?'Simulated SSE · replay complete':'Simulated SSE · paused');return;}if(Date.now()-lastTick<session.replayDelay)return;lastTick=Date.now();onState('Simulated SSE replay');if(replayIndex>=rows.length){session.replayRunning=false;session.replayFinished=true;applyStream({type:'alert.updated',data:{id:101,occurrence_count:500}});onMessage({type:'alert.updated',data:{id:101,occurrence_count:500}});onState('Simulated SSE · replay complete');return;}const message=rows[replayIndex++];applyStream(message);onMessage(message);},100);return()=>clearInterval(timer);}
  const stream=new EventSource(`${base}/v1/stream${team?`?team=${encodeURIComponent(team)}`:''}`);stream.onopen=()=>onState('Live');stream.onerror=()=>onState('Reconnecting');for(const type of ['alert.created','alert.updated','notification.updated','action.updated','schema.issue','config.changed','stats.tick'])stream.addEventListener(type,event=>{try{onMessage({type,data:JSON.parse((event as MessageEvent).data)});}catch{onState('Invalid stream payload');}});return()=>stream.close();
 }
 

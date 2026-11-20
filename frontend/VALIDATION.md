@@ -44,3 +44,15 @@
 - PASS: frontend build, lint and 9 logic tests.
 - PASS: make test using locked dependencies in a temporary environment: 59 passed, 22 skipped. Database-dependent tests skipped because PostgreSQL was unavailable; they are NOT_RUN, not integration PASS.
 - Status summary redesigned as a severity ring plus staggered Critical, approval and risk controls, animated values and reduced-motion support.
+
+## Activity stream follow-up
+
+- PASS: frontend 10 logic tests including generated occurrence → count/activity linkage.
+- PASS: browser observed post-replay counts 501, 502, 503 and corresponding pushed activity entries; Pause view freezes displayed entries while the stream continues.
+- Redundant Next actions and Review approvals shortcuts removed.
+
+## Spacing and baseline follow-up
+
+- PASS: browser geometry confirms Active alerts and Recent activity section tops and heading tops match exactly.
+- Demo controls collapsed by default; longer grouping explanation is on demand; repeated copy removed and section/list spacing increased.
+- Frontend build/lint PASS; 10 logic tests PASS; make test 59 passed / 22 skipped (PostgreSQL integration NOT_RUN).
