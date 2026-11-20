@@ -52,3 +52,9 @@ async def api(database):
             yield client
     finally:
         app.dependency_overrides.pop(get_db, None)
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "e2e: backend inbox-to-provider smoke test using local PostgreSQL"
+    )
