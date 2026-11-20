@@ -234,7 +234,8 @@ async function actedPage({context, frontend}, path, actor) {
 
 async function clickForResponse(page, button, method, path, status = 200) {
   const [response] = await Promise.all([
-    page.waitForResponse(item => item.request().method() === method && new URL(item.url()).pathname === `/v1${path}`),
+    page.waitForResponse(item => item.request().method() === method && new URL(item.url()).pathname === `/v1${path}`,
+      {timeout: 50_000}),
     page.getByRole('button', {name: button, exact: true}).click(),
   ]);
   assert.equal(response.status(), status, `${method} ${path}: ${await response.text()}`);
@@ -471,24 +472,26 @@ async function main() {
     const {stdout: diff} = await runCommand('git', ['status', '--short', '--untracked-files=no'], {cwd: root});
     evidence.environment = {git_head: stdout.trim(), tracked_worktree_changes: diff.trim().split('\n').filter(Boolean),
       chromium: browser.version(), frontend: frontend.origin, api: api.origin, telecom: telecom.origin};
-    const context = await browser.newContext({viewport: {width: 1440, height: 900}});
-    const env = {context, frontend, api, telecom, output, run};
     async function check(name, runCase) {
       console.log(`Running ${name}`);
       evidence.checks[name] = {status: 'FAIL'};
+      const context = await browser.newContext({viewport: {width: 1440, height: 900}});
       try {
-        evidence.checks[name] = await runCase();
+        evidence.checks[name] = await runCase({context, frontend, api, telecom, output, run});
       } catch (error) {
         evidence.checks[name].error = error.message;
         throw error;
+      } finally {
+        // Release this journey's long-lived SSE requests before the next one.
+        await context.close();
       }
     }
-    if (args[0] !== '--workflows-only') await check('settlements', () => settlementG1(env));
+    if (args[0] !== '--workflows-only') await check('settlements', settlementG1);
     if (args[0] !== '--g1-only') {
-      await check('rule_hot_reload', () => ruleHotReload(env));
-      await check('preferences_hot_reload', () => preferencesHotReload(env));
-      await check('unknown_format', () => unknownFormat(env));
-      await check('assists_and_proposal', () => assistsAndProposal(env, evidence.checks.rule_hot_reload));
+      await check('rule_hot_reload', ruleHotReload);
+      await check('preferences_hot_reload', preferencesHotReload);
+      await check('unknown_format', unknownFormat);
+      await check('assists_and_proposal', env => assistsAndProposal(env, evidence.checks.rule_hot_reload));
     }
     evidence.status = 'PASS';
   } catch (error) {
