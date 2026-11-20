@@ -116,7 +116,7 @@ The core chain comes first: RabbitMQ → inbox, fake-telecom and SSE are still t
   - apply schema `transforms` (`scale`, `unit`; keep `<path>.raw`);
   - expose `$episode` from `episode_key`;
   - flag numeric fields used by rules that have no known unit.
-- **R4 `POST /v1/schemas/verify` (headline innovation):** draft schema + samples marked notify/quiet → run Yi's `evaluate` + `plan` with no side effects → per sample: recipients, channels, deciding fields, pass/fail, unit warnings. Golden case `verify-unit-change`.
+- **R4 `POST /v1/schemas/verify` (headline innovation):** draft schema + samples marked notify/quiet, or with expected `{recipients, channels}`, → run Yi's `evaluate` + `plan` with no side effects → per sample: recipients, channels, deciding fields, pass/fail, unit warnings. Golden case `verify-unit-change`.
 - **R5 `POST /v1/rules/check`** → Yi's `rules.safety.check`. Golden case `rule-safety-counterexample`.
 - **R6 Delivery-risk metrics** in `/v1/stats/funnel` and `stats.tick`: `oldest_pending_s` per channel/lane, `backlog`, `retries_5m`, `delivery_target_s` (env `DELIVERY_TARGET_S`, default 30), `at_risk`. Also expose them on `/metrics`.
 - **R7 SSE coalescing:** `alert.updated` counters at most every ~400 ms per alert; created, critical, approval and resolved are sent immediately; the client refetches on reconnect.
@@ -125,6 +125,7 @@ The core chain comes first: RabbitMQ → inbox, fake-telecom and SSE are still t
   - (a) hot-key storm and (b) wide variety, each with critical events injected every second. Report ingest/s, processed/s, critical e2e p50/p99, failures, oldest pending, decisions per 1,000 events and SMS per 1,000 events;
   - (c) poison-event injection;
   - (d) provider outage reconciliation (lost = 0).
+- **Then your Tier 2 items** in [IMPROVEMENTS.md](../IMPROVEMENTS.md), in this order: #7 RabbitMQ hardening (DLQ, delivery limit, publisher confirms, reconnect), #8 admission control + per-source quotas, #9 LLM guardrails, #6 graceful shutdown (consumers), #10 `sensitive` fields in schemas, #11 correlation IDs, #12 canary sender, #14 feedback → proposals.
 - **P2 (only after everything above):** Incident Investigator `assist/investigate.py`.
   - Read-only, runs async after the incident is created, ≤ 3 calls to allow-listed mock-ops GET endpoints (`/health`, `/metrics/pool`, `/deployments`), each returning clearly labelled simulated data.
   - Never uses the action registry. Stores {tool, time, result, unknowns} on the alert.

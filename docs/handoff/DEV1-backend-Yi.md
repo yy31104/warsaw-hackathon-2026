@@ -138,8 +138,8 @@ Status at this point: PR #1 merged, PR #2 open (hot reload, scoped approvals, pi
   - A re-run requires an explicit operator confirmation.
 - **R6 Rule Safety Checker (innovation, pure)** `rules/safety.py`: `check(rule_draft, ruleset, schemas, directory) -> {scenarios_checked, violations}`.
   - **Scenarios:** for each condition, boundary values that satisfy and violate it (eq/in values, `gt` threshold ± 1, a glob sample); severity ∈ {critical, error, warning}; the configured environments; times {07:59, 08:00, 19:59, 20:00, 23:10} in each recipient's timezone; contact present / missing.
-  - **Policies:**
-    - (a) a matched **critical** scenario reaches ≥ 1 human with a usable contact on a non-UI channel;
+  - **Policies (check declared requirements only; UI-only rules are valid):**
+    - (a) a rule with explicit channels (e.g. Settlements `[phone, sms]`) delivers **all** of them to ≥ 1 person with a usable contact in every matching scenario; a team's optional `required_channels` (teams.yaml) is enforced for that team's rules; a `preferences` route still yields ≥ 1 channel for critical;
     - (b) every route target resolves to ≥ 1 user;
     - (c) the rule matches at least one known-schema sample (otherwise warn "never fires");
     - (d) regex too long or too complex → warn.
@@ -147,6 +147,8 @@ Status at this point: PR #1 merged, PR #2 open (hot reload, scoped approvals, pi
 - **R7 Engine support for sample verification:** make sure `evaluate` + `plan` can run side-effect-free on a draft schema (with `transforms`) for `POST /v1/schemas/verify` (daizhongtian's route). Return the deciding fields from the match trace.
 - **R8 (P1, after the above)** hysteresis `group.stable_for`; then **measure** decision write volume (decisions per 1,000 events). Compact `NO_MATCH` rows (one row per event, listing the rules checked) only if the load test shows it matters, and keep "why wasn't I notified" answerable.
 - **Not now:** cross-rule SMS merging (different rules can mean different incidents, permissions and runbooks), canary, dynamic escalation, cost ladder, COPY, Redis.
+
+**After R1–R8:** your Tier 2 items in [IMPROVEMENTS.md](../IMPROVEMENTS.md), in this order: #4 late events, #5 DST tests, #1 silences, #2 unacked escalation, #3 heartbeat rules, #6 graceful shutdown (workers), #10 masking in render, #13 guarded dynamic escalation, #12 canary bypass path.
 
 **Prompt for round 2:**
 > Read AGENTS.md, docs/BRIEF.md §4, docs/CONTRACT.md §4, §5, §8, §9 and the "Round 2" section of docs/handoff/DEV1-backend-Yi.md. Merge origin/main first. Implement R1–R5 in order on feat/backend-yi, each test-first against real PostgreSQL, one commit per item. Then R6 and R7. Don't redesign the architecture and don't add the "Not now" items. Report per item: PASS / FAIL / NOT_RUN, with the exact test or command.

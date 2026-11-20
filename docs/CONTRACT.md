@@ -51,7 +51,7 @@ Kinds: `source`, `schema`, `rule`, `team`, `user`, `runbook`, plus singletons `f
   - `transforms?`: `{<path>: {scale: 0.01, unit: EUR}}`, applied after flattening and before rules (e.g. a notional sent in cents). The original value is kept as `<path>.raw`. If a rule compares a numeric field whose unit is unknown for this schema, onboarding flags it.
   - `episode_key?`: a template identifying one firing episode (Alertmanager: `{{startsAt}}`); it is exposed as `$episode`. The alert stores its `latest_episode`. A resolve event closes the alert **only if its `$episode` equals the alert's `latest_episode`**. Otherwise the outcome is `STALE_RESOLVE` and the alert stays open, with the resolve kept as evidence.
 - **rules.yaml**: see §5.
-- **teams.yaml**: `fallback_team, default_preferences[], teams[{id, members, oncall{primary, secondary?}, approvers[]}], users[{id, timezone, contacts{email,sms,phone}, preferences[]?}]`. Preference row: `{when?: "HH:MM-HH:MM" (user tz, [start,end)), min_severity, channels[]}`. The first matching row wins. If no user row matches, `default_preferences` applies. **A critical alert always gets at least one channel.**
+- **teams.yaml**: `fallback_team, default_preferences[], teams[{id, members, oncall{primary, secondary?}, approvers[], required_channels?: {critical: [phone, sms]}}], users[{id, timezone, contacts{email,sms,phone}, preferences[]?}]`. Preference row: `{when?: "HH:MM-HH:MM" (user tz, [start,end)), min_severity, channels[]}`. The first matching row wins. If no user row matches, `default_preferences` applies. **A critical alert always gets at least one channel.**
 - **runbooks/runbooks.yaml**: `id, file, format (yaml-steps|markdown|checklist|text|url), rules[]?, matches?`. `matches` accepts the rule DSL **or** a flat `{path: value}` map (all-equal), which is the Appendix B YAML style.
 
 ## 5. Rules
@@ -145,8 +145,8 @@ Delivery states: `pending → sending → delivered | retrying | unknown | faile
 | `GET /stream?team=` (SSE) | Live events, §10 | DEV2 daizhongtian |
 | `GET /stats/funnel?window=15m` · `GET /health` · `GET /metrics` (Prometheus text) · `POST /debug/reset` (DEMO_MODE) | Dashboard + ops | DEV2 daizhongtian |
 
-| `POST /rules/check {rule}` | Rule Safety Checker → `{scenarios_checked:[...], violations:[{scenario, problem, trace}]}` (pure function `rules.safety.check` by Yi) | DEV2 daizhongtian (route) |
-| `POST /schemas/verify {schema, samples:[{event, expect: notify\|quiet, note?}]}` | Sample-based verification → per sample: recipients, channels, deciding fields, pass/fail, unit warnings (uses Yi's engine + plan, no side effects) | DEV2 daizhongtian |
+| `POST /rules/check {rule}` | Rule Safety Checker → `{scenarios_checked:[...], violations:[{scenario, requirement, problem, trace}]}` (pure function `rules.safety.check` by Yi). It checks against the rule's declared channels and the team's optional `required_channels`; it never flags a declared UI-only rule | DEV2 daizhongtian (route) |
+| `POST /schemas/verify {schema, samples:[{event, expect: "notify"\|"quiet"\|{recipients:[...], channels:[...]}, note?}]}` | Sample-based verification → per sample: actual vs expected recipients and channels, deciding fields, pass/fail, unit warnings (uses Yi's engine + plan, no side effects) | DEV2 daizhongtian |
 
 `POST /inbound/{channel}` requires the header `X-Provider-Secret` (shared secret `INBOUND_SECRET` in `.env`, sent by fake-telecom); a missing or wrong secret → 401. Failed code attempts are persisted per sender: 5 failures in 15 min → 429, audited.
 

@@ -75,4 +75,5 @@ For each one, record PASS / FAIL / NOT_RUN plus the evidence:
 5. **Rule safety:** a draft rule routing critical alerts to a non-existent on-call → a counterexample is shown before publishing.
 6. **Provider outage:** fake-telecom down for 30 s → outbox reconciliation shows lost = 0.
 7. **Time edge:** Anna at 07:59 / 08:00 / 19:59 / 20:00 and on the DST weekend (25 Oct 2026, Europe/Warsaw).
-8. **Unseen format:** time from paste to the first correct alert, and LLM-suggested vs correct fields (n/N).
+8. **Tier 2 items that are marked done** in [IMPROVEMENTS.md](../IMPROVEMENTS.md): run each one's acceptance check as written.
+9. **Unseen format:** time from paste to the first correct alert, and LLM-suggested vs correct fields (n/N).

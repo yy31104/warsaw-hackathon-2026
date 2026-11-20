@@ -221,7 +221,7 @@ cases:
       schema: {base: business-envelope, transforms: {payload.notional: {scale: 0.01, unit: EUR}}}
       samples:
         - {event_file: fixtures/events/trade_rejected_v2.json, mutate: {payload: {notional: 25000000}}, expect: quiet}
-        - {event_file: fixtures/events/trade_rejected_v2.json, mutate: {payload: {notional: 2500000000}}, expect: notify}
+        - {event_file: fixtures/events/trade_rejected_v2.json, mutate: {payload: {notional: 2500000000}}, expect: {recipients: [rita, "team:rates"], channels: [email, ui]}}
     expect: {all_pass: true, deciding_fields_include: [payload.notional]}
     without_transform_expect: {sample_0: fail, unit_warning: payload.notional}
 
@@ -230,3 +230,9 @@ cases:
     body:
       rule: {id: draft-ghost, match: {all: [{field: $severity, op: eq, value: critical}]}, route: [{to: "oncall:ghost-team", channels: [sms]}]}
     expect: {violations_gte: 1, violation_problem_contains: "reaches nobody", scenarios_checked_gte: 4}
+
+  - id: rule-safety-ui-only-is-valid
+    # The task allows UI-only rules (Pricing). The checker must not flag them.
+    request: {method: POST, path: /v1/rules/check}
+    body: {rule_id: pricing-warn-logs}
+    expect: {violations: 0}

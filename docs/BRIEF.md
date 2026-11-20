@@ -102,8 +102,8 @@ Write **pure functions with tests first** (fixtures in `fixtures/`), then wire D
 5. **A runbook action that times out is "unknown", not "failed".** Check the receiver with the same execution id before anyone re-runs it.
 
 **P1 — innovations, in order:**
-1. **Sample-based source verification (headline).** When a source or schema is onboarded, its owner adds one "should notify" and one "should stay quiet" sample. The preview runs both through the real engine and routing and shows recipients, channels and **the field that decided it**. Numeric unit/scale transforms are configured (e.g. a notional sent in cents). A missing unit that would change the decision is flagged instead of guessed. (daizhongtian + zhaoqinghe; engine by Yi)
-2. **Rule Safety Checker.** Before a rule is published, it generates a finite set of scenarios: severity × environment × time-of-day boundaries × missing contact. It runs the real engine + routing and shows counterexamples such as "prod critical at 23:10 reaches nobody". It reports which scenarios were checked and never claims "proved safe". (Yi `rules/safety.py`, daizhongtian endpoint, zhaoqinghe panel)
+1. **Sample-based source verification (headline).** When a source or schema is onboarded, its owner adds one "should notify" and one "should stay quiet" sample, optionally stating the expected recipients and channels. The preview runs both through the real engine and routing and shows recipients, channels and **the field that decided it**. Numeric unit/scale transforms are configured (e.g. a notional sent in cents). A missing unit that would change the decision is flagged instead of guessed. (daizhongtian + zhaoqinghe; engine by Yi)
+2. **Rule Safety Checker.** Before a rule is published, it generates a finite set of scenarios: severity × environment × time-of-day boundaries × missing contact. It runs the real engine + routing against **each rule's declared requirements** (its explicit channels, or team `required_channels`). UI-only rules are valid. It shows counterexamples such as "Settlements critical at 23:10 gets no phone call". It reports which scenarios were checked and never claims "proved safe". (Yi `rules/safety.py`, daizhongtian endpoint, zhaoqinghe panel)
 3. Rule impact preview + AI suggestions for proposals (daizhongtian + zhaoqinghe).
 4. **Delivery-risk metrics:** oldest pending notification per channel/lane vs a target, backlog, retries; shown as an "at risk" badge (daizhongtian + zhaoqinghe).
 5. **SSE coalescing:** counter updates at most every ~400 ms per alert. Created / critical / approval / resolved events go out immediately, and a reconnect refetches state (daizhongtian).
@@ -124,6 +124,8 @@ Write **pure functions with tests first** (fixtures in `fixtures/`), then wire D
 - Threshold and deadman rules.
 
 **Not doing without a measured bottleneck:** COPY staging tables, index restructuring, deleting history, Redis.
+
+**Everything else we keep:** [IMPROVEMENTS.md](IMPROVEMENTS.md) lists every adopted improvement in order. Tier 2 holds 14 low-cost, high-value items: silences, unacked escalation, heartbeat rules, late-event handling, DST, graceful shutdown, RabbitMQ DLQ, admission control, LLM guardrails, sensitive-field masking, correlation IDs, canary, guarded dynamic escalation, feedback-driven proposals. Tier 3 holds 8 items that need more design. Each item has an owner and an acceptance check. Take them once your P0/P1 items pass.
 
 **CUT:** real SMS/phone providers, SSO/RBAC, Kafka, Redis, K8s, multi-region, ML root cause.
 

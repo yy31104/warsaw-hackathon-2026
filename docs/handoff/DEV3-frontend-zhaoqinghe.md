@@ -87,7 +87,8 @@ Vite + React + TypeScript + **Mantine** + TanStack Query + `EventSource` for SSE
 No new top-level pages; extend the existing ones (APIs in CONTRACT §9, §10):
 - **R1 Onboarding → "Verify with samples"** (headline innovation):
   - two boxes, "Should notify" and "Should stay quiet", plus a transform editor (scale, unit) per numeric field;
-  - Run → one card per sample: pass/fail, recipients, channels, **the field that decided it**, unit warnings;
+  - optional "expected recipients / channels" per sample;
+  - Run → one card per sample: pass/fail, expected vs actual recipients and channels, **the field that decided it**, unit warnings;
   - a short line in plain English, e.g. "notional is 25,000,000 in cents = 250,000 EUR → below the 10,000,000 threshold → quiet".
 - **R2 Rule editor → "Safety check" panel** (`POST /v1/rules/check`): the scenarios checked (a compact table), and the counterexamples in red with a one-line reason and a fix hint.
 - **R3 States in existing screens:**
@@ -96,4 +97,5 @@ No new top-level pages; extend the existing ones (APIs in CONTRACT §9, §10):
   - runbook step "Result unknown — check" (action state `unknown`) with a **Check result** button;
   - timeline entries "Old recovery ignored" (`STALE_RESOLVE`) and "Event quarantined" (`QUARANTINED`).
 - **R4 SSE:** handle coalesced `alert.updated`; refetch the open detail after a reconnect.
+- **Tier 2 UI** ([IMPROVEMENTS.md](../IMPROVEMENTS.md)): #1 silences (create from an incident: matcher prefilled, expiry; show "Silenced by X until T"), #2 escalation steps in the timeline, #14 a "No action needed" resolve reason and the resulting proposal card.
 - **P2:** an Investigation panel on incident detail (tool, time, evidence, unknowns; label simulated data as simulated).
