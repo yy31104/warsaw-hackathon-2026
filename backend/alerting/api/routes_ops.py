@@ -1,5 +1,6 @@
 """Database-backed dashboard and Prometheus endpoints."""
 
+import asyncio
 from datetime import timedelta
 from typing import Annotated
 
@@ -181,14 +182,20 @@ async def confirmation_histogram(conn, report):
 async def reset(db=Depends(pool)) -> dict:
     if not demo_mode():
         raise HTTPException(404, "Demo reset is disabled")
-    try:
-        async with db.connection() as conn:
-            await conn.execute("""
-                TRUNCATE delivery_attempts, delivery_breakers, delivery_windows, approval_failures,
-                    action_runs, notifications, decisions, alert_occurrences, incident_memory,
-                    rule_proposals, audit_log, shadow_alerts, silences, alerts, schema_issues,
-                    ingest_rejections, events
-            """)
-    except (LockNotAvailable, DeadlockDetected) as exc:
-        raise HTTPException(409, "Demo reset is busy. Retry after the stack drains.") from exc
-    return {"status": "reset"}
+    # A worker may still be committing the previous case. Release all reset
+    # locks on contention before acquiring them again in a fresh transaction.
+    for attempt in range(5):
+        try:
+            async with db.connection() as conn:
+                await conn.execute("SET LOCAL lock_timeout = '500ms'")
+                await conn.execute("""
+                    TRUNCATE delivery_attempts, delivery_breakers, delivery_windows, approval_failures,
+                        action_runs, notifications, decisions, alert_occurrences, incident_memory,
+                        rule_proposals, audit_log, shadow_alerts, silences, alerts, schema_issues,
+                        ingest_rejections, events
+                """)
+            return {"status": "reset"}
+        except (LockNotAvailable, DeadlockDetected) as exc:
+            if attempt == 4:
+                raise HTTPException(409, "Demo reset is busy. Retry after the stack drains.") from exc
+            await asyncio.sleep(0.1)

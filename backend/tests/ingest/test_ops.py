@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 
@@ -89,3 +91,14 @@ async def test_debug_reset_is_demo_only_and_preserves_config(client, activity, i
     async with inbox_pool.connection() as conn:
         rows = await conn.execute("SELECT id FROM config_objects ORDER BY id")
         assert await rows.fetchall() == [("demo-rule",), ("repo-rule",)]
+
+
+async def test_demo_reset_survives_contention(client, inbox_pool, monkeypatch):
+    monkeypatch.setenv("DEMO_MODE", "1")
+    async with inbox_pool.connection() as conn:
+        await conn.execute("LOCK TABLE events IN ROW SHARE MODE")
+        request = asyncio.create_task(client.post("/v1/debug/reset"))
+        # Hold the table past a single reset attempt's lock timeout.
+        await asyncio.sleep(0.8)
+        assert not request.done()
+    assert (await request).json() == {"status": "reset"}
