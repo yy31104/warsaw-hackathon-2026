@@ -2,7 +2,7 @@
 
 **Branch:** `feat/frontend-zhaoqinghe` · **GitHub:** `Petitaire`
 **You own:** `frontend/` (everything)
-**Read first:** BRIEF §1, §7 (the storyboard — build the screens in this order), CONTRACT §9 (API + owners), §10 (SSE), `fixtures/api/README.md`, [PLAYBOOK](../PLAYBOOK.md) §1, §2, §3 (zhaoqinghe)
+**Read first:** BRIEF §1, §7 (the storyboard — build the screens in this order), CONTRACT §9 (API + owners), §10 (SSE), `fixtures/api/README.md`
 
 ## Mission
 Someone who has never seen the product must be able to:

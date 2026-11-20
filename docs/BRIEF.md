@@ -3,7 +3,7 @@
 GS Warsaw Hackathon 2026 · "Flexible Alerting & Notification Service"
 Version: Fri 2026-11-20 ~21:15 CET · Tech lead: Yi
 
-**Read order (15 min):** this brief → [AGENTS.md](../AGENTS.md) → [CONTRACT.md](CONTRACT.md) → [PLAYBOOK.md](PLAYBOOK.md) (models, skills, techniques) → your handoff:
+**Read order (15 min):** this brief → [AGENTS.md](../AGENTS.md) → [CONTRACT.md](CONTRACT.md) → your handoff:
 
 | Who | Role | Branch | Handoff |
 |---|---|---|---|
@@ -109,6 +109,13 @@ Write **pure functions with tests first** (fixtures in `fixtures/`), then wire D
 - **Migrations:** only add files, in your own range: `1xx` Yi, `2xx` daizhongtian. Never edit a migration that's already merged.
 - **AI agents:** one coding agent per person, on that person's branch, working inside that person's directories. Every agent reads `AGENTS.md` first. A feature counts as done only when it runs from the integrated `main`.
 - Never commit `.env` or keys. Use synthetic data only.
+
+**General tips, whatever tools you use:**
+- Give your AI one numbered task from your handoff at a time. Ask for tests first (built from `fixtures/`), then the code. Commit after each task.
+- Don't accept "done" until you've seen it run, or a test proves it. Ask for a PASS / FAIL / NOT_RUN list.
+- When something breaks, give the AI the exact failing input (event, request, log line, error), not a description of it.
+- Before opening a PR, get the diff reviewed: by a teammate, or by a second AI tool if you have one.
+- Make sure you can explain your own part yourself. The judges will ask.
 
 ```bash
 git clone https://github.com/yy31104/warsaw-hackathon-2026.git && cd warsaw-hackathon-2026

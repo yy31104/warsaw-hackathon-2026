@@ -2,7 +2,7 @@
 
 **Branch:** `feat/review-marlon` · **GitHub:** `MarlonMejia15` (accept the repo invite first)
 **You own:** `docs/REVIEW_FINDINGS.md`, `docs/QA.md`, the judge-facing `README.md` (from G3, together with Yi), and the video. Code fixes go as small PRs to the owner's branch, or to `main` with Yi's OK after G3.
-**Read first:** BRIEF (all of it), `docs/GATES.md`, the printed task (all pages), [PLAYBOOK](../PLAYBOOK.md) §1 and §3 (Marlon). Skim CONTRACT §1–2.
+**Read first:** BRIEF (all of it), `docs/GATES.md`, the printed task (all pages). Skim CONTRACT §1–2.
 
 ## Why you come in last
 You haven't seen the code, and neither will the judges. Your fresh eyes catch what the three builders can't: confusing screens, unclear README steps, claims nobody tested. You also own the story and the video, which is what we are mainly judged on.

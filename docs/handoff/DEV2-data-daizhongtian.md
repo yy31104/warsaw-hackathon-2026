@@ -11,7 +11,7 @@
 
 **You call (Yi's pure functions):** `rules.dsl.compile`, `rules.engine.evaluate`, `routing.plan`, `runbooks.render`. Until they land, use a local `exists`/`eq` matcher.
 
-**Read first:** BRIEF §1–3, CONTRACT §2, §3, §4, §9 (your rows), §10, §11, §12, and [PLAYBOOK](../PLAYBOOK.md) §1, §2, §3 (daizhongtian), §4.
+**Read first:** BRIEF §1–3, CONTRACT §2, §3, §4, §9 (your rows), §10, §11, §12.
 
 ## Mission
 Every event, from any source and in any shape, lands durably in `events` with the right identity, schema, aliases and severity, or is visibly flagged `needs_review`. Raw and flattened fields are always stored, so anyone (or an agent) can query them. Teams change schemas, rules, preferences and runbooks at runtime. The UI updates live. The outside world (telecom, ops) is simulated independently so we can measure delivery. You produce the numbers.
