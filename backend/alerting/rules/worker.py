@@ -326,24 +326,27 @@ async def apply_events(cur, settings, lane, events):
 
 
 async def main(lane, batch):
-    await open_pool()
-    try:
-        while True:
-            try:
-                claimed = await process_batch(pool(), lane=lane, batch=batch)
-            except psycopg.Error as exc:
-                if not transient(exc):
-                    raise
-                logging.getLogger(__name__).warning(
-                    "Transient processing failure; retrying", exc_info=True
-                )
-                await asyncio.sleep(0.5)
-                continue
-            if not claimed:
-                await asyncio.sleep(0.15)
-    finally:
-        await close_settings(pool())
-        await close_pool()
+    from alerting.delivery.shutdown import termination_event, wait_or_stop
+
+    with termination_event() as stop:
+        await open_pool()
+        try:
+            while not stop.is_set():
+                try:
+                    claimed = await process_batch(pool(), lane=lane, batch=batch)
+                except psycopg.Error as exc:
+                    if not transient(exc):
+                        raise
+                    logging.getLogger(__name__).warning(
+                        "Transient processing failure; retrying", exc_info=True
+                    )
+                    await wait_or_stop(stop, 0.5)
+                    continue
+                if not claimed:
+                    await wait_or_stop(stop, 0.15)
+        finally:
+            await close_settings(pool())
+            await close_pool()
 
 
 if __name__ == "__main__":

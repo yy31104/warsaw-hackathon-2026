@@ -14,6 +14,7 @@ from alerting.clock import SYSTEM
 from alerting.contracts import RenderedMessage
 from alerting.db import close_pool, open_pool, pool
 from alerting.delivery.providers import registry
+from alerting.delivery.shutdown import termination_event, wait_or_stop
 from alerting.rules.storage import close_settings, emit
 
 
@@ -23,7 +24,7 @@ def exhausted(row, now):
     return row["attempts"] >= 8 or now >= deadline
 
 
-async def claim(db, channels, clock):
+async def claim(db, channels, clock, stop=None):
     now = clock.now()
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
         await cur.execute(
@@ -36,7 +37,7 @@ async def claim(db, channels, clock):
             (list(channels), now, now, now),
         )
         row = await cur.fetchone()
-        if not row:
+        if not row or (stop is not None and stop.is_set()):
             return None
         if row["state"] == "sending":
             await cur.execute(
@@ -94,12 +95,14 @@ async def claim(db, channels, clock):
         return row
 
 
-async def deliver_one(db, providers, channels, clock=SYSTEM):
+async def deliver_one(db, providers, channels, clock=SYSTEM, stop=None):
     from alerting.delivery.fallback import fallback_one
 
     if await fallback_one(db, channels, clock):
         return True
-    row = await claim(db, channels, clock)
+    if stop is not None and stop.is_set():
+        return False
+    row = await claim(db, channels, clock, stop)
     if not row:
         return False
     start = monotonic()
@@ -168,16 +171,17 @@ async def deliver_one(db, providers, channels, clock=SYSTEM):
 
 
 async def main(channels):
-    await open_pool()
-    try:
-        async with httpx.AsyncClient() as client:
-            providers = registry(client)
-            while True:
-                if not await deliver_one(pool(), providers, channels):
-                    await asyncio.sleep(0.15)
-    finally:
-        await close_settings(pool())
-        await close_pool()
+    with termination_event() as stop:
+        await open_pool()
+        try:
+            async with httpx.AsyncClient() as client:
+                providers = registry(client)
+                while not stop.is_set():
+                    if not await deliver_one(pool(), providers, channels, stop=stop):
+                        await wait_or_stop(stop, 0.15)
+        finally:
+            await close_settings(pool())
+            await close_pool()
 
 
 if __name__ == "__main__":
