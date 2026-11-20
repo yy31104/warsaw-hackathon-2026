@@ -117,7 +117,7 @@ function PreferenceEditor(){
     <strong>{index+1}</strong>
     <TextInput label="Time window · blank = anytime" placeholder="09:00-18:00" value={row.when??''} onChange={event=>setDraft(rows.map((item,position)=>index===position?{...row,when:event.target.value||undefined}:item))}/>
     <Select label="Minimum severity" data={['debug','info','warning','error','critical']} value={row.min_severity} onChange={value=>setDraft(rows.map((item,position)=>index===position?{...row,min_severity:value??'critical'}:item))}/>
-    <MultiSelect label="Channels" data={['sms','email','phone','ui']} value={row.channels} onChange={channels=>setDraft(rows.map((item,position)=>index===position?{...row,channels}:item))}/>
+    <MultiSelect label="Channels" searchable data={['sms','email','phone','ui']} value={row.channels} onChange={channels=>setDraft(rows.map((item,position)=>index===position?{...row,channels}:item))}/>
     <Button disabled={!index} aria-label="Move preference up" variant="subtle" onClick={()=>{const reordered=[...rows];[reordered[index-1],reordered[index]]=[reordered[index],reordered[index-1]];setDraft(reordered);}}>↑</Button>
     <Button color="red" variant="subtle" onClick={()=>setDraft(rows.filter((_,position)=>position!==index))}>Remove</Button>
    </div>)}
