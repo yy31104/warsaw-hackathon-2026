@@ -1,5 +1,9 @@
 # DEV2 local integration acceptance
 
+For the feature branch's pre-merge run against the updated main baseline, see
+the [Golden Runner gate record](../../../docs/GATES.md#golden-run). This report
+keeps the earlier browser, throughput and outage measurements with their original commits.
+
 The integration branch is `local/dev2-control`. It starts at data commit `18951ac` and includes the real frontend at `49e55ba`, Yi's routing and verification from PR #10 at `962bad5`, and the golden runner and mock operations service from PR #11 at `09c51d4`. The tests use synthetic events. The phone simulator receives SMS and calls, and Mailpit receives email.
 
 The initial full Chromium run used application commit `8e4d5c1`. The integration controller independently repeated all five browser scenarios on the release code at `f5513f4` and all five passed. The worker and outage measurements used `29b0dce`, before the notification link was configured to use the isolated frontend port. [Release browser JSON and screenshots](release-browser.zip)
@@ -18,7 +22,7 @@ The initial full Chromium run used application commit `8e4d5c1`. The integration
 - [Browser commands, screenshots and Chromium records](../web-g1/README.md)
 - **PASS** for the Linux backend suite. It ran 380 passing tests and skipped none. One existing test is marked as an expected failure for the isolation of synthetic canary events from regular rules. [Backend test output](backend-pytest.txt)
 - **PASS** for the 10 frontend tests, ESLint and the real-API production build. [Frontend output](frontend-checks.txt)
-- **31 PASS, 1 FAIL, 0 NOT_RUN** across the golden suite. The remaining failure is `inbound-approval-brute-force-locked`. The sixth incorrect SMS approval attempt received HTTP 429 as expected. The service records the lock against the sender. The public alert timeline queries audit entries by alert ID, so this entry is absent from the timeline. [All golden results](golden.md)
+- The earlier Golden run had **31 PASS, 1 FAIL, 0 NOT_RUN**. In `inbound-approval-brute-force-locked`, the sixth attempt received HTTP 429, but the alert timeline omitted the sender's lock record. [Earlier case results](golden.md)
 
 ## Implementation and ownership
 

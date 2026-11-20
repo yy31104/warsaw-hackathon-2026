@@ -1,0 +1,15 @@
+{
+  "volume_after": "dev2ver08aeecdb-telecom-outage_telecom-data",
+  "mode_after": "ok",
+  "stopped_before_start_seconds": 30.0180477,
+  "container_id_before": "bb8c07994ad757d2e2541f09315d654b462ae4cd986c3bdc4d7dfae4e0fedfc4",
+  "start_requested_at_utc": "2026-11-20T23:30:30.1744642Z",
+  "volume_before": "dev2ver08aeecdb-telecom-outage_telecom-data",
+  "receiver_items_before": 0,
+  "stopped_at_utc": "2026-11-20T23:30:00.1541264Z",
+  "restored_at_utc": "2026-11-20T23:30:33.2941366Z",
+  "requested_seconds": 30,
+  "container_id_after": "bb8c07994ad757d2e2541f09315d654b462ae4cd986c3bdc4d7dfae4e0fedfc4",
+  "stopped_http_error": "The request was canceled due to the configured HttpClient.Timeout of 2 seconds elapsing.",
+  "stopped_container_state": "exited"
+}

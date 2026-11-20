@@ -1,0 +1,31 @@
+{
+  "logtail_event_id": 7,
+  "backend_image": "sha256:fd8040fb81736416f9e7769d9652f150213173152e3fdcc46012f33eb861dede",
+  "services": [
+    "api|running|healthy",
+    "delivery-worker|running|",
+    "fake-telecom|running|healthy",
+    "frontend|running|healthy",
+    "ingest-amqp|running|",
+    "ingest-logtail|running|",
+    "mailpit|running|healthy",
+    "mock-ops|running|",
+    "postgres|running|healthy",
+    "rabbitmq|running|healthy",
+    "rule-worker|running|",
+    "rule-worker-critical|running|",
+    "scheduler|running|"
+  ],
+  "project": "dev2ver08aeecdb-one-spread",
+  "startup_seconds": 14.5529738,
+  "trial": {
+    "NormalRate": 700,
+    "Outage": 0,
+    "Duration": 20,
+    "NormalKeys": 256,
+    "Tag": "platform-compare",
+    "Workers": 1,
+    "CriticalRate": 2,
+    "Name": "one-spread"
+  }
+}

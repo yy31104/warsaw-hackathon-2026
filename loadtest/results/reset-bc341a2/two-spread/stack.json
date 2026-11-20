@@ -1,0 +1,32 @@
+{
+  "logtail_event_id": 7,
+  "backend_image": "sha256:11fc9fab3d5d649b8c65523c5c15f8b7c3a87dd6d9519daee7f0c4536ec05ccb",
+  "services": [
+    "api|running|healthy",
+    "delivery-worker|running|",
+    "fake-telecom|running|healthy",
+    "frontend|running|healthy",
+    "ingest-amqp|running|",
+    "ingest-logtail|running|",
+    "mailpit|running|healthy",
+    "mock-ops|running|",
+    "postgres|running|healthy",
+    "rabbitmq|running|healthy",
+    "rule-worker|running|",
+    "rule-worker|running|",
+    "rule-worker-critical|running|",
+    "scheduler|running|"
+  ],
+  "project": "dev2ver08aeecdb-two-spread",
+  "startup_seconds": 14.0814032,
+  "trial": {
+    "NormalRate": 700,
+    "Outage": 0,
+    "Duration": 20,
+    "NormalKeys": 256,
+    "Tag": "platform-compare",
+    "Workers": 2,
+    "CriticalRate": 2,
+    "Name": "two-spread"
+  }
+}

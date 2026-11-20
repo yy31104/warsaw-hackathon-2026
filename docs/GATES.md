@@ -51,39 +51,41 @@ Status: **PASS / FAIL / NOT_RUN** only. Record who ran it, when, and the evidenc
 
 ## Golden run
 
-Run by `golden_runner.py` on 2026-11-20 21:50:12 UTC. Command `backend/.venv/bin/python loadtest/golden_runner.py --no-broker` with API `http://127.0.0.1:52139`, fake-telecom `http://127.0.0.1:52140` and Mailpit `http://127.0.0.1:8025`.
+On 2026-11-20 23:33 UTC, the pre-merge run at `e28da39` (including `main` at `47f7a31`) recorded **32 PASS, 0 FAIL, 0 NOT_RUN**. `tools/test_golden_isolated.ps1` started a fresh Compose project with RabbitMQ, the pricing file input, Mailpit and fake-telecom. The digest case waited for its five-minute delivery interval.
+
+The same code passed 470 backend tests with PostgreSQL and RabbitMQ. The database upgrade was also run twice over persisted data. A volume initialized from the `47f7a31` migration files started the upgraded API, returned five rules and retained its audit record. The frontend passed 10 tests, ESLint and the real-API production build.
 
 | Case | Status | Evidence |
 |---|---|---|
-| settlements-positive | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| settlements-negative-env | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| settlements-negative-workflow | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| settlements-runbook-rendered | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| rates-positive | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| rates-boundary-equal | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| rates-other-desk | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| rates-schema-glob-v3 | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| rates-not-rejected | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| rates-missing-template-field | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| anna-daytime-sms | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| anna-evening-email | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| anna-boundary-0800 | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| anna-boundary-2000 | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| anna-not-critical | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| anna-other-service | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| alertmanager-auto-resolve | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| pricing-digest | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| retransmission-dedup | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| storm-500-one-alert | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| unknown-schema-visible | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| approval-required | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| approval-wrong-person | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| approval-ok | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| channel-down-no-loss | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| stale-recovery-keeps-newer-episode | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| poison-event-isolated | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| inbound-approval-needs-provider-secret | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| inbound-approval-brute-force-locked | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| verify-unit-change | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| rule-safety-counterexample | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
-| rule-safety-ui-only-is-valid | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| settlements-positive | PASS | All declared checks passed |
+| settlements-negative-env | PASS | All declared checks passed |
+| settlements-negative-workflow | PASS | All declared checks passed |
+| settlements-runbook-rendered | PASS | All declared checks passed |
+| rates-positive | PASS | All declared checks passed |
+| rates-boundary-equal | PASS | All declared checks passed |
+| rates-other-desk | PASS | All declared checks passed |
+| rates-schema-glob-v3 | PASS | All declared checks passed |
+| rates-not-rejected | PASS | All declared checks passed |
+| rates-missing-template-field | PASS | All declared checks passed |
+| anna-daytime-sms | PASS | All declared checks passed |
+| anna-evening-email | PASS | All declared checks passed |
+| anna-boundary-0800 | PASS | All declared checks passed |
+| anna-boundary-2000 | PASS | All declared checks passed |
+| anna-not-critical | PASS | All declared checks passed |
+| anna-other-service | PASS | All declared checks passed |
+| alertmanager-auto-resolve | PASS | All declared checks passed |
+| pricing-digest | PASS | All declared checks passed |
+| retransmission-dedup | PASS | All declared checks passed |
+| storm-500-one-alert | PASS | All declared checks passed |
+| unknown-schema-visible | PASS | All declared checks passed |
+| approval-required | PASS | All declared checks passed |
+| approval-wrong-person | PASS | All declared checks passed |
+| approval-ok | PASS | All declared checks passed |
+| channel-down-no-loss | PASS | All declared checks passed |
+| stale-recovery-keeps-newer-episode | PASS | All declared checks passed |
+| poison-event-isolated | PASS | All declared checks passed |
+| inbound-approval-needs-provider-secret | PASS | All declared checks passed |
+| inbound-approval-brute-force-locked | PASS | All declared checks passed |
+| verify-unit-change | PASS | All declared checks passed |
+| rule-safety-counterexample | PASS | All declared checks passed |
+| rule-safety-ui-only-is-valid | PASS | All declared checks passed |
