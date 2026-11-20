@@ -43,12 +43,18 @@ def file_signature():
     return tuple(sorted((str(p), p.stat().st_mtime_ns) for p in root.rglob("*") if p.is_file()))
 
 
-async def registry_settings(db):
+def config_loader():
     try:
-        loader = import_module("alerting.config.loader")
+        return import_module("alerting.config.loader")
     except ModuleNotFoundError as exc:
         if exc.name != "alerting.config.loader":
             raise
+        return None
+
+
+async def registry_settings(db):
+    loader = config_loader()
+    if loader is None:
         return None
     values = []
     for name in ("rules", "directory", "runbooks"):
@@ -148,7 +154,19 @@ class SettingsProvider:
             return self.current
 
 
-async def get_settings(db):
+async def prepare_settings(db):
+    loader = config_loader()
+    if hasattr(loader, "sync_files"):
+        await loader.sync_files(db)
+
+
+async def get_settings(db, *, conn=None):
+    loader = config_loader()
+    if hasattr(loader, "read_settings"):
+        if conn is not None:
+            return await loader.read_settings(db, conn)
+        async with db.connection() as scoped:
+            return await loader.read_settings(db, scoped)
     provider = _providers.get(db)
     if provider is None:
         _providers[db] = provider = SettingsProvider(db.conninfo)
