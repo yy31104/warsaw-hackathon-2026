@@ -46,3 +46,25 @@ async def request(method, path, ctx, body=None):
     return ActionResult(
         ok=ok, output=data, resolves_alert=ok and data.get("resolves_alert") is True
     )
+
+
+async def check_execution(run_id):
+    url = os.getenv("MOCK_OPS_URL", "http://localhost:8200").rstrip("/")
+    async with httpx.AsyncClient(timeout=3, follow_redirects=False, trust_env=False) as client:
+        response = await client.get(f"{url}/executions/action-{run_id}")
+    if response.status_code == 404:
+        return None
+    response.raise_for_status()
+    data = response.json()
+    if not isinstance(data, dict) or data.get("state") not in {
+        "running",
+        "unknown",
+        "succeeded",
+        "failed",
+    }:
+        raise ValueError("Invalid execution receipt")
+    if data["state"] in {"succeeded", "failed"}:
+        result = ActionResult.model_validate(data.get("result"))
+        if result.ok != (data["state"] == "succeeded"):
+            raise ValueError("Inconsistent execution receipt")
+    return data

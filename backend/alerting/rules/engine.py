@@ -6,7 +6,8 @@ from datetime import timedelta
 
 from alerting.contracts import SEVERITY_ORDER, CanonicalEvent, Transition
 from alerting.rules.dsl import compile
-from alerting.templates import lookup, render
+from alerting.rules.failures import evaluating
+from alerting.templates import lookup, render, variables
 
 
 def duration(value):
@@ -20,7 +21,17 @@ def duration(value):
 
 class Ruleset:
     def __init__(self, rules, schemas=()):
-        self.rules = [(r, compile(r.get("match", {}))) for r in rules if r.get("enabled", True)]
+        self.rules = []
+        for rule in rules:
+            if rule.get("enabled", True):
+                try:
+                    predicate = compile(rule.get("match", {}))
+                except (TypeError, ValueError) as exc:
+
+                    def predicate(fields, reason=str(exc)):
+                        raise ValueError(reason)
+
+                self.rules.append((rule, predicate))
         self.schemas = {s["id"]: s for s in schemas}
         self.resolvers = {
             s["id"]: compile(s["resolve_when"]) for s in schemas if s.get("resolve_when")
@@ -55,6 +66,15 @@ def grouping(rule, schema, fields):
     return render(schema.get("alert_key") or "{{$schema}}|{{$service}}|{{$severity}}", fields), {}
 
 
+def episode_for(schema, fields):
+    if fields.get("$episode") is not None:
+        return str(fields["$episode"])
+    template = schema.get("episode_key")
+    if template and all(lookup(fields, path) is not None for path in variables(template)):
+        return render(template, fields)
+    return None
+
+
 def evaluate(event, ruleset, state, clock):
     if not isinstance(event, CanonicalEvent):
         event = CanonicalEvent.model_validate(event)
@@ -66,66 +86,76 @@ def evaluate(event, ruleset, state, clock):
     resolving = resolver and resolver(fields)[0]
     result = Evaluation()
     for rule, predicate in ruleset.rules:
-        matched, trace = predicate(fields)
-        decision = dict(
-            rule_id=rule["id"],
-            rule_version=rule.get("version", 1),
-            outcome="NO_MATCH",
-            reason={"trace": trace, "matched": matched},
-        )
-        result.decisions.append(decision)
-        if not matched and not resolving:
-            continue
-        key, values = grouping(rule, schema, fields)
-        old = (
-            state.get_open(rule["id"], key)
-            if hasattr(state, "get_open")
-            else state.get((rule["id"], key))
-        )
-        if old is not None and hasattr(old, "model_dump"):
-            old = old.model_dump()
-        if old and old.get("status") == "resolved":
-            old = None
-        group = rule.get("group", {})
-        digest = group.get("mode") == "digest"
-        if resolving:
-            if not old:
-                continue
-            transition = Transition.resolved
-            outcome = "RESOLVED"
-        elif not old:
-            transition, outcome = Transition.created, "NEW_ALERT"
-        elif group.get("renotify_on_severity_increase", True) and SEVERITY_ORDER.get(
-            event.severity, -1
-        ) > SEVERITY_ORDER.get(old["severity"], -1):
-            transition, outcome = Transition.severity_increased, "EXISTING_ALERT"
-        elif old.get("last_notified_at") and clock.now() - old["last_notified_at"] >= duration(
-            group.get("cooldown", "10m")
-        ):
-            transition, outcome = Transition.cooldown_elapsed, "EXISTING_ALERT"
-        else:
-            transition, outcome = Transition.occurrence, "SUPPRESSED_COOLDOWN"
-        notify = not digest and transition not in (Transition.occurrence, Transition.resolved)
-        if digest and not resolving:
-            outcome = "DIGEST_QUEUED"
-        if notify and not rule.get("route"):
-            outcome = "UNROUTED"
-        decision.update(outcome=outcome)
-        decision["reason"].update(transition=transition.value, alert_key=key)
-        present = rule.get("present", {})
-        result.alert_ops.append(
-            AlertOp(
-                rule,
-                key,
-                transition,
-                values,
-                render(present.get("title") or rule["id"], fields),
-                render(present.get("body"), fields),
-                {p: lookup(fields, p) for p in present.get("fields", [])},
-                notify,
+        with evaluating(rule):
+            matched, trace = predicate(fields)
+            decision = dict(
+                rule_id=rule["id"],
+                rule_version=rule.get("version", 1),
+                outcome="NO_MATCH",
+                reason={"trace": trace, "matched": matched},
             )
-        )
-    if not result.alert_ops:
+            result.decisions.append(decision)
+            if not matched and not resolving:
+                continue
+            key, values = grouping(rule, schema, fields)
+            old = (
+                state.get_open(rule["id"], key)
+                if hasattr(state, "get_open")
+                else state.get((rule["id"], key))
+            )
+            if old is not None and hasattr(old, "model_dump"):
+                old = old.model_dump()
+            if old and old.get("status") == "resolved":
+                old = None
+            group = rule.get("group", {})
+            digest = group.get("mode") == "digest"
+            if resolving:
+                if not old:
+                    continue
+                episode = episode_for(schema, fields)
+                if schema.get("episode_key") and (
+                    episode is None or episode != old.get("latest_episode")
+                ):
+                    decision.update(outcome="STALE_RESOLVE", alert_id=old.get("id"))
+                    decision["reason"].update(
+                        episode=episode, latest_episode=old.get("latest_episode")
+                    )
+                    continue
+                transition = Transition.resolved
+                outcome = "RESOLVED"
+            elif not old:
+                transition, outcome = Transition.created, "NEW_ALERT"
+            elif group.get("renotify_on_severity_increase", True) and SEVERITY_ORDER.get(
+                event.severity, -1
+            ) > SEVERITY_ORDER.get(old["severity"], -1):
+                transition, outcome = Transition.severity_increased, "EXISTING_ALERT"
+            elif old.get("last_notified_at") and clock.now() - old["last_notified_at"] >= duration(
+                group.get("cooldown", "10m")
+            ):
+                transition, outcome = Transition.cooldown_elapsed, "EXISTING_ALERT"
+            else:
+                transition, outcome = Transition.occurrence, "SUPPRESSED_COOLDOWN"
+            notify = not digest and transition not in (Transition.occurrence, Transition.resolved)
+            if digest and not resolving:
+                outcome = "DIGEST_QUEUED"
+            if notify and not rule.get("route"):
+                outcome = "UNROUTED"
+            decision.update(outcome=outcome)
+            decision["reason"].update(transition=transition.value, alert_key=key)
+            present = rule.get("present", {})
+            result.alert_ops.append(
+                AlertOp(
+                    rule,
+                    key,
+                    transition,
+                    values,
+                    render(present.get("title") or rule["id"], fields),
+                    render(present.get("body"), fields),
+                    {p: lookup(fields, p) for p in present.get("fields", [])},
+                    notify,
+                )
+            )
+    if not result.alert_ops and not any(d["outcome"] == "STALE_RESOLVE" for d in result.decisions):
         if not result.decisions:
             result.decisions.append(
                 dict(rule_id=None, rule_version=None, outcome="NO_MATCH", reason={})
