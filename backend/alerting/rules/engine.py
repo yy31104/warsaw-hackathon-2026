@@ -7,7 +7,7 @@ from datetime import timedelta
 from alerting.contracts import SEVERITY_ORDER, CanonicalEvent, Transition
 from alerting.rules.dsl import compile
 from alerting.rules.failures import evaluating
-from alerting.templates import lookup, render
+from alerting.templates import lookup, render, variables
 
 
 def duration(value):
@@ -66,6 +66,15 @@ def grouping(rule, schema, fields):
     return render(schema.get("alert_key") or "{{$schema}}|{{$service}}|{{$severity}}", fields), {}
 
 
+def episode_for(schema, fields):
+    if fields.get("$episode") is not None:
+        return str(fields["$episode"])
+    template = schema.get("episode_key")
+    if template and all(lookup(fields, path) is not None for path in variables(template)):
+        return render(template, fields)
+    return None
+
+
 def evaluate(event, ruleset, state, clock):
     if not isinstance(event, CanonicalEvent):
         event = CanonicalEvent.model_validate(event)
@@ -103,6 +112,15 @@ def evaluate(event, ruleset, state, clock):
             if resolving:
                 if not old:
                     continue
+                episode = episode_for(schema, fields)
+                if schema.get("episode_key") and (
+                    episode is None or episode != old.get("latest_episode")
+                ):
+                    decision.update(outcome="STALE_RESOLVE", alert_id=old.get("id"))
+                    decision["reason"].update(
+                        episode=episode, latest_episode=old.get("latest_episode")
+                    )
+                    continue
                 transition = Transition.resolved
                 outcome = "RESOLVED"
             elif not old:
@@ -137,7 +155,7 @@ def evaluate(event, ruleset, state, clock):
                     notify,
                 )
             )
-    if not result.alert_ops:
+    if not result.alert_ops and not any(d["outcome"] == "STALE_RESOLVE" for d in result.decisions):
         if not result.decisions:
             result.decisions.append(
                 dict(rule_id=None, rule_version=None, outcome="NO_MATCH", reason={})

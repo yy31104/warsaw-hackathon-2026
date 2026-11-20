@@ -18,7 +18,7 @@ from alerting.db import close_pool, open_pool, pool
 from alerting.routing import plan
 from alerting.routing.directory import team_for
 from alerting.routing.throttle import lock_rules
-from alerting.rules.engine import duration, evaluate, grouping
+from alerting.rules.engine import duration, episode_for, evaluate, grouping
 from alerting.rules.failures import BadEvent, RuleFault, evaluating, transient
 from alerting.rules.scoring import score
 from alerting.rules.storage import (
@@ -33,7 +33,7 @@ from alerting.rules.storage import (
 COLUMNS = (
     "id rule_id rule_version alert_key status severity priority lane team_id title body color fields group_values "
     "runbook_id occurrence_count count_since_notify first_seen_at last_seen_at last_notified_at "
-    "representative_event_id resolved_by resolved_at resolve_reason score score_breakdown next_notify_at"
+    "representative_event_id resolved_by resolved_at resolve_reason score score_breakdown next_notify_at latest_episode"
 ).split()
 
 
@@ -202,6 +202,10 @@ async def apply_events(cur, settings, lane, events):
                     del state[identity]
                     continue
                 row.update(
+                    latest_episode=episode_for(
+                        ruleset.schemas.get(event.schema_id, {}), event.fields
+                    )
+                    or row.get("latest_episode"),
                     rule_version=rule.get("version", 1),
                     title=op.title,
                     body=op.body,
