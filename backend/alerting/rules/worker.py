@@ -3,18 +3,23 @@
 import argparse
 import asyncio
 from collections import defaultdict
+from copy import copy
+from dataclasses import replace
+import logging
+import psycopg
 
 from psycopg import sql
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
-from alerting.clock import SYSTEM, FixedClock, clock_for_event
+from alerting.clock import SYSTEM, FixedClock, clock_for_event, demo_mode
 from alerting.contracts import SEVERITY_ORDER, CanonicalEvent
 from alerting.db import close_pool, open_pool, pool
 from alerting.routing import plan
 from alerting.routing.directory import team_for
 from alerting.routing.throttle import lock_rules
 from alerting.rules.engine import duration, evaluate, grouping
+from alerting.rules.failures import BadEvent, RuleFault, evaluating, transient
 from alerting.rules.scoring import score
 from alerting.rules.storage import (
     Settings,
@@ -79,29 +84,89 @@ async def process_batch(db, settings: Settings | None = None, lane="normal", bat
                              order by id limit %s for update skip locked""",
             (lane, batch),
         )
-        events = [CanonicalEvent.model_validate(r) for r in await cur.fetchall()]
-        if not events:
-            return 0
-        keys = set()
-        ruleset = settings.ruleset
-        for event in events:
-            schema = ruleset.schemas.get(event.schema_id, {})
-            resolve = ruleset.resolvers.get(event.schema_id)
-            resolving = resolve and resolve(event.fields)[0]
-            for rule, predicate in ruleset.rules:
+        rows = await cur.fetchall()
+        if rows:
+            await isolate(conn, cur, settings, lane, rows)
+        return len(rows)
+
+
+async def isolate(conn, cur, settings, lane, rows):
+    try:
+        async with conn.transaction():
+            events = []
+            for row in rows:
+                try:
+                    event = CanonicalEvent.model_validate(row)
+                    clock_for_event(event.trace)
+                except (ValueError, TypeError) as exc:
+                    raise BadEvent("Invalid canonical event or event clock") from exc
+                if demo_mode() and event.trace.get("demo_fault") == "raise":
+                    raise BadEvent("Injected demo fault")
+                events.append(event)
+            await apply_events(cur, settings, lane, events)
+        return
+    except (BadEvent, RuleFault) as exc:
+        failure = exc
+    if len(rows) > 1:
+        mid = len(rows) // 2
+        await isolate(conn, cur, settings, lane, rows[:mid])
+        await isolate(conn, cur, settings, lane, rows[mid:])
+        return
+    row = rows[0]
+    if isinstance(failure, RuleFault):
+        rule = failure.rule
+        team = settings.directory.get("fallback_team")
+        detail = {"error": str(failure), "team_id": team}
+        await cur.execute(
+            "insert into decisions(event_id,rule_id,rule_version,outcome,reason) values(%s,%s,%s,'RULE_FAULT',%s)",
+            (row["id"], rule["id"], rule.get("version", 1), Jsonb(detail)),
+        )
+        await cur.execute(
+            "insert into audit_log(actor,action,target_kind,target_id,detail) values('system','rule.fault','team',%s,%s)",
+            (team, Jsonb(dict(detail, event_id=row["id"], rule_id=rule["id"]))),
+        )
+        remaining = copy(settings.ruleset)
+        remaining.rules = [(r, pred) for r, pred in remaining.rules if r["id"] != rule["id"]]
+        await isolate(conn, cur, replace(settings, ruleset=remaining), lane, rows)
+        return
+    trace = row["trace"] if isinstance(row["trace"], dict) else {}
+    prior = trace.get("attempts", 0)
+    attempts = min(3, max(0, prior) + 1) if type(prior) is int else 1
+    reason = {"attempts": attempts, "processing_error": str(failure)}
+    await cur.execute(
+        "update events set status=%s,trace=%s where id=%s",
+        ("quarantined" if attempts == 3 else "pending", Jsonb({**trace, **reason}), row["id"]),
+    )
+    if attempts == 3:
+        await cur.execute(
+            "insert into decisions(event_id,outcome,reason) values(%s,'QUARANTINED',%s)",
+            (row["id"], Jsonb(reason)),
+        )
+
+
+async def apply_events(cur, settings, lane, events):
+    keys = set()
+    ruleset = settings.ruleset
+    for event in events:
+        schema = ruleset.schemas.get(event.schema_id, {})
+        resolve = ruleset.resolvers.get(event.schema_id)
+        resolving = resolve and resolve(event.fields)[0]
+        for rule, predicate in ruleset.rules:
+            with evaluating(rule):
                 if resolving or predicate(event.fields)[0]:
                     keys.add((rule["id"], grouping(rule, schema, event.fields)[0]))
-        matched_ids = {rid for rid, _ in keys}
-        await lock_rules(cur, (r for r, _ in ruleset.rules if r["id"] in matched_ids))
-        state = await lock_open(cur, keys)
-        dirty, new_ids, decisions, intents = {}, set(), [], []
-        samples = defaultdict(list)
-        for event in events:
-            at = clock_for_event(event.trace).now()
-            clock = FixedClock(at)
-            result = evaluate(event, ruleset, state, clock)
-            for op in result.alert_ops:
-                rule = op.rule
+    matched_ids = {rid for rid, _ in keys}
+    await lock_rules(cur, (r for r, _ in ruleset.rules if r["id"] in matched_ids))
+    state = await lock_open(cur, keys)
+    dirty, new_ids, decisions, intents = {}, set(), [], []
+    samples = defaultdict(list)
+    for event in events:
+        at = clock_for_event(event.trace).now()
+        clock = FixedClock(at)
+        result = evaluate(event, ruleset, state, clock)
+        for op in result.alert_ops:
+            rule = op.rule
+            with evaluating(rule):
                 identity = (rule["id"], op.key)
                 row = state.get(identity)
                 if not row:
@@ -194,62 +259,72 @@ async def process_batch(db, settings: Settings | None = None, lane="normal", bat
                     )
                 elif not row["count_since_notify"] and not remind_open:
                     row["next_notify_at"] = None
-            decisions.extend((event.id, d) for d in result.decisions)
-        for row in dirty.values():
-            await persist(cur, row)
-        for snapshot, transition, rule, fields, clock, decision in intents:
-            routing = await delivery_plan(cur, snapshot, transition, rule, fields, settings, clock)
-            await enqueue(cur, routing.intents, snapshot["team_id"])
-            decision["reason"]["notifications"] = [i.dedup_key for i in routing.intents]
-            summaries = [
-                i.rendered.meta["throttle_bucket"]
-                for i in routing.intents
-                if i.kind == "throttle_summary"
-            ]
-            if summaries:
-                decision["reason"]["throttle_buckets"] = summaries
-            if routing.intents and len(summaries) == len(routing.intents):
-                decision["outcome"] = "SUPPRESSED_THROTTLE"
+        decisions.extend((event.id, d) for d in result.decisions)
+    for row in dirty.values():
+        await persist(cur, row)
+    for snapshot, transition, rule, fields, clock, decision in intents:
+        routing = await delivery_plan(cur, snapshot, transition, rule, fields, settings, clock)
+        await enqueue(cur, routing.intents, snapshot["team_id"])
+        decision["reason"]["notifications"] = [i.dedup_key for i in routing.intents]
+        summaries = [
+            i.rendered.meta["throttle_bucket"]
+            for i in routing.intents
+            if i.kind == "throttle_summary"
+        ]
+        if summaries:
+            decision["reason"]["throttle_buckets"] = summaries
+        if routing.intents and len(summaries) == len(routing.intents):
+            decision["outcome"] = "SUPPRESSED_THROTTLE"
+    await cur.executemany(
+        "insert into decisions(event_id,rule_id,rule_version,outcome,reason,alert_id) "
+        "values (%s,%s,%s,%s,%s,%s)",
+        [
+            (
+                eid,
+                d["rule_id"],
+                d["rule_version"],
+                d["outcome"],
+                Jsonb(d["reason"]),
+                d.get("alert_id"),
+            )
+            for eid, d in decisions
+        ],
+    )
+    for aid, rows in samples.items():
         await cur.executemany(
-            "insert into decisions(event_id,rule_id,rule_version,outcome,reason,alert_id) "
-            "values (%s,%s,%s,%s,%s,%s)",
-            [
-                (
-                    eid,
-                    d["rule_id"],
-                    d["rule_version"],
-                    d["outcome"],
-                    Jsonb(d["reason"]),
-                    d.get("alert_id"),
-                )
-                for eid, d in decisions
-            ],
+            "insert into alert_occurrences(alert_id,event_id,seen_at) values (%s,%s,%s)",
+            rows[-50:],
         )
-        for aid, rows in samples.items():
-            await cur.executemany(
-                "insert into alert_occurrences(alert_id,event_id,seen_at) values (%s,%s,%s)",
-                rows[-50:],
-            )
-            await cur.execute(
-                """delete from alert_occurrences where alert_id=%s and event_id in
-                (select event_id from alert_occurrences where alert_id=%s order by event_id desc offset 50)""",
-                (aid, aid),
-            )
         await cur.execute(
-            """update events set status='processed',processed_at=now(),
-            trace=trace || jsonb_build_object('processed_at',clock_timestamp()) where id=any(%s)""",
-            ([e.id for e in events],),
+            """delete from alert_occurrences where alert_id=%s and event_id in
+            (select event_id from alert_occurrences where alert_id=%s order by event_id desc offset 50)""",
+            (aid, aid),
         )
-        for row in dirty.values():
-            await alert_changed(cur, row, row["id"] in new_ids)
-        return len(events)
+    await cur.execute(
+        """update events set status='processed',processed_at=now(),
+        trace=trace || jsonb_build_object('processed_at',clock_timestamp()) where id=any(%s)""",
+        ([e.id for e in events],),
+    )
+    for row in dirty.values():
+        await alert_changed(cur, row, row["id"] in new_ids)
+    return len(events)
 
 
 async def main(lane, batch):
     await open_pool()
     try:
         while True:
-            if not await process_batch(pool(), lane=lane, batch=batch):
+            try:
+                claimed = await process_batch(pool(), lane=lane, batch=batch)
+            except psycopg.Error as exc:
+                if not transient(exc):
+                    raise
+                logging.getLogger(__name__).warning(
+                    "Transient processing failure; retrying", exc_info=True
+                )
+                await asyncio.sleep(0.5)
+                continue
+            if not claimed:
                 await asyncio.sleep(0.15)
     finally:
         await close_settings(pool())
