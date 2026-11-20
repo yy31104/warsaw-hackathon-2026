@@ -7,14 +7,17 @@ TEAMS = """from notifications n join alerts a on a.id=n.alert_id
     left join delivery_breakers b on b.channel=n.channel
     left join delivery_team_turns t on t.channels=%(channels)s and t.priority=n.priority
         and t.fallback=%(fallback)s and t.team_id=coalesce(a.team_id,'')
-    where n.channel=any(%(channels)s)"""
+    where n.channel=any(%(channels)s) and n.merged_into is null"""
 
 DUE = """and (b.probe_after is null or b.probe_after<=%(now)s)
     and ((n.state in ('pending','retrying','unknown') and n.next_attempt_at<=%(now)s)
       or (n.state='sending' and n.locked_until<=%(now)s))"""
 
-FALLBACK = """and b.opened_at < %(now)s - interval '30 seconds' and a.severity='critical'
-    and n.kind in ('initial','update','digest','escalation') and n.state in ('pending','retrying','unknown')"""
+FALLBACK = """and b.opened_at < %(now)s - interval '30 seconds'
+    and (a.severity='critical' or (n.kind='merged' and exists (
+        select 1 from notifications member join alerts linked on linked.id=member.alert_id
+        where member.merged_into=n.id and linked.severity='critical')))
+    and n.kind in ('initial','update','digest','escalation','merged') and n.state in ('pending','retrying','unknown')"""
 
 
 async def next_notification(cur, channels, now, *, fallback=False):

@@ -14,6 +14,7 @@ from alerting.clock import SYSTEM
 from alerting.contracts import RenderedMessage
 from alerting.db import close_pool, open_pool, pool
 from alerting.delivery.fair import next_notification
+from alerting.delivery.guard import can_dispatch
 from alerting.delivery.providers import registry
 from alerting.delivery.shutdown import termination_event, wait_or_stop
 from alerting.rules.storage import close_settings, emit
@@ -37,6 +38,8 @@ async def claim(db, channels, clock, stop=None):
                 where notification_id=%s and attempt=%s and finished_at is null""",
                 (now, row["id"], row["attempts"]),
             )
+        if not await can_dispatch(cur, row):
+            return None
         if exhausted(row, now):
             await cur.execute(
                 "update notifications set state='failed',locked_by=null,locked_until=null where id=%s",
