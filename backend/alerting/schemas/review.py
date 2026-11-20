@@ -27,9 +27,10 @@ def preview_event(sample, candidate, draft):
         "matches": projected.schema_id == draft["id"],
         "schema_id": projected.schema_id,
         "lane": projected.lane,
-        "aliases": {key: projected.fields[key] for key in (
-            "$source", "$transport", "$schema", "$severity", "$service", "$environment", "$error_code", "$message", "$time")},
-        "missing_paths": sorted({p for p in draft.get("aliases", {}).values() if sample.fields.get(p) is None}),
+        "aliases": {key: projected.fields.get(key) for key in (
+            "$source", "$transport", "$schema", "$severity", "$service", "$environment",
+            "$error_code", "$message", "$time", "$episode")},
+        "missing_paths": sorted({p for p in draft.get("aliases", {}).values() if lookup(projected.fields, p) is None}),
     }
 
 

@@ -1,14 +1,17 @@
 """Turn one input into a CanonicalEvent. The caller supplies config and the receive time."""
 import hashlib
 import json
+import math
 import re
 import shlex
 from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
+from decimal import Decimal, DecimalException, Underflow, localcontext
+from sys import get_int_max_str_digits
 from typing import Any
 
 from alerting.contracts import CanonicalEvent, Severity
-from alerting.rules.dsl import compile as compile_match
+from alerting.rules.dsl import compile as compile_match, number
 from alerting.templates import lookup, render, variables
 
 MAX_BYTES = 256 * 1024
@@ -171,6 +174,51 @@ def _labels(fields: dict, schema: dict) -> dict:
     return labels
 
 
+def transform_scales(transforms: dict) -> dict[str, Decimal]:
+    if not isinstance(transforms, dict):
+        raise InvalidEvent("transforms must be an object")
+    scales = {}
+    for path, transform in transforms.items():
+        scale = number(transform.get("scale", 1)) if isinstance(transform, dict) else None
+        if scale is None:
+            raise InvalidEvent(f"invalid scale for {path}")
+        scales[path] = scale
+    return scales
+
+
+def _apply_scales(fields: dict, scales: dict[str, Decimal]) -> None:
+    originals, scaled_values = {}, {}
+    for path, scale in scales.items():
+        raw = lookup(fields, path)
+        value = number(raw)
+        if value is None:
+            continue
+        try:
+            with localcontext() as context:
+                context.prec = len(value.as_tuple().digits) + len(scale.as_tuple().digits)
+                context.traps[Underflow] = True
+                scaled = value * scale
+            if scaled == scaled.to_integral_value():
+                if scaled.adjusted() >= (get_int_max_str_digits() or MAX_BYTES):
+                    raise InvalidEvent(f"scale for {path} exceeds the JSON integer limit")
+                converted = int(scaled)
+            else:
+                converted = float(scaled)
+                if not math.isfinite(converted) or converted == 0:
+                    raise InvalidEvent(f"scale for {path} exceeds JSON number precision")
+        except DecimalException as exc:
+            raise InvalidEvent(f"scaled value for {path} exceeds JSON number precision") from exc
+        originals[path + ".raw"], scaled_values[path] = raw, converted
+    fields.update(originals)
+    fields.update(scaled_values)
+
+
+def _set_episode(fields: dict, schema: dict) -> None:
+    template = schema.get("episode_key")
+    if template and all(lookup(fields, path) is not None for path in variables(template)):
+        fields["$episode"] = render(template, fields)
+
+
 def normalize(raw: dict, source: dict, schemas: Sequence[dict] | SchemaDetector, *, received_at: datetime,
               message_id: str | None = None, trace: dict | None = None) -> CanonicalEvent:
     original = flatten(raw)
@@ -201,22 +249,30 @@ def reclassify(event: CanonicalEvent, schemas: Sequence[dict] | SchemaDetector) 
 
 def _project(original, public, source, schemas, digest, received_at, message_id, trace):
     metadata = {"$source": source["id"], "$transport": source["transport"]}
+    original.pop("$episode", None)
     original.update(metadata)
     schema = detect_schema(original, schemas) or {}
+    scales = transform_scales(schema["transforms"]) if "transforms" in schema else {}
+    _apply_scales(original, scales)
+
     aliases = schema.get("aliases", {})
     severity = _severity(original.get(aliases.get("severity")), schema)
     occurred_at = _time(original.get(aliases.get("time")), schema.get("time_format", "iso"))
     metadata.update({"$severity": severity.value, "$time": occurred_at.isoformat() if occurred_at else None})
     original.update(metadata)
     original.update(_labels(original, schema))
+    _set_episode(original, schema)
     source_event_id = identity(message_id, schema, original, source, digest)
     trace = dict(trace or {})
     if not schema and not (message_id and message_id.strip()) and source.get("dedup") == "payload_hash":
         trace["identity_method"] = "payload_hash"
 
     fields = flatten(public)
+    fields.pop("$episode", None)
+    _apply_scales(fields, scales)
     fields.update(metadata)
     fields.update(_labels(fields, schema))
+    _set_episode(fields, schema)
     template = schema.get("event_id")
     if template and source_event_id and not (message_id and message_id.strip()):
         private_key = render(template, original)
