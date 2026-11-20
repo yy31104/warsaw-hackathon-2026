@@ -1,0 +1,355 @@
+{
+  "date_utc": "2026-11-20T22:05:26.556Z",
+  "integration_base": "e9bec3520f23ea7d726da80e2e332a970eef8101",
+  "frontend": "49e55ba227b99bc36db5f923da126725a506688d",
+  "run": "mwpj2gf0",
+  "checks": {
+    "settlement_from_broker_to_phone_and_browser": {
+      "status": "PASS",
+      "event": {
+        "id": 1,
+        "status": "processed",
+        "transport": "rabbitmq",
+        "code": "TIMEOUT"
+      },
+      "alert": 1,
+      "rule": "settlements-wf-failed",
+      "recipient": "sam",
+      "receipts": [
+        {
+          "channel": "phone",
+          "notification": "69827f57-7600-46e0-b348-466e2e9e6cdf",
+          "received_at": 1795212328746,
+          "gen_sent_at": 1795212328371
+        },
+        {
+          "channel": "sms",
+          "notification": "0ed89733-fd3e-4767-ac1c-0738a2d289d6",
+          "received_at": 1795212328732,
+          "gen_sent_at": 1795212328371
+        }
+      ],
+      "created_per_tab": [
+        1,
+        1,
+        0
+      ]
+    },
+    "live_storm_and_team_filter": {
+      "status": "PASS",
+      "distinct_events": 501,
+      "alerts": 1,
+      "tabs": [
+        {
+          "team": "settlements",
+          "creates": 1,
+          "counters": [
+            1,
+            40,
+            302,
+            501
+          ],
+          "critical": false,
+          "resolved": false,
+          "approvals": [],
+          "foreignTeamEvents": 0,
+          "navigations": 0
+        },
+        {
+          "team": "settlements",
+          "creates": 1,
+          "counters": [
+            1,
+            40,
+            302,
+            501
+          ],
+          "critical": false,
+          "resolved": false,
+          "approvals": [],
+          "foreignTeamEvents": 0,
+          "navigations": 0
+        },
+        {
+          "team": "pricing",
+          "creates": 0,
+          "counters": [],
+          "critical": false,
+          "resolved": false,
+          "approvals": [],
+          "foreignTeamEvents": 0,
+          "navigations": 0
+        }
+      ]
+    },
+    "sms_reply_to_yi": {
+      "status": "PASS",
+      "requested_by": "sam",
+      "phone_owner": "lee",
+      "action_id": 1,
+      "reply": "NO",
+      "before": "pending_approval",
+      "after": "rejected",
+      "actor": "lee"
+    },
+    "severity_approval_and_resolution": {
+      "status": "PASS",
+      "tabs": [
+        {
+          "team": "settlements",
+          "creates": 1,
+          "counters": [
+            1,
+            40,
+            302,
+            501,
+            502,
+            502
+          ],
+          "critical": true,
+          "resolved": true,
+          "approvals": [
+            "pending_approval",
+            "rejected"
+          ],
+          "foreignTeamEvents": 0,
+          "navigations": 0
+        },
+        {
+          "team": "settlements",
+          "creates": 1,
+          "counters": [
+            1,
+            40,
+            302,
+            501,
+            502,
+            502
+          ],
+          "critical": true,
+          "resolved": true,
+          "approvals": [
+            "pending_approval",
+            "rejected"
+          ],
+          "foreignTeamEvents": 0,
+          "navigations": 0
+        },
+        {
+          "team": "pricing",
+          "creates": 0,
+          "counters": [],
+          "critical": false,
+          "resolved": false,
+          "approvals": [],
+          "foreignTeamEvents": 0,
+          "navigations": 0
+        }
+      ]
+    },
+    "gateway_503": {
+      "status": "PASS",
+      "alert": 2,
+      "receipts_before_recovery": 0,
+      "receipts_after_recovery": 2,
+      "attempts": [
+        {
+          "channel": "sms",
+          "notification": "6150fc77-8038-4243-a147-d66b0f41ecc9",
+          "outcomes": [
+            "retryable",
+            "delivered"
+          ],
+          "count": 2
+        },
+        {
+          "channel": "phone",
+          "notification": "7d874991-7357-440c-8827-b20fbe7d33a7",
+          "outcomes": [
+            "retryable",
+            "delivered"
+          ],
+          "count": 2
+        }
+      ],
+      "sms_visible": 1
+    },
+    "gateway_drop_response": {
+      "status": "PASS",
+      "alert": 3,
+      "receipts_before_recovery": 2,
+      "receipts_after_recovery": 2,
+      "attempts": [
+        {
+          "channel": "sms",
+          "notification": "00e3cb4c-dd6a-4fc5-b6cb-d63107075295",
+          "outcomes": [
+            "unknown",
+            "unknown",
+            "delivered"
+          ],
+          "count": 3
+        },
+        {
+          "channel": "phone",
+          "notification": "950d1549-6d42-455a-bb63-97eefeae6726",
+          "outcomes": [
+            "unknown",
+            "delivered"
+          ],
+          "count": 2
+        }
+      ],
+      "sms_visible": 1,
+      "receipt_timestamp_preserved": true
+    },
+    "publisher_retransmission": {
+      "status": "PASS",
+      "published": 1000,
+      "per_source": true,
+      "same_message_id": "g1-same-key-mwpj2gf0",
+      "cli": [
+        "RabbitMQ confirmed 1000 on events.workflow (last message_id=g1-same-key-mwpj2gf0)",
+        "HTTP generic-webhook: accepted=1 duplicates=999"
+      ],
+      "rows": [
+        {
+          "source_id": "generic-webhook",
+          "transport": "http",
+          "id": 541,
+          "status": "processed",
+          "duplicate_audits": 999,
+          "other_audits": 0
+        },
+        {
+          "source_id": "workflow-bus",
+          "transport": "rabbitmq",
+          "id": 505,
+          "status": "processed",
+          "duplicate_audits": 999,
+          "other_audits": 0
+        }
+      ]
+    },
+    "publisher_rate_and_unique_fields": {
+      "status": "PASS",
+      "rate_per_s": 4,
+      "transports": [
+        {
+          "transport": "http",
+          "stored": 4,
+          "distinct_values": 4,
+          "gaps_ms": [
+            250,
+            251,
+            251
+          ]
+        },
+        {
+          "transport": "rabbitmq",
+          "stored": 4,
+          "distinct_values": 4,
+          "gaps_ms": [
+            251,
+            251,
+            251
+          ]
+        }
+      ]
+    },
+    "gateway_down": {
+      "status": "PASS",
+      "alert": 4,
+      "receipts_before_recovery": 0,
+      "receipts_after_recovery": 2,
+      "attempts": [
+        {
+          "channel": "phone",
+          "notification": "2d51e493-bf7f-4c42-bf8a-07894ea25798",
+          "count": 2,
+          "outcomes": [
+            "retryable",
+            "delivered"
+          ]
+        },
+        {
+          "channel": "sms",
+          "notification": "e049687f-75fd-4a90-b406-119aba63195e",
+          "count": 2,
+          "outcomes": [
+            "retryable",
+            "delivered"
+          ]
+        }
+      ]
+    },
+    "live_heartbeat_and_stats": {
+      "status": "PASS",
+      "team": "settlements",
+      "first_heartbeat_ms": 15015,
+      "stats_ticks_before_heartbeat": 7,
+      "intervals_ms": [
+        2001,
+        2001,
+        2000,
+        2001,
+        2001,
+        2002
+      ]
+    },
+    "gateway_slow": {
+      "status": "PASS",
+      "alert": 5,
+      "receipts_before_recovery": 2,
+      "receipts_after_recovery": 2,
+      "attempts": [
+        {
+          "channel": "phone",
+          "notification": "925744a5-4d4a-4a0e-8566-a21a369393b8",
+          "count": 3,
+          "outcomes": [
+            "unknown",
+            "unknown",
+            "delivered"
+          ]
+        },
+        {
+          "channel": "sms",
+          "notification": "9eeb718c-b758-42a0-a362-bfac00e024cb",
+          "count": 2,
+          "outcomes": [
+            "unknown",
+            "delivered"
+          ]
+        }
+      ]
+    }
+  },
+  "environment": {
+    "chrome": "158.0.8127.36",
+    "api_mode": true,
+    "postgres": "16.14",
+    "rabbitmq": "3.13.7",
+    "host": "win32",
+    "python": "3.12.14",
+    "kernel": "Linux 6.6.87.2-microsoft-standard-WSL2",
+    "architecture": "x86_64",
+    "docker_vm_logical_cpus": 24,
+    "docker_vm_memory_kib": 32571528
+  },
+  "status": "PASS",
+  "main_at_sync": "ec35445503dced98b38101cba085f3f4d6aee9c8",
+  "publisher_git_blob": "07a6cf0cb19f7d99e705950e97f2a550c4006459",
+  "backend_regression": {
+    "status": "PASS",
+    "command": "make test",
+    "passed": 159,
+    "skipped": 0,
+    "duration_seconds": 58.42
+  },
+  "screenshots": [
+    "sam-sms-call.png",
+    "settlements-501.png",
+    "pricing-feed.png"
+  ]
+}

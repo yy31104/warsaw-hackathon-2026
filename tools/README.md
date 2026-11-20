@@ -27,6 +27,17 @@ one row in `events` and records the retransmission as `DUPLICATE` in `ingest_rej
 Set `RABBITMQ_URL` to use another broker. Omitting `--message-id` gives each copy a new ID.
 Use `--rate` to cap the send rate and `--unique workflowId` to vary that field for each copy.
 
+The same tool can publish over HTTP. With the API running and a fresh key, this sends
+ten individual requests and prints `accepted=1 duplicates=9`.
+
+```sh
+uv run --project backend python tools/publish.py --via http --source generic-webhook --file fixtures/events/workflow_failed.json --message-id demo-http-42 --count 10
+```
+
+Set `ALERTING_API_URL` to override `http://localhost:8000`. The tool uses the configured
+source's API key. Both transports support the same count, rate and unique-field options.
+Event identities are scoped to each source.
+
 From `backend/`, this command imports the seven pricing log lines once.
 
 ```sh
