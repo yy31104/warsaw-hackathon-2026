@@ -150,3 +150,23 @@
 .overview-hero-columns .live-trend-embedded .chart-scrubber{padding:0;margin:0;flex-wrap:wrap;gap:12px}
 .overview-hero-columns .chart-scrubber strong{margin-left:0}
 @media(max-width:1000px){.overview-hero-columns{grid-template-columns:1fr;gap:36px}.overview-hero-columns .live-trend-embedded svg{height:180px}.overview-hero-columns .status-unified .status-main{justify-content:flex-start}}
+
+/* Summary and trace on the left; a single vertical incident queue on the right. */
+.overview-hero-columns.overview-monitor{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:start;gap:clamp(36px,5vw,80px);padding-top:12px}
+.overview-monitor-summary{display:flex;flex-direction:column;gap:40px;min-width:0}
+.overview-monitor-summary .status-main{flex-wrap:wrap}
+.overview-monitor-summary .status-main>.status-arrow{display:none}
+.overview-monitor>.active-workspace{padding:0 0 24px;border-top:0;min-width:0}
+.overview-monitor .active-toolbar{min-height:0;flex-wrap:wrap;gap:14px;margin-bottom:24px}
+.overview-monitor .active-composition{display:flex;flex-direction:column;gap:28px}
+.overview-monitor .lead-alert{min-height:280px;padding:8px 0 24px;border-bottom:1px solid var(--line)}
+.overview-monitor .lead-alert h3{font-size:clamp(22px,2vw,28px);margin:20px 0 14px}
+.overview-monitor .lead-alert:after{left:-16px}
+.overview-monitor .other-alerts{border-left:0;padding-left:0}
+.overview-monitor .alert-line{padding:16px 0}
+.overview-monitor .alert-line h3{margin:6px 0;font-size:14px}
+.overview-monitor .lead-bottom{margin-top:auto}
+.overview-monitor-summary .live-trend-embedded svg{height:180px}
+.overview-hero:has(.overview-monitor){margin-bottom:40px}
+@media(max-width:1000px){.overview-hero-columns.overview-monitor{grid-template-columns:1fr}.overview-monitor-summary .status-main{flex-wrap:nowrap}.overview-monitor .lead-alert{min-height:260px}.overview-monitor>.active-workspace{border-top:1px solid var(--line);padding-top:28px}}
+@media(max-width:650px){.overview-monitor-summary .status-main{flex-wrap:wrap}}
