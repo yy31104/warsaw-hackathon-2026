@@ -27,6 +27,41 @@ uv run python -m alerting.ingest.logfile --source pricing-logs ../fixtures/event
 
 The sample log has no event ID. Each line counts as an occurrence, including lines read by another import.
 
+## Review an unknown event
+
+Apply `db/migrations/201_schema_review.sql` to an existing database. A fresh Compose database
+applies it automatically. Start the API and open `/docs` to run the following calls.
+
+1. Send `{"app":{"name":"payments-api"},"signal":"RED"}` to
+   `POST /v1/events/generic-webhook` with `X-Api-Key: demo-generic-key`. Keep the event ID.
+2. Open `GET /v1/schema-issues`. The sample is under fingerprint `app,signal`. Read its redacted
+   original with `GET /v1/events/{id}`. Each accepted occurrence increments the issue count.
+   The first occurrence creates a grey incident and a delivered UI notice for the fallback team.
+3. In `POST /v1/schemas/preview`, select that fingerprint and use this draft.
+
+```json
+{
+  "id": "vendor-signals",
+  "name": "vendor.alarm",
+  "detect": {"all": [{"field": "app.name", "op": "exists"}, {"field": "signal", "op": "exists"}]},
+  "aliases": {"service": "app.name", "severity": "signal"},
+  "severity_map": {"RED": "critical"}
+}
+```
+
+4. Check `matches`, the field aliases and `missing_paths`. To confirm, send the same draft to
+   `POST /v1/schemas` with the same fingerprint and the preview's `base_version`. Set
+   `X-User: ops` for the demo's simulated reviewer identity. Membership comes from the configured
+   fallback team. The response includes the saved version and the number of reprocessed events.
+5. Read the original event ID again. It should now be `pending` with service `payments-api` and
+   severity `critical`, ready for the rule worker. Another matching input uses the same mapping
+   immediately. If some events only share the top-level keys, their issue stays open with a
+   remaining sample. `GET /v1/schema-issues?status=resolved` shows completed reviews.
+
+File-managed schemas retain their order and are read-only through the API. UI-managed mappings
+are stored in PostgreSQL. Publication, replay and audit commit together. If a proposed identity
+would merge distinct stored events, the API returns 409 and the reviewer can refine the identity.
+
 ## Reproduce the ingest tests
 
 Run `make test` from the repository root. Database tests use `DATABASE_URL` and create their own

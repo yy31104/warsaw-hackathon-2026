@@ -13,6 +13,7 @@ from alerting.clock import SYSTEM
 from alerting.config import files
 from alerting.ingest.inputs import prepare
 from alerting.ingest.store import save_batch
+from alerting.schemas.registry import ingest_registry
 
 MAX_BATCH = 200
 MAX_WAIT = 0.050
@@ -20,10 +21,10 @@ log = logging.getLogger(__name__)
 
 
 async def store_and_ack(deliveries, schemas, db_pool):
-    inputs = [prepare(message.body, source, schemas, message_id=message.message_id,
-                      headers=message.headers, received_at=received_at)
-              for source, message, received_at in deliveries]
-    async with db_pool.connection() as conn:
+    async with ingest_registry(db_pool, schemas) as (conn, active):
+        inputs = [prepare(message.body, source, active, message_id=message.message_id,
+                          headers=message.headers, received_at=received_at)
+                  for source, message, received_at in deliveries]
         await save_batch(conn, inputs)
     # Test-only crash point. RabbitMQ redelivers the unacknowledged messages.
     if os.getenv("FAULT_AFTER_COMMIT_BEFORE_ACK") == "1":

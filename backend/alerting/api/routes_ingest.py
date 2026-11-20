@@ -10,6 +10,7 @@ from alerting.db import pool
 from alerting.ingest.inputs import prepare
 from alerting.ingest.normalize import MAX_BYTES, InvalidEvent, decode_json
 from alerting.ingest.store import RejectedInput, save_batch
+from alerting.schemas.registry import ingest_registry
 from alerting.templates import lookup
 
 router = APIRouter(prefix="/v1", tags=["ingest"])
@@ -55,12 +56,11 @@ async def ingest(source_id: str, request: Request, x_api_key: str | None = Heade
             await save_batch(conn, [RejectedInput(source_id, idempotency_key, str(exc))])
         raise HTTPException(error_status, str(exc)) from exc
 
-    schemas = files.schemas()
     batch = isinstance(payload, list)
-    inputs = [prepare(item, source, schemas, message_id=_event_key(idempotency_key, i if batch else None),
-                      headers=request.headers, received_at=received_at)
-              for i, item in enumerate(payload if batch else [payload])]
-    async with db_pool.connection() as conn:
+    async with ingest_registry(db_pool, files.schemas()) as (conn, schemas):
+        inputs = [prepare(item, source, schemas, message_id=_event_key(idempotency_key, i if batch else None),
+                          headers=request.headers, received_at=received_at)
+                  for i, item in enumerate(payload if batch else [payload])]
         results = await save_batch(conn, inputs)
     return {
         "accepted": sum(r.outcome in (Outcome.ACCEPTED, Outcome.NEEDS_REVIEW) for r in results),

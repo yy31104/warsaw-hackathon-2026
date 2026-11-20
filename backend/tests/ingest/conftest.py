@@ -6,10 +6,12 @@ from uuid import uuid4
 
 import psycopg
 import pytest
+import httpx
 from psycopg import sql
 from psycopg_pool import AsyncConnectionPool
 
 from alerting import db
+from alerting.api.app import app
 
 
 if sys.platform == "win32":
@@ -28,15 +30,23 @@ async def inbox_pool():
             raise
         pytest.skip("PostgreSQL unavailable; set DATABASE_URL to run inbox integration tests")
     schema = "test_inbox_" + uuid4().hex
-    migration = Path(__file__).resolve().parents[3] / "db" / "migrations" / "001_init.sql"
+    migrations = Path(__file__).resolve().parents[3] / "db" / "migrations"
     async with admin:
         await admin.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(schema)))
         try:
             await admin.execute(sql.SQL("SET search_path TO {}, public").format(sql.Identifier(schema)))
-            await admin.execute(migration.read_text(encoding="utf-8"))
+            for migration in sorted(migrations.glob("*.sql")):
+                await admin.execute(migration.read_text(encoding="utf-8"))
             async with AsyncConnectionPool(url, min_size=1, max_size=10, open=False, kwargs={
                 "options": f"-c search_path={schema},public",
             }) as pool:
                 yield pool
         finally:
             await admin.execute(sql.SQL("DROP SCHEMA {} CASCADE").format(sql.Identifier(schema)))
+
+
+@pytest.fixture
+async def client(inbox_pool, monkeypatch):
+    monkeypatch.setitem(app.dependency_overrides, db.pool, lambda: inbox_pool)
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://inbox.test") as client:
+        yield client

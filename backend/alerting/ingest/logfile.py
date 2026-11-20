@@ -12,6 +12,7 @@ from alerting.config import files
 from alerting.ingest.inputs import prepare
 from alerting.ingest.normalize import MAX_BYTES
 from alerting.ingest.store import save_batch
+from alerting.schemas.registry import ingest_registry
 
 
 def _lines(file):
@@ -27,8 +28,8 @@ async def import_file(path: Path, source: dict, schemas: list[dict], db_pool) ->
     totals = Counter()
     with path.open("rb") as stream:
         for lines in batched(_lines(stream), 200):
-            events = [prepare(line, source, schemas) for line in lines]
-            async with db_pool.connection() as conn:
+            async with ingest_registry(db_pool, schemas) as (conn, active):
+                events = [prepare(line, source, active) for line in lines]
                 results = await save_batch(conn, events)
             totals.update(result.outcome.value for result in results)
     return dict(totals)

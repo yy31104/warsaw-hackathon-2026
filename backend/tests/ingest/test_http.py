@@ -1,20 +1,9 @@
 import json
 from pathlib import Path
 
-import httpx
-import pytest
 import yaml
 
-from alerting import db
-from alerting.api.app import app
 from alerting.config import files
-
-
-@pytest.fixture
-async def client(inbox_pool, monkeypatch):
-    monkeypatch.setitem(app.dependency_overrides, db.pool, lambda: inbox_pool)
-    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://inbox.test") as client:
-        yield client
 
 
 async def test_http_identity_and_unknown_event_is_readable(client):
@@ -59,6 +48,7 @@ async def test_http_bad_envelope_and_size_are_reported(client):
 
 async def test_next_event_uses_new_schema_config_without_restart(client, tmp_path, monkeypatch):
     (tmp_path / "sources.yaml").write_bytes((files.CONFIG_DIR / "sources.yaml").read_bytes())
+    (tmp_path / "teams.yaml").write_bytes((files.CONFIG_DIR / "teams.yaml").read_bytes())
     registry = tmp_path / "schemas.yaml"
     registry.write_text("schemas: []", encoding="utf-8")
     monkeypatch.setattr(files, "CONFIG_DIR", tmp_path)

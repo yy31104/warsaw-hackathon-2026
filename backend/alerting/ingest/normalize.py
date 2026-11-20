@@ -184,6 +184,25 @@ def normalize(raw: dict, source: dict, schemas: Sequence[dict], *, received_at: 
     if len(encoded) > MAX_BYTES:
         raise InvalidEvent("body exceeds 256 KiB")
     digest = hashlib.sha256(encoded).hexdigest()
+    return _project(original, _redacted(raw), source, schemas, digest, received_at, message_id, trace)
+
+
+def reclassify(event: CanonicalEvent, schemas: Sequence[dict]) -> CanonicalEvent:
+    """Project the retained sample in place, keeping its original transport identity and hash."""
+    source = {"id": event.source_id, "transport": event.transport}
+    heuristic = event.trace.get("identity_method") == "payload_hash" and event.source_event_id == event.payload_hash
+    if heuristic:
+        source["dedup"] = "payload_hash"
+    projected = _project(flatten(event.raw), event.raw, source, schemas, event.payload_hash,
+                         event.received_at, None, event.trace)
+    projected.id = event.id
+    if event.source_event_id is not None and not heuristic:
+        projected.source_event_id = event.source_event_id  # already in storage form
+    projected.trace = event.trace
+    return projected
+
+
+def _project(original, public, source, schemas, digest, received_at, message_id, trace):
     metadata = {"$source": source["id"], "$transport": source["transport"]}
     original.update(metadata)
     schema = detect_schema(original, schemas) or {}
@@ -194,8 +213,10 @@ def normalize(raw: dict, source: dict, schemas: Sequence[dict], *, received_at: 
     original.update(metadata)
     original.update(_labels(original, schema))
     source_event_id = identity(message_id, schema, original, source, digest)
+    trace = dict(trace or {})
+    if not schema and not (message_id and message_id.strip()) and source.get("dedup") == "payload_hash":
+        trace["identity_method"] = "payload_hash"
 
-    public = _redacted(raw)
     fields = flatten(public)
     fields.update(metadata)
     fields.update(_labels(fields, schema))
@@ -206,5 +227,5 @@ def normalize(raw: dict, source: dict, schemas: Sequence[dict], *, received_at: 
         severity=severity, service=fields["$service"], environment=fields["$environment"],
         occurred_at=occurred_at, received_at=received_at, raw=public, fields=fields,
         lane="critical" if severity == Severity.critical else "normal", status="pending" if schema else "needs_review",
-        trace={**(trace or {}), "received_at": received_at.isoformat()},
+        trace={**trace, "received_at": received_at.isoformat()},
     )

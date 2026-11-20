@@ -6,6 +6,7 @@ from psycopg.types.json import Jsonb
 
 from alerting.contracts import CanonicalEvent, Outcome
 from alerting.ingest.normalize import storage_key
+from alerting.schemas.issues import register_unknowns
 
 
 @dataclass(frozen=True)
@@ -83,6 +84,7 @@ async def save_batch(conn: AsyncConnection, inputs: list[CanonicalEvent | Reject
         stored = iter(await _store_events(conn, [item for item in inputs if isinstance(item, CanonicalEvent)]))
         results = []
         audit = []
+        unknowns = []
         for item in inputs:
             if isinstance(item, RejectedInput):
                 result = IngestResult(Outcome.REJECTED, None, item.reason)
@@ -90,6 +92,8 @@ async def save_batch(conn: AsyncConnection, inputs: list[CanonicalEvent | Reject
             else:
                 result = next(stored)
                 key = item.source_event_id
+                if result.outcome == Outcome.NEEDS_REVIEW:
+                    unknowns.append(item.model_copy(update={"id": result.event_id}))
             results.append(result)
             if result.reason:
                 audit.append({"source_id": item.source_id, "source_event_id": key,
@@ -100,4 +104,5 @@ async def save_batch(conn: AsyncConnection, inputs: list[CanonicalEvent | Reject
                 SELECT source_id, source_event_id, kind, reason, existing_event_id
                 FROM jsonb_populate_recordset(NULL::ingest_rejections, %s)
             """, (Jsonb(audit),))
+        await register_unknowns(conn, unknowns)
     return results
