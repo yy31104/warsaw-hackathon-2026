@@ -1,7 +1,6 @@
 """Actual HTTP ingest, rules, outbox and delivery with a temporary PostgreSQL schema."""
 import json
 from pathlib import Path
-from shutil import copytree
 
 import httpx
 import pytest
@@ -12,7 +11,6 @@ from alerting import db
 from alerting.api.routes_ingest import router
 from alerting.canary.monitor import CANARY_NUMBER, OPS_NUMBER, Monitor, Settings
 from alerting.clock import SYSTEM
-from alerting.config import files
 from alerting.delivery.providers.telecom import Telecom
 from alerting.delivery.worker import deliver_one
 from alerting.rules.worker import process_batch
@@ -21,17 +19,7 @@ from tests.processing.conftest import database  # noqa: F401 -- shared random-sc
 EXAMPLE = Path(__file__).resolve().parents[2] / "alerting/canary/config.example.yaml"
 
 
-async def test_two_probes_single_alert_then_stop_delivery(database, tmp_path, monkeypatch):
-    config = tmp_path / "config"
-    copytree(files.CONFIG_DIR, config)
-    example = yaml.safe_load(EXAMPLE.read_text())
-    for section, entries in example.items():
-        file = config / ("teams.yaml" if section == "users" else f"{section}.yaml")
-        doc = yaml.safe_load(file.read_text())
-        doc[section] = entries + doc[section]
-        file.write_text(yaml.safe_dump(doc))
-    monkeypatch.setattr(files, "CONFIG_DIR", config)
-
+async def test_two_probes_single_alert_then_stop_delivery(database, monkeypatch):
     api = FastAPI()
     api.include_router(router)
     api.dependency_overrides[db.pool] = lambda: database
@@ -79,11 +67,6 @@ async def test_two_probes_single_alert_then_stop_delivery(database, tmp_path, mo
     assert rows == [("canary", "canary", s) for s in ("delivered", "delivered", "pending")]
 
 
-class UnscopedCanary(AssertionError):
-    """An ordinary rule handled a reserved synthetic probe."""
-
-
-@pytest.mark.xfail(raises=UnscopedCanary, reason="W0/W1 integration: apply canary.policy.allows_rule")
 async def test_catchall_rule_only_sees_real_events_in_a_mixed_batch(database):
     from alerting.ingest.inputs import prepare
     from alerting.ingest.store import save_batch
@@ -115,8 +98,7 @@ async def test_catchall_rule_only_sees_real_events_in_a_mixed_batch(database):
             "select n.recipient, n.channel from decisions d join events e on e.id=d.event_id "
             "join notifications n on n.alert_id=d.alert_id and d.reason->'notifications' ? n.dedup_key "
             "where e.source_id='canary' and n.recipient='operator' and n.state<>'cancelled'")).fetchone()
-    if leak:
-        raise UnscopedCanary(f"The native worker queued a probe notification to {leak[0]} via {leak[1]}")
+    assert leak is None, f"The native worker queued a probe notification to {leak}"
     assert cross is None
     assert sorted(targets) == [("canary",), ("operator",)]
     assert alerts == [("catchall", 1), ("delivery-canary", 1)]

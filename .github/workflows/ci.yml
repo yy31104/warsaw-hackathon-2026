@@ -25,6 +25,7 @@ jobs:
     env:
       INGEST_TEST_RABBITMQ_URL: amqp://alerting_ci:local_ci_only@127.0.0.1:5672/
       DATABASE_URL: postgresql://alerting:alerting@localhost:5432/alerting
+      CANARY_LIVE_GATEWAY_ROOT: ${{ github.workspace }}
       DEMO_MODE: "1"
       ASSIST_ENABLED: "0"
     steps:

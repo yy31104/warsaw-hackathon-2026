@@ -19,11 +19,11 @@ def test_template_nested_raw_lookup():
 
 def test_config_files_load_task_examples():
     assert {r["id"] for r in files.rules()} == {
-        "settlements-wf-failed", "pricing-warn-logs", "rates-big-rejects", "anna-payments-critical"}
+        "settlements-wf-failed", "pricing-warn-logs", "rates-big-rejects", "anna-payments-critical", "delivery-canary"}
     assert files.directory()["fallback_team"] == "platform"
     formats = {rb["id"]: rb["format"] for rb in files.runbooks()}
     assert formats == {"settlement-timeout": "yaml-steps", "payments-high-error-rate": "markdown", "pricing-latency": "text"}
-    assert len(files.schemas()) == 4 and len(files.sources()) == 6
+    assert len(files.schemas()) == 5 and len(files.sources()) == 7
 
 
 def test_describe_sample_keeps_json_valid_and_redacts_strings():
