@@ -81,15 +81,54 @@ async def process_batch(db, settings: Settings | None = None, lane="normal", bat
         conn.transaction(),
         conn.cursor(row_factory=dict_row) as cur,
     ):
-        await cur.execute(
-            """select * from events where status='pending' and lane=%s
-                             order by id limit %s for update skip locked""",
-            (lane, batch),
-        )
-        rows = await cur.fetchall()
+        rows = await claim_sources(cur, lane, batch)
         if rows:
             await isolate(conn, cur, settings, lane, rows)
         return len(rows)
+
+
+async def claim_sources(cur, lane, batch):
+    # Walk distinct source keys in the pending index instead of ranking the entire backlog.
+    await cur.execute(
+        """with recursive active(source_id) as (
+               (select source_id from events where lane=%s and status='pending'
+                order by source_id limit 1)
+               union all
+               select following.source_id from active
+               cross join lateral (
+                   select e.source_id from events e where e.lane=%s and e.status='pending'
+                     and e.source_id > active.source_id order by e.source_id limit 1
+               ) following
+           ) select source_id from active order by source_id""", (lane, lane),
+    )
+    sources = [r["source_id"] for r in await cur.fetchall()]
+    if not sources:
+        return []
+    if len(sources) > 1:
+        sequence = "event_critical_claim_turn" if lane == "critical" else "event_normal_claim_turn"
+        await cur.execute("select nextval(%s::regclass) - 1 as turn", (sequence,))
+        start = (await cur.fetchone())["turn"] % len(sources)
+        sources = sources[start:] + sources[:start]
+    sources = sources[:batch]
+    quota, remainder = divmod(batch, len(sources))
+    await cur.execute(
+        """select picked.* from unnest(%s::text[]) with ordinality as s(source, pos)
+           cross join lateral (
+               select e.* from events e where e.source_id=s.source and e.lane=%s
+                 and e.status='pending' order by e.id
+               limit (%s::integer + (s.pos <= %s)::integer) for update skip locked
+           ) picked""", (sources, lane, quota, remainder),
+    )
+    rows = await cur.fetchall()
+    if len(rows) < batch:
+        # Empty queues or locks held by another worker should not waste the remaining slots.
+        await cur.execute(
+            """select * from events where lane=%s and status='pending' and id<>all(%s::bigint[])
+               order by id limit %s for update skip locked""",
+            (lane, [row["id"] for row in rows], batch - len(rows)),
+        )
+        rows.extend(await cur.fetchall())
+    return sorted(rows, key=lambda row: row["id"])
 
 
 async def isolate(conn, cur, settings, lane, rows):
