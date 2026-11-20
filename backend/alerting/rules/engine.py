@@ -2,9 +2,10 @@
 
 import re
 from dataclasses import dataclass, field
-from datetime import timedelta
+from datetime import datetime, timedelta
+from math import isfinite
 
-from alerting.contracts import SEVERITY_ORDER, CanonicalEvent, Transition
+from alerting.contracts import SEVERITY_ORDER, CanonicalEvent, Severity, Transition
 from alerting.rules.dsl import compile
 from alerting.rules.failures import evaluating
 from alerting.rules.silences import active_silence
@@ -49,6 +50,8 @@ class AlertOp:
     body: str
     fields: dict
     notify: bool
+    effective_severity: Severity | None = None
+    spike_state: dict | None = None
 
 
 @dataclass
@@ -82,6 +85,58 @@ def resolved_episode_id(state, snapshot, rule_id, key, episode):
     if hasattr(state, "get_resolved_episode"):
         return state.get_resolved_episode(rule_id, key, episode)
     return None
+
+
+def observe_spike(config, prior, at, severity):
+    """Project a count into its clock window. The baseline uses only completed windows."""
+    if not isinstance(config, dict):
+        raise ValueError("escalate_on_spike requires min_count, factor and window")
+    minimum, factor = config["min_count"], config["factor"]
+    window = duration(config["window"])
+    if type(minimum) is not int or minimum < 1:
+        raise ValueError("escalate_on_spike.min_count must be a positive integer")
+    if type(factor) not in (int, float) or not isfinite(factor) or factor <= 1:
+        raise ValueError("escalate_on_spike.factor must be finite and greater than one")
+    if window <= timedelta():
+        raise ValueError("escalate_on_spike.window must be a positive duration")
+
+    seconds = window.total_seconds()
+    state = dict(prior or {})
+    if state.get("window_seconds") != seconds:
+        state = dict(
+            window_seconds=seconds,
+            started_at=at.isoformat(),
+            bucket=0,
+            count=0,
+            baseline=None,
+            last_spike_bucket=None,
+        )
+    bucket = (at - datetime.fromisoformat(state["started_at"])) // window
+    elapsed = bucket - state["bucket"]
+    if elapsed < 0:
+        return state, severity, None
+    if elapsed:
+        # Weight the newest completed count by 1/4, then apply any empty windows at once.
+        baseline, count = state["baseline"], state["count"]
+        baseline = count if baseline is None else 0.75 * baseline + 0.25 * count
+        state.update(bucket=bucket, count=0, baseline=baseline * 0.75 ** (elapsed - 1))
+    state["count"] += 1
+    count, baseline = state["count"], state["baseline"]
+    if not baseline or count < minimum or count < factor * baseline:
+        return state, severity, None
+
+    if severity not in SEVERITY_ORDER or severity == Severity.critical:
+        return state, severity, None
+    last_spike = state["last_spike_bucket"]
+    state["last_spike_bucket"] = bucket
+    if last_spike is not None and bucket - last_spike <= 1:
+        return state, severity, None
+    next_rank = SEVERITY_ORDER[severity] + 1
+    higher = next(level for level, rank in SEVERITY_ORDER.items() if rank == next_rank)
+    evidence = dict(
+        count=count, baseline=baseline, min_count=minimum, factor=factor, window_seconds=seconds
+    )
+    return state, higher, evidence
 
 
 def evaluate(event, ruleset, state, clock):
@@ -124,6 +179,21 @@ def evaluate(event, ruleset, state, clock):
                     continue
             if old and old.get("status") == "resolved":
                 old = None
+            severity = Severity(
+                max(
+                    event.severity,
+                    (old or {}).get("severity", event.severity),
+                    key=lambda level: SEVERITY_ORDER.get(level, -1),
+                )
+            )
+            spike_state = None
+            spike = rule.get("escalate_on_spike")
+            if not resolving and spike is not None and spike is not False:
+                spike_state, severity, evidence = observe_spike(
+                    spike, (old or {}).get("spike_state"), clock.now(), severity
+                )
+                if evidence:
+                    decision["reason"]["spike"] = evidence
             group = rule.get("group", {})
             digest = group.get("mode") == "digest"
             if resolving:
@@ -142,7 +212,7 @@ def evaluate(event, ruleset, state, clock):
             elif not old:
                 transition, outcome = Transition.created, "NEW_ALERT"
             elif group.get("renotify_on_severity_increase", True) and SEVERITY_ORDER.get(
-                event.severity, -1
+                severity, -1
             ) > SEVERITY_ORDER.get(old["severity"], -1):
                 transition, outcome = Transition.severity_increased, "EXISTING_ALERT"
             elif old.get("last_notified_at") and clock.now() - old["last_notified_at"] >= duration(
@@ -157,11 +227,9 @@ def evaluate(event, ruleset, state, clock):
             if notify and not rule.get("route"):
                 outcome = "UNROUTED"
             if not resolving and hasattr(state, "get_silences"):
-                severity = max(
-                    event.severity, (old or {}).get("severity", event.severity),
-                    key=lambda level: SEVERITY_ORDER.get(level, -1),
+                silence = active_silence(
+                    state.get_silences(rule["id"]), fields, clock.now(), severity=severity
                 )
-                silence = active_silence(state.get_silences(rule["id"]), fields, clock.now(), severity=severity)
                 if silence:
                     notify, outcome = False, "SILENCED"
                     expiry = silence.expires_at.isoformat()
@@ -182,6 +250,8 @@ def evaluate(event, ruleset, state, clock):
                     render(present.get("body"), fields),
                     {p: lookup(fields, p) for p in present.get("fields", [])},
                     notify,
+                    effective_severity=severity,
+                    spike_state=spike_state,
                 )
             )
     if not result.alert_ops and all(d["outcome"] == "NO_MATCH" for d in result.decisions):
