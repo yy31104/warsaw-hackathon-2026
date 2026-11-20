@@ -173,3 +173,14 @@ Actor identity (demo-grade): header `X-User: <user id>` on mutating calls, check
 `X-Gen-Sent-At` (HTTP) / AMQP header `x-gen-sent-at` → `events.trace.gen_sent_at`, plus `trace.received_at`, `trace.processed_at` → copied into `notifications.rendered.meta.gen_sent_at` → sent as the `X-Gen-Sent-At` header to fake-telecom / in email headers → the receivers record `received_at`. E2E latency = receiver time − gen_sent_at. Load reports also include **decisions written per 1,000 events** and **SMS/phone sends per 1,000 events**.
 
 DEMO_MODE fault hook (tests only): an event with `trace.demo_fault = "raise"` makes evaluation raise for that event, to demonstrate poison-event isolation.
+
+
+### Following an event in PostgreSQL logs
+
+After applying `db/migrations/111_correlation_logs.sql` to an existing database, filter the PostgreSQL log by event ID. With the supplied Compose service and jq, for example:
+
+```sh
+docker compose logs --no-color postgres | sed -n 's/^.*alert_funnel //p' | jq -c 'select(.event_id == 42)'
+```
+
+Each lifecycle record includes stage, state, event ID, alert ID, notification ID, run ID and delivery attempt. IDs appear as soon as the corresponding object exists. Routing decisions identify the event that caused a send. Retries and fallbacks keep that event even when a later occurrence updates the alert. Incident-wide actions use the first linked decision, and approval notifications include the run ID. Unavailable IDs are null. The records use the PostgreSQL `LOG` level and contain only IDs, state and attempt metadata.
