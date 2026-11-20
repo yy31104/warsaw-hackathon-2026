@@ -20,6 +20,7 @@ from psycopg.types.json import Jsonb
 from alerting.clock import SYSTEM
 from alerting.config import files
 from alerting.rules.engine import Ruleset
+from alerting.schemas.registry import schemas as active_schemas
 
 
 @dataclass
@@ -50,35 +51,33 @@ async def registry_settings(db):
             raise
         return None
     values = []
-    for name in ("rules", "schemas", "directory", "runbooks"):
+    for name in ("rules", "directory", "runbooks"):
         result = getattr(loader, name)()
         values.append(await result if inspect.isawaitable(result) else result)
-    rules, schemas, directory, books = values
-    if not (
-        rules
-        or schemas
-        or books
-        or (directory or {}).get("teams")
-        or (directory or {}).get("users")
-    ):
+    rules, directory, books = values
+    if not (rules or books or (directory or {}).get("teams") or (directory or {}).get("users")):
         return None
-    if any("version" not in rule for rule in rules):
-        async with db.connection() as conn:
+    async with db.connection() as conn:
+        # Reviewed schemas and their detection order come from the ingest registry.
+        # A config loader may be present before it implements schema review itself.
+        schemas = await active_schemas(conn)
+        if any("version" not in rule for rule in rules):
             rows = await (
                 await conn.execute(
                     "select id,version from config_objects where kind='rule' and active"
                 )
             ).fetchall()
-        versions = dict(rows)
-        rules = [dict(r, version=r.get("version") or versions[r["id"]]) for r in rules]
+            versions = dict(rows)
+            rules = [dict(r, version=r.get("version") or versions[r["id"]]) for r in rules]
     return Settings(Ruleset(rules, schemas), directory, books)
 
 
 async def file_settings(db):
     rules = files.rules()
-    schemas, directory, books = files.schemas(), files.directory(), files.runbooks()
+    directory, books = files.directory(), files.runbooks()
     # Coordinate versions across processes and restarts, even when a file has no version field.
     async with db.connection() as conn:
+        schemas = await active_schemas(conn)
         for rule in sorted(rules, key=lambda r: r["id"]):
             content = json.dumps(rule, sort_keys=True, separators=(",", ":")).encode()
             row = await (
