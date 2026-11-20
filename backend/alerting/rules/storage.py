@@ -47,3 +47,9 @@ async def alert_changed(cur, row, created=False):
 async def audit(cur, actor, action, target, target_id, detail=None):
     await cur.execute("""insert into audit_log(actor,action,target_kind,target_id,detail)
                          values (%s,%s,%s,%s,%s)""", (actor, action, target, str(target_id), Jsonb(detail or {})))
+
+
+async def get_db():
+    from alerting.db import pool
+    return pool()
+
