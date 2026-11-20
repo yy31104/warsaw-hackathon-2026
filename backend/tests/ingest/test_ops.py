@@ -7,7 +7,8 @@ from alerting.api.routes_ops import RESET_RUNTIME_TABLES
 
 
 # Schemas, rules, teams, users and runbooks share the versioned config registry.
-PRESERVED_TABLES = {"config_objects", "config_state", "backend_file_rule_revisions"}
+# File offsets survive each case so the tailer resumes after inputs that were already consumed.
+PRESERVED_TABLES = {"config_objects", "config_state", "backend_file_rule_revisions", "log_tail_checkpoints"}
 
 
 @pytest.fixture

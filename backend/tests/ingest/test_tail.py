@@ -35,6 +35,22 @@ async def stored(pool):
     return events, errors
 
 
+async def test_reset_keeps_consumed_log_lines_out_of_the_next_case(client, inbox_pool, tmp_path, pricing, monkeypatch):
+    monkeypatch.setenv("DEMO_MODE", "1")
+    source, schemas, lines = pricing
+    path = tmp_path / "pricing.log"
+    path.write_bytes(lines[0])
+    with LogTail(path, source) as tail:
+        await drain(tail, schemas, inbox_pool)
+        assert await stored(inbox_pool) == ([("info", None)], [])
+        assert (await client.post("/v1/debug/reset")).status_code == 200
+        await drain(tail, schemas, inbox_pool)
+        assert await stored(inbox_pool) == ([], [])
+        append(path, lines[1])
+        await drain(tail, schemas, inbox_pool)
+        assert await stored(inbox_pool) == ([("warning", None)], [])
+
+
 async def test_tail_waits_for_a_partial_line_across_restart_and_keeps_real_repeats(inbox_pool, tmp_path, pricing):
     source, schemas, lines = pricing
     path = tmp_path / "current.log"

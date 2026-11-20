@@ -17,10 +17,11 @@ router = APIRouter(tags=["ops"])
 WINDOW_UNITS = {"s": 1, "m": 60, "h": 3600, "d": 86400}
 NOTIFICATION_STATES = ("pending", "sending", "delivered", "retrying", "unknown", "failed", "fallback", "cancelled")
 LATENCY_BUCKETS = [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10, 30, 60]
+# Keep the config registry and the tailer's committed input position across cases.
 RESET_RUNTIME_TABLES = (
     "action_runs", "alert_occurrences", "alerts", "approval_failures", "audit_log",
     "decisions", "delivery_attempts", "delivery_breakers", "delivery_team_turns", "delivery_windows",
-    "events", "heartbeat_watches", "incident_memory", "ingest_rejections", "log_tail_checkpoints",
+    "events", "heartbeat_watches", "incident_memory", "ingest_rejections",
     "notifications", "rule_proposals", "schema_issues", "shadow_alerts", "silences",
 )
 RESET_SQL = sql.SQL("TRUNCATE TABLE {} RESTART IDENTITY CASCADE").format(
