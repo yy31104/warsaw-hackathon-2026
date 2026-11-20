@@ -3,11 +3,11 @@ from datetime import datetime
 
 from alerting.clock import SYSTEM
 from alerting.contracts import CanonicalEvent
-from alerting.ingest.normalize import InvalidEvent, decode_json, normalize, parse_log_line
+from alerting.ingest.normalize import InvalidEvent, SchemaDetector, decode_json, normalize, parse_log_line
 from alerting.ingest.store import RejectedInput
 
 
-def prepare(payload, source: dict, schemas: list[dict], *, message_id: str | None = None,
+def prepare(payload, source: dict, schemas: list[dict] | SchemaDetector, *, message_id: str | None = None,
             headers=None, received_at: datetime | None = None) -> CanonicalEvent | RejectedInput:
     received_at = received_at or SYSTEM.now()
     headers = headers or {}

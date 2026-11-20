@@ -15,6 +15,8 @@ from pydantic import ValidationError
 from alerting.config import files
 from alerting.ingest.amqp import consume
 from alerting.ingest.logfile import import_file
+from alerting.ingest.normalize import detect_schema
+from alerting.rules.worker import Settings, process_batch
 from alerting.schemas.mapping import SchemaDraft, fingerprint
 
 
@@ -35,7 +37,7 @@ def test_fingerprint_is_stable_bounded_and_unambiguous():
 
 
 def test_draft_rejects_invalid_conditions_before_they_reach_ingest():
-    for detect in ({"all": []}, {"field": "x", "op": "typo"}, {"field": "x", "op": "eq"},
+    for detect in ({"all": []}, {"field": "x", "op": "typo"}, {"field": "x", "op": ["eq"]}, {"field": "x", "op": "eq"},
                    {"not": {"any": [{"field": "a", "op": "exists"}]}, "all": []}):
         with pytest.raises(ValidationError):
             SchemaDraft.model_validate(dict(DRAFT, detect=detect))
@@ -45,10 +47,47 @@ def test_draft_rejects_invalid_conditions_before_they_reach_ingest():
         SchemaDraft.model_validate(dict(DRAFT, name="bad\x00name"))
 
 
+def test_draft_detection_matches_the_shared_rule_language():
+    detect = {"all": [{"field": "feed", "op": "glob", "value": "vendor-*"},
+                      {"field": "level", "op": "in", "value": [1, 2]},
+                      {"field": "reading", "op": "gte", "value": 5}]}
+    draft = SchemaDraft.model_validate(dict(DRAFT, detect=detect)).spec()
+    example = {"feed": "vendor-tulip", "level": "2", "reading": "5.0"}
+    assert detect_schema(example, [draft]) == draft
+    assert detect_schema(dict(example, reading=4.9), [draft]) is None
+    with pytest.raises(ValidationError):
+        SchemaDraft.model_validate(dict(DRAFT, resolve_when={"field": "state", "op": "typo"}))
+
+
 async def send(client, raw=RAW, key=None):
     response = await client.post(SOURCE, json=raw, headers={**KEY, **({"Idempotency-Key": key} if key else {})})
     assert response.status_code == 202, response.text
     return response.json()
+
+
+@pytest.mark.parametrize(("demo_time", "channel"), [
+    ("2026-11-20T09:00:00+01:00", "sms"), ("2026-11-20T21:00:00+01:00", "email"),
+])
+async def test_original_event_reaches_the_rule_workers_notification_queue(client, inbox_pool, monkeypatch,
+                                                                         demo_time, channel):
+    monkeypatch.setenv("DEMO_MODE", "1")
+    settings = Settings.load()
+    headers = {**KEY, "Idempotency-Key": "vendor-1", "X-Demo-Clock": demo_time}
+    first = await client.post(SOURCE, json=RAW, headers=headers)
+    assert first.status_code == 202
+    event_id, = first.json()["event_ids"]
+    assert (await client.post(SOURCE, json=RAW, headers=headers)).json()["duplicates"] == 1
+    assert await process_batch(inbox_pool, settings, "critical") == 0
+    published = await client.post("/v1/schemas", params={"fingerprint": fingerprint(RAW)}, headers=OPS, json=DRAFT)
+    assert published.json()["reprocessed"] == 1
+    assert await process_batch(inbox_pool, settings, "critical") == 1
+    assert (await client.get(f"/v1/events/{event_id}")).json()["status"] == "processed"
+    async with inbox_pool.connection() as conn:
+        rows = await (await conn.execute("""
+            SELECT a.representative_event_id, a.occurrence_count, n.recipient, n.channel, n.state
+            FROM alerts a JOIN notifications n ON n.alert_id=a.id WHERE a.rule_id='anna-payments-critical'
+        """)).fetchall()
+    assert rows == [(event_id, 1, "anna", channel, "pending")]
 
 
 async def test_golden_unknown_format_notifies_the_fallback_team_once(client, inbox_pool):

@@ -63,6 +63,10 @@ from `backend/` and open `http://127.0.0.1:8000/docs`.
    immediately. If some events only share the top-level keys, their issue stays open with a
    remaining sample. `GET /v1/schema-issues?status=resolved` shows completed reviews.
 
+With the critical rule worker running, the configured `anna-payments-critical` rule picks up
+the original event. In demo mode, setting `X-Demo-Clock: 2026-11-20T09:00:00+01:00` on the
+original webhook puts an SMS for Anna in the notification queue. At 21:00 Warsaw time it queues email.
+
 File-managed schemas retain their order and are read-only through the API. UI-managed mappings
 are stored in PostgreSQL. Publication, replay and audit commit together. If a proposed identity
 would merge distinct stored events, the API returns 409 and the reviewer can refine the identity.

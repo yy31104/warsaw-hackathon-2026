@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from psycopg.types.json import Jsonb
 
 from alerting.config import files
+from alerting.ingest.normalize import compile_schemas
 from alerting.schemas.issues import notify
 
 
@@ -44,7 +45,7 @@ async def schemas(conn, file_specs=None):
 async def ingest_registry(pool, file_specs):
     async with pool.connection() as conn, conn.transaction():
         await lock_registry(conn)
-        yield conn, await schemas(conn, file_specs)
+        yield conn, compile_schemas(await schemas(conn, file_specs))
 
 
 def with_draft(active, spec):

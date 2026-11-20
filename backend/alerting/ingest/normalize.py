@@ -3,16 +3,18 @@ import hashlib
 import json
 import re
 import shlex
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 from typing import Any
 
 from alerting.contracts import CanonicalEvent, Severity
+from alerting.rules.dsl import compile as compile_match
 from alerting.templates import lookup, render, variables
 
 MAX_BYTES = 256 * 1024
 MAX_DEPTH = 20
 MAX_PATHS = 2000
+SchemaDetector = Callable[[dict], dict | None]
 
 
 class InvalidEvent(ValueError):
@@ -75,24 +77,19 @@ def flatten(raw: dict) -> dict:
     return result
 
 
-def _matches(condition: dict, fields: dict) -> bool:
-    # Bootstrap subset used by schema detection until the shared rule compiler is available.
-    if "all" in condition:
-        return all(_matches(child, fields) for child in condition["all"])
-    if "any" in condition:
-        return any(_matches(child, fields) for child in condition["any"])
-    if "not" in condition:
-        return not _matches(condition["not"], fields)
-    field, op = condition["field"], condition["op"]
-    if op == "exists":
-        return field in fields
-    if op == "eq":
-        return field in fields and fields[field] == condition["value"]
-    raise ValueError(f"unsupported schema detection operator: {op}")
+def compile_schemas(schemas: Sequence[dict]) -> SchemaDetector:
+    """Compile a registry snapshot once for the entire ingest or replay batch."""
+    checks = [(schema, compile_match(schema["detect"])) for schema in schemas]
+
+    def select(fields):
+        return next((schema for schema, check in checks if check(fields)[0]), None)
+
+    return select
 
 
-def detect_schema(fields: dict, schemas: Sequence[dict]) -> dict | None:
-    return next((schema for schema in schemas if _matches(schema["detect"], fields)), None)
+def detect_schema(fields: dict, schemas: Sequence[dict] | SchemaDetector) -> dict | None:
+    select = schemas if callable(schemas) else compile_schemas(schemas)
+    return select(fields)
 
 
 def storage_key(key: str | None) -> str | None:
@@ -174,7 +171,7 @@ def _labels(fields: dict, schema: dict) -> dict:
     return labels
 
 
-def normalize(raw: dict, source: dict, schemas: Sequence[dict], *, received_at: datetime,
+def normalize(raw: dict, source: dict, schemas: Sequence[dict] | SchemaDetector, *, received_at: datetime,
               message_id: str | None = None, trace: dict | None = None) -> CanonicalEvent:
     original = flatten(raw)
     try:
@@ -187,7 +184,7 @@ def normalize(raw: dict, source: dict, schemas: Sequence[dict], *, received_at: 
     return _project(original, _redacted(raw), source, schemas, digest, received_at, message_id, trace)
 
 
-def reclassify(event: CanonicalEvent, schemas: Sequence[dict]) -> CanonicalEvent:
+def reclassify(event: CanonicalEvent, schemas: Sequence[dict] | SchemaDetector) -> CanonicalEvent:
     """Project the retained sample in place, keeping its original transport identity and hash."""
     source = {"id": event.source_id, "transport": event.transport}
     heuristic = event.trace.get("identity_method") == "payload_hash" and event.source_event_id == event.payload_hash

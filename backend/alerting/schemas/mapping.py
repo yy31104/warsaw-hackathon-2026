@@ -7,6 +7,7 @@ from typing import Annotated, Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator, model_validator
 
 from alerting.contracts import Severity
+from alerting.rules.dsl import compile as compile_match
 
 Text = Annotated[str, StringConstraints(min_length=1)]
 Alias = Literal["service", "severity", "environment", "error_code", "message", "time"]
@@ -21,23 +22,19 @@ def fingerprint(raw: dict) -> str:
     return label
 
 
-def _check_detector(node, depth=0):
-    if not isinstance(node, dict) or depth > 20:
-        raise ValueError("expected a schema detection condition, up to 20 levels deep")
+def _check_groups(node, depth=0):
+    if not isinstance(node, dict) or not node or depth > 20:
+        raise ValueError("expected a nonempty condition, up to 20 levels deep")
+    if "op" in node and not isinstance(node["op"], str):
+        raise ValueError("a condition operator must be a string")
     for group in ("all", "any"):
-        if set(node) == {group} and isinstance(node[group], list) and node[group]:
+        if group in node:
+            if not isinstance(node[group], list) or not node[group]:
+                raise ValueError("a condition group must contain at least one child")
             for child in node[group]:
-                _check_detector(child, depth + 1)
-            return
-    if set(node) == {"not"}:
-        _check_detector(node["not"], depth + 1)
-        return
-    if isinstance(node.get("field"), str) and node["field"]:
-        if set(node) == {"field", "op"} and node["op"] == "exists":
-            return
-        if set(node) == {"field", "op", "value"} and node["op"] == "eq":
-            return
-    raise ValueError("use a field with exists or eq, or combine conditions with all, any or not")
+                _check_groups(child, depth + 1)
+    if "not" in node:
+        _check_groups(node["not"], depth + 1)
 
 
 class SchemaDraft(BaseModel):
@@ -54,10 +51,12 @@ class SchemaDraft(BaseModel):
     alert_key: Text | None = None
     resolve_when: dict | None = None
 
-    @field_validator("detect")
+    @field_validator("detect", "resolve_when")
     @classmethod
     def validate_detector(cls, value):
-        _check_detector(value)
+        if value is not None:
+            _check_groups(value)
+            compile_match(value)
         return value
 
     def spec(self) -> dict:

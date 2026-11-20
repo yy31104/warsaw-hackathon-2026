@@ -3,7 +3,7 @@ from psycopg.errors import UniqueViolation
 from psycopg.types.json import Jsonb
 
 from alerting.contracts import CanonicalEvent
-from alerting.ingest.normalize import reclassify
+from alerting.ingest.normalize import compile_schemas, reclassify
 from alerting.schemas.issues import index_legacy, refresh_issue
 from alerting.schemas.registry import ReviewError, lock_registry, schemas, with_draft, write_version
 from alerting.templates import lookup, variables
@@ -35,6 +35,7 @@ def preview_event(sample, candidate, draft):
 
 async def _replay(conn, candidate, spec):
     schema_id = spec["id"]
+    select = compile_schemas(candidate)
     identity_paths = variables(spec.get("event_id"))
     last_id = total = 0
     touched = set()
@@ -49,7 +50,7 @@ async def _replay(conn, candidate, spec):
         updates = []
         for record, shape in rows:
             last_id = record["id"]
-            event = reclassify(CanonicalEvent.model_validate(record), candidate)
+            event = reclassify(CanonicalEvent.model_validate(record), select)
             if event.schema_id == schema_id:
                 if event.source_event_id != record["source_event_id"]:
                     for path in identity_paths:
