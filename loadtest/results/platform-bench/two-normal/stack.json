@@ -1,0 +1,31 @@
+{
+  "logtail_event_id": 7,
+  "project": "dev2perffinal-two-normal",
+  "startup_seconds": 14.2128657,
+  "trial": {
+    "Duration": 20,
+    "CriticalRate": 2,
+    "Name": "two-normal",
+    "NormalRate": 700,
+    "Outage": 0,
+    "Tag": "platform-compare",
+    "Workers": 2
+  },
+  "services": [
+    "api|running|healthy",
+    "delivery-worker|running|",
+    "fake-telecom|running|healthy",
+    "frontend|running|healthy",
+    "ingest-amqp|running|",
+    "ingest-logtail|running|",
+    "mailpit|running|healthy",
+    "mock-ops|running|",
+    "postgres|running|healthy",
+    "rabbitmq|running|healthy",
+    "rule-worker|running|",
+    "rule-worker|running|",
+    "rule-worker-critical|running|",
+    "scheduler|running|"
+  ],
+  "backend_image": "sha256:cf9aa19272af85d15e1ef788e3b3107d0d7ebe5ce3bec1754da8a1290f9e6b76"
+}
