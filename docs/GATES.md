@@ -13,6 +13,7 @@ Status: **PASS / FAIL / NOT_RUN** only. Record who ran it, when, and the evidenc
 ## G1 — vertical slice (Sat 00:00)
 | Check | Status | Who / when | Evidence |
 |---|---|---|---|
+| RabbitMQ → PostgreSQL inbox → rule worker → outbox → loopback HTTP receiver | PASS | Yi · 2026-11-20 | Production code from integrated main `accfd72`. `cd backend && INGEST_TEST_RABBITMQ_URL=amqp://localhost:5672/ uv run pytest -q tests/processing/test_broker_e2e.py`. One RabbitMQ publish produced one alert, two HTTP receipts (phone and SMS), one UI delivery and two successful provider attempts. With the broker enabled, the full suite passed 131 tests. |
 | RabbitMQ `workflow_failed.json` → fake-telecom shows phone + SMS to sam | NOT_RUN | | |
 | Same event → UI card appears without refresh (SSE) | NOT_RUN | | |
 | Branches merged into `main`, `make test` green | NOT_RUN | | |
