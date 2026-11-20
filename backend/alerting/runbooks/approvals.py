@@ -19,6 +19,7 @@ from alerting.routing import plan
 from alerting.routing.directory import by_id
 from alerting.rules.storage import alert_changed, audit, emit, enqueue
 from alerting.runbooks.actions import REGISTRY
+from alerting.runbooks.actions.network import check_execution
 from alerting.runbooks.render import render
 
 
@@ -179,8 +180,12 @@ async def execute(db, run_id, actor, settings):
     ctx = ActionContext(
         alert=alert, event_fields=alert.get("event_fields") or {}, actor=actor, run_id=run_id
     )
+    uncertain = False
     try:
         result = await REGISTRY[run["action"]].execute(run["params"], ctx)
+    except httpx.TimeoutException:
+        uncertain = True
+        result = ActionResult(ok=False, error="Receiver timed out; check execution before retry")
     except (KeyError, ValueError, httpx.HTTPError) as exc:
         result = ActionResult(ok=False, error=str(exc))
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
@@ -203,23 +208,116 @@ async def execute(db, run_id, actor, settings):
         await cur.execute(
             """update action_runs set state=%s,result=%s,updated_at=now()
             where id=%s returning *""",
-            ("succeeded" if result.ok else "failed", Jsonb(result.model_dump()), run_id),
+            (
+                "unknown" if uncertain else "succeeded" if result.ok else "failed",
+                Jsonb(result.model_dump()),
+                run_id,
+            ),
         )
         row = await cur.fetchone()
         await audit(
             cur, actor, "action.execute", "alert", alert["id"], {"run_id": run_id, "ok": result.ok}
         )
-        if result.ok and (run["resolves_alert"] or result.resolves_alert):
-            await cur.execute(
-                """update alerts set status='resolved',resolved_by='system',resolved_at=now(),
-                resolve_reason='runbook',updated_at=now() where id=%s and status<>'resolved' returning *""",
-                (alert["id"],),
-            )
-            updated = await cur.fetchone()
-            if updated:
-                await audit(
-                    cur, "system", "alert.resolve", "alert", alert["id"], {"run_id": run_id}
-                )
-                await alert_changed(cur, updated)
+        await resolve_on_success(cur, result, run, alert)
         await changed(cur, row, alert["team_id"])
         return public(row)
+
+
+async def resolve_on_success(cur, result, run, alert):
+    if result.ok and (run["resolves_alert"] or result.resolves_alert):
+        await cur.execute(
+            """update alerts set status='resolved',resolved_by='system',resolved_at=now(),
+            resolve_reason='runbook',updated_at=now() where id=%s and status<>'resolved' returning *""",
+            (alert["id"],),
+        )
+        updated = await cur.fetchone()
+        if updated:
+            await audit(cur, "system", "alert.resolve", "alert", alert["id"], {"run_id": run["id"]})
+            await alert_changed(cur, updated)
+
+
+async def verify_run(db, run_id, actor, retry):
+    from alerting.api.routes_alerts import require_member
+    from alerting.rules.storage import get_settings
+
+    settings = await get_settings(db)
+    async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+        await cur.execute("select * from action_runs where id=%s", (run_id,))
+        run = await cur.fetchone()
+        if not run:
+            raise HTTPException(404, "Run not found")
+        await cur.execute("select * from alerts where id=%s", (run["alert_id"],))
+        alert = await cur.fetchone()
+        require_member(alert, actor, settings)
+        if run["state"] not in {"unknown", "failed", "succeeded"}:
+            raise HTTPException(409, "Run is not ready for verification")
+    if run["action"] == "escalate":
+        # This internal action completes in the same transaction as its notification outbox.
+        return public(run)
+    try:
+        receipt = await check_execution(run_id)
+    except (httpx.HTTPError, ValueError) as exc:
+        raise HTTPException(503, "Receiver verification unavailable") from exc
+    async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+        await cur.execute("select id from alerts where id=%s for update", (alert["id"],))
+        await cur.execute(
+            """select * from action_runs where alert_id=%s and runbook_id=%s and step_index=%s
+                         order by id desc limit 1 for update""",
+            (alert["id"], run["runbook_id"], run["step_index"]),
+        )
+        latest = await cur.fetchone()
+        if latest["id"] != run_id or latest["updated_at"] != run["updated_at"]:
+            raise HTTPException(409, "Run changed; check the latest result")
+        await audit(
+            cur,
+            actor,
+            "action.verify",
+            "alert",
+            alert["id"],
+            {"run_id": run_id, "receiver_state": receipt["state"] if receipt else "not_found"},
+        )
+        if receipt:
+            state = receipt["state"]
+            if state not in ("succeeded", "failed"):
+                return public(run)
+            result = ActionResult.model_validate(receipt["result"])
+            if result.ok != (state == "succeeded"):
+                raise HTTPException(503, "Inconsistent execution receipt")
+            await cur.execute(
+                "update action_runs set state=%s,result=%s,updated_at=now() where id=%s returning *",
+                (state, Jsonb(result.model_dump()), run_id),
+            )
+            current = await cur.fetchone()
+            await resolve_on_success(cur, result, run, alert)
+            await changed(cur, current, alert["team_id"])
+        else:
+            state, current = run["state"], run
+        if not retry or state == "succeeded":
+            return public(current)
+        if state == "unknown":
+            # Receiver did not record this execution. Reuse its original idempotency key.
+            await cur.execute(
+                "update action_runs set state='requested',updated_at=now() where id=%s", (run_id,)
+            )
+            next_id = run_id
+        else:
+            step = {
+                "index": run["step_index"],
+                "action": run["action"],
+                "params": run["params"],
+                "approval": run["approval"],
+                "resolves_alert": run["resolves_alert"],
+            }
+            new = await request_run(cur, alert, step, actor, settings)
+            if new["state"] == "pending_approval":
+                return new
+            next_id = new["id"]
+        await audit(
+            cur,
+            actor,
+            "action.retry",
+            "alert",
+            alert["id"],
+            {"run_id": run_id, "next_run_id": next_id},
+        )
+    return await execute(db, next_id, actor, settings)
