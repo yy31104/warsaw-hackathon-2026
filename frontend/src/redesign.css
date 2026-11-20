@@ -98,19 +98,22 @@
 .overview-hero .status-bubbles{align-items:center;min-height:145px}
 @media(prefers-reduced-motion:reduce){.overview-hero .status-orbit,.overview-hero .status-bubble strong,.overview-hero .status-approval-inline strong{transition:none}}
 
-/* A compact overlapping composition, inspired by the supplied bubble reference. */
-.overview-hero .status-cluster-layout{justify-content:center;gap:clamp(28px,6vw,100px);min-height:340px;padding:12px 0}
-.cluster-caption{max-width:300px}.cluster-caption h2{font-size:clamp(28px,3vw,42px);font-weight:500;letter-spacing:-1px;margin:14px 0 22px}
-.cluster-caption .severity-legend{flex-direction:column;gap:12px}.cluster-caption>small{display:block;color:var(--quiet);font-size:11px;margin-top:24px}
-.status-cluster{position:relative;flex:none;width:480px;height:330px}
-.status-cluster .count-bubble{position:absolute;width:var(--count-size);height:var(--count-size);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border-radius:50%;text-align:center;text-decoration:none;color:white;transition:width .6s ease,height .6s ease,filter .2s;isolation:isolate}
-.count-bubble strong{font-weight:400;font-size:clamp(30px,calc(var(--count-size) * .26),64px);line-height:1.1;font-variant-numeric:tabular-nums}
-.count-bubble>span{font-size:13px;line-height:1.35}
-.count-active{left:40px;top:26px;background:#db327c;z-index:3}
-.count-critical{left:238px;top:4px;background:repeating-linear-gradient(125deg,#ffffff12 0 1px,transparent 1px 6px),#62516e;z-index:1}
-.count-pending{left:231px;top:141px;background:#5542eb;z-index:2}
-.status-cluster .count-delivery{left:126px;top:220px;background:#244d59;color:#d4f6fa;z-index:4}
-.count-delivery>span{font-size:11px}.count-bubble:hover{filter:brightness(1.12);z-index:5}.count-bubble:focus-visible{outline:3px solid var(--ink);outline-offset:4px;z-index:5}
-@media(max-width:800px){.overview-hero .status-cluster-layout{align-items:center;gap:20px}.cluster-caption{max-width:none;width:100%}.cluster-caption .severity-legend{flex-direction:row;flex-wrap:wrap}.cluster-caption>small{margin-top:12px}.status-cluster{width:390px;height:290px}.status-cluster .count-bubble{width:calc(var(--count-size) * .85);height:calc(var(--count-size) * .85)}.count-active{left:20px;top:24px}.count-critical{left:186px;top:6px}.count-pending{left:180px;top:122px}.status-cluster .count-delivery{left:88px;top:193px}}
-@media(max-width:420px){.status-cluster{width:320px}.count-active{left:0}.count-critical{left:164px}.count-pending{left:156px}.status-cluster .count-delivery{left:62px}}
-@media(prefers-reduced-motion:reduce){.status-cluster .count-bubble{transition:none}}
+
+/* Preserve the main severity ring; group only the three secondary signals. */
+.right-status-cluster{position:relative;flex:none;width:290px;height:245px;margin-right:20px}
+.right-status-cluster .right-count{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:var(--count-size);height:var(--count-size);border-radius:50%;text-align:center;text-decoration:none;transition:width .6s,height .6s,filter .2s}
+.right-count strong{font-size:34px;line-height:1.1;font-weight:400;font-variant-numeric:tabular-nums}
+.right-count>span{font-size:12px;line-height:1.4}
+.right-critical{left:24px;top:16px;color:var(--motion-orange)!important;background:color-mix(in srgb,var(--motion-orange) 12%,var(--canvas));border:1px solid color-mix(in srgb,var(--motion-orange) 40%,var(--line));z-index:2}
+.right-delivery{left:124px;top:0;color:var(--motion-cyan)!important;background:color-mix(in srgb,var(--motion-cyan) 9%,var(--canvas));border:1px solid color-mix(in srgb,var(--motion-cyan) 30%,var(--line));z-index:1}
+.right-pending{left:101px;top:91px;background:var(--highlight);color:var(--motion-pink)!important;border:1px solid color-mix(in srgb,var(--motion-pink) 35%,var(--line));z-index:3}
+.right-count:hover{filter:brightness(1.12);z-index:4}.right-count:focus-visible{outline:2px solid var(--accent);outline-offset:4px;z-index:4}
+/* The trace flows across the canvas with offset labels, no framed plotting grid. */
+.overview-hero .live-trend-embedded{position:relative;margin:0 -20px 12px;padding-top:30px}
+.live-trend-embedded .chart-heading{position:relative;padding-left:8%;padding-right:3%;z-index:1}
+.overview-hero .live-trend-embedded svg{width:100%;height:clamp(140px,22vh,220px);margin-top:-26px}
+.live-trend-embedded svg g line{display:none}
+.live-trend-embedded .chart-scrubber{padding:0 4% 0 22%;margin-top:-8px;position:relative;z-index:1}
+.live-trend-embedded .chart-scrubber input{max-width:160px}
+@media(max-width:800px){.right-status-cluster{align-self:center;margin:0}.overview-hero .live-trend-embedded{margin:0 0 16px;padding-top:12px}.live-trend-embedded .chart-heading{padding:0}.live-trend-embedded .chart-scrubber{padding:0;margin-top:0}.overview-hero .live-trend-embedded svg{margin-top:0}}
+@media(prefers-reduced-motion:reduce){.right-status-cluster .right-count{transition:none}}
