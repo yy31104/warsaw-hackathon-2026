@@ -50,3 +50,22 @@
 @keyframes signal-ripple{0%{transform:scale(.95);opacity:.35}75%,100%{transform:scale(1.15);opacity:0}}
 @media(max-width:650px){.status-landscape{flex-direction:column;align-items:stretch;gap:24px}.status-signals{flex-direction:row;flex-wrap:wrap;justify-content:space-between;padding-right:0;gap:20px}.status-bubbles{gap:18px}.status-main{padding:0}.status-bubble strong{width:54px;height:54px;font-size:26px}}
 @media(prefers-reduced-motion:reduce){.status-bubble.has-attention strong:after{animation:none;opacity:.2}.status-bubble strong{transition:none}}
+
+/* First viewport: status overview. Scroll naturally into the alert workspace. */
+.overview-hero{min-height:calc(100svh - var(--overview-top,180px));display:flex;flex-direction:column;box-sizing:border-box;padding-bottom:24px}
+.overview-hero .status-landscape{flex:1;margin:0;border:0;padding:36px 0 48px;gap:clamp(32px,6vw,96px)}
+.overview-hero .status-main{max-width:none;gap:clamp(24px,4vw,64px)}
+.overview-hero .status-orbit{width:clamp(150px,16vw,230px);height:clamp(150px,16vw,230px)}
+.overview-hero .status-orbit>strong{font-size:clamp(60px,6vw,88px)}
+.overview-hero .status-main h2{font-size:clamp(26px,3vw,42px);margin:16px 0 24px}
+.overview-hero .status-eyebrow{font-size:11px;letter-spacing:2px}
+.overview-hero .severity-legend{font-size:13px;gap:12px 18px}
+.overview-hero .status-signals{padding-right:clamp(0px,3vw,44px);gap:26px}
+.overview-hero .status-bubble strong{width:80px;height:80px;font-size:36px}
+.overview-scroll{display:flex;align-items:center;justify-content:space-between;gap:18px;align-self:stretch;padding:18px 0 4px;color:var(--secondary);font-size:13px;text-decoration:none}
+.overview-scroll>span:last-child{font-size:22px;animation:overview-scroll-hint 2.4s ease-in-out infinite}
+.overview-scroll:hover{color:var(--accent)}
+#overview-active-alerts{scroll-margin-top:28px}
+@keyframes overview-scroll-hint{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+@media(max-width:800px){.overview-hero .status-landscape{flex-direction:column;align-items:stretch;justify-content:center;padding:28px 0;gap:30px}.overview-hero .status-signals{flex-direction:row;flex-wrap:wrap;justify-content:space-between;padding:0;gap:20px}.overview-hero .status-main{flex:0}.overview-hero .status-orbit{width:140px;height:140px}.overview-hero .status-orbit>strong{font-size:56px}.overview-hero .status-bubble strong{width:58px;height:58px;font-size:28px}.overview-hero .severity-legend{font-size:12px}.overview-hero .status-main h2{font-size:28px}}
+@media(prefers-reduced-motion:reduce){.overview-scroll>span:last-child{animation:none}}
