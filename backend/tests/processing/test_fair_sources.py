@@ -24,6 +24,7 @@ async def processed(db):
 async def test_small_batches_rotate_while_all_sources_remain_backlogged(database):
     await seed_sources(database, {"a-noisy": 50, "b-quiet": 5, "c-quiet": 5})
     settings = Settings(Ruleset([]), {}, [])
+    assert await process_batch(database, settings, batch=0) == 0
     for _ in range(3):
         assert await process_batch(database, settings, batch=1) == 1
     assert await processed(database) == {"a-noisy": 1, "b-quiet": 1, "c-quiet": 1}

@@ -10,6 +10,7 @@ from alerting.clock import SYSTEM, FixedClock, clock_for_event
 from alerting.db import close_pool, open_pool, pool
 from alerting.routing.throttle import lock_rules
 from alerting.rules.engine import duration
+from alerting.rules.heartbeat import check_deadlines
 from alerting.rules.storage import (
     alert_changed,
     audit,
@@ -76,6 +77,7 @@ async def tick(db, settings=None, clock=SYSTEM):
     now = clock.now()
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
         await lock_rules(cur, rules.values())
+        missed = await check_deadlines(cur, settings, clock)
         await cur.execute(
             """select a.*,e.fields as event_fields,e.trace,e.schema_id from alerts a left join events e
             on e.id=a.representative_event_id where
@@ -124,7 +126,7 @@ async def tick(db, settings=None, clock=SYSTEM):
                 "update alerts set next_notify_at=%s,updated_at=now() where id=%s",
                 (next_due, row["id"]),
             )
-        return len(rows)
+        return missed + len(rows)
 
 
 async def main():

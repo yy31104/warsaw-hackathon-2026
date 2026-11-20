@@ -4,10 +4,19 @@ import signal
 import sys
 
 from alerting.rules.engine import grouping
-from alerting.rules.worker import Settings
+from alerting.rules.worker import Settings, process_batch
 
 from .test_golden import CASES, case_event
 from .test_worker import seed
+
+
+async def test_stopped_worker_does_not_claim_waiting_events(database):
+    await seed(database)
+    stop = asyncio.Event()
+    stop.set()
+    assert await process_batch(database, Settings.load(), stop=stop) == 0
+    async with database.connection() as conn:
+        assert await (await conn.execute("select status from events")).fetchone() == ("pending",)
 
 
 async def test_sigterm_drains_started_batch_and_leaves_next_batch_pending(database):
@@ -28,7 +37,8 @@ async def test_sigterm_drains_started_batch_and_leaves_next_batch_pending(databa
             async with asyncio.timeout(12):
                 while not (await (await gate.execute(
                     """select exists(select from pg_locks where not granted and
-                       locktype='advisory' and (classid,objid) in
+                       locktype='advisory' and pid in (select pid from pg_stat_activity
+                       where application_name=current_schema()) and (classid,objid) in
                        (select classid,objid from pg_locks where pid=pg_backend_pid()
                         and locktype='advisory' and granted))"""
                 )).fetchone())[0]:

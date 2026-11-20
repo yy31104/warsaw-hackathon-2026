@@ -20,6 +20,7 @@ from alerting.routing.directory import team_for
 from alerting.routing.throttle import lock_rules
 from alerting.rules.engine import duration, episode_for, evaluate, grouping
 from alerting.rules.failures import BadEvent, RuleFault, evaluating, transient
+from alerting.rules.heartbeat import record_heartbeats
 from alerting.rules.scoring import score
 from alerting.rules.scheduler import cancel_recovery, start_recovery
 from alerting.rules.storage import (
@@ -73,7 +74,11 @@ async def persist(cur, row):
     )
 
 
-async def process_batch(db, settings: Settings | None = None, lane="normal", batch=200):
+async def process_batch(db, settings: Settings | None = None, lane="normal", batch=200, stop=None):
+    if batch == 0 or (stop is not None and stop.is_set()):
+        return 0
+    if batch < 0:
+        raise ValueError("batch must be nonnegative")
     if settings is None:
         settings = await get_settings(db)
     async with (
@@ -81,13 +86,13 @@ async def process_batch(db, settings: Settings | None = None, lane="normal", bat
         conn.transaction(),
         conn.cursor(row_factory=dict_row) as cur,
     ):
-        rows = await claim_sources(cur, lane, batch)
+        rows = await claim_sources(cur, lane, batch, stop)
         if rows:
             await isolate(conn, cur, settings, lane, rows)
         return len(rows)
 
 
-async def claim_sources(cur, lane, batch):
+async def claim_sources(cur, lane, batch, stop):
     # Walk distinct source keys in the pending index instead of ranking the entire backlog.
     await cur.execute(
         """with recursive active(source_id) as (
@@ -111,6 +116,8 @@ async def claim_sources(cur, lane, batch):
         sources = sources[start:] + sources[:start]
     sources = sources[:batch]
     quota, remainder = divmod(batch, len(sources))
+    if stop is not None and stop.is_set():
+        return []
     await cur.execute(
         """select picked.* from unnest(%s::text[]) with ordinality as s(source, pos)
            cross join lateral (
@@ -120,7 +127,7 @@ async def claim_sources(cur, lane, batch):
            ) picked""", (sources, lane, quota, remainder),
     )
     rows = await cur.fetchall()
-    if len(rows) < batch:
+    if len(rows) < batch and (stop is None or not stop.is_set()):
         # Empty queues or locks held by another worker should not waste the remaining slots.
         await cur.execute(
             """select * from events where lane=%s and status='pending' and id<>all(%s::bigint[])
@@ -188,6 +195,11 @@ async def isolate(conn, cur, settings, lane, rows):
 async def apply_events(cur, settings, lane, events):
     keys = set()
     ruleset = settings.ruleset
+    watches_heartbeats = any("expect" in rule for rule, _ in ruleset.rules)
+    if watches_heartbeats:
+        # Positive liveness evidence is handled by its own timer, never as a failure occurrence.
+        ruleset = copy(ruleset)
+        ruleset.rules = [(r, pred) for r, pred in ruleset.rules if "expect" not in r]
     for event in events:
         schema = ruleset.schemas.get(event.schema_id, {})
         resolve = ruleset.resolvers.get(event.schema_id)
@@ -205,6 +217,8 @@ async def apply_events(cur, settings, lane, events):
         at = clock_for_event(event.trace).now()
         clock = FixedClock(at)
         result = evaluate(event, ruleset, state, clock)
+        if watches_heartbeats and await record_heartbeats(cur, settings, event, clock):
+            result.decisions = [d for d in result.decisions if d["rule_id"] is not None]
         for op in result.alert_ops:
             rule = op.rule
             with evaluating(rule):
@@ -263,6 +277,7 @@ async def apply_events(cur, settings, lane, events):
                     fields=op.fields,
                     group_values=op.group_values,
                     representative_event_id=event.id,
+                    schema_id=event.schema_id,
                     last_seen_at=at,
                     occurrence_count=row["occurrence_count"] + 1,
                     count_since_notify=row["count_since_notify"] + 1,
@@ -372,7 +387,7 @@ async def main(lane, batch):
         try:
             while not stop.is_set():
                 try:
-                    claimed = await process_batch(pool(), lane=lane, batch=batch)
+                    claimed = await process_batch(pool(), lane=lane, batch=batch, stop=stop)
                 except psycopg.Error as exc:
                     if not transient(exc):
                         raise
