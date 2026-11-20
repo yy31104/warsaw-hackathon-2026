@@ -47,6 +47,34 @@ def test_explicit_routes_take_precedence_at_each_step():
     assert destinations(step_rule(same_target, "email"), "ladder_step") == set()
 
 
+def test_aliases_resolve_before_explicit_recipient_exclusion():
+    from alerting.routing.ladder import step_rule, steps
+
+    rule = {"id": "ladder", "ladder": LADDER, "route": [
+        {"to": "team:settlements", "channels": "preferences"},
+        {"to": "user:sam", "channels": ["phone"]},
+    ]}
+    assert destinations(rule) == {("sam", "phone", "initial"), ("lee", "ui", "ladder_step")}
+    assert destinations(step_rule(rule, "sms"), "ladder_step") == {("lee", "sms", "ladder_step")}
+    rule["route"][0]["to"] = "oncall:settlements"  # sam is also primary on-call.
+    assert destinations(rule) == {("sam", "phone", "initial")}
+    assert destinations(step_rule(rule, "email"), "ladder_step") == set()
+    assert steps({**rule, "route": [{}]}) == ()
+
+
+def test_first_digest_starts_the_ladder_and_preserves_occurrence_count():
+    rule = {"id": "ladder", "ladder": LADDER, "group": {"mode": "digest", "every": "10m"},
+            "route": [PREFERENCES, {"to": "user:lee", "channels": ["email"]}]}
+    alert = {**ALERT, "count_since_notify": 7}
+    assert destinations(rule, "created", alert) == set()
+    first = plan(alert, "digest_due", rule, {}, files.directory(), [], {}, START)
+    assert {(i.recipient, i.channel.value, i.kind) for i in first.intents} == {
+        ("sam", "ui", "ladder_step"), ("lee", "email", "digest")}
+    assert all("7 occurrences" in i.rendered.body for i in first.intents)
+    assert destinations(rule, "digest_due", {**alert, "last_notified_at": START.now()}) == {
+        ("sam", "ui", "digest"), ("lee", "email", "digest")}
+
+
 @pytest.mark.parametrize("transition,kind", [("escalation", "escalation"),
                                             ("heartbeat_missed", "heartbeat")])
 def test_digest_can_page_for_scheduler_transitions(transition, kind):

@@ -8,7 +8,7 @@ from alerting.rules.engine import duration
 CHANNELS = ("ui", "email", "sms", "phone")
 
 
-def _explicit_targets(rule):
+def explicit_targets(rule):
     return {
         route["to"] for route in rule.get("route", ())
         if route.get("channels", "preferences") != "preferences"
@@ -19,8 +19,13 @@ def steps(rule):
     entries = rule.get("ladder")
     if not isinstance(entries, list) or not entries:
         return ()
-    explicit = _explicit_targets(rule)
-    if all(route["to"] in explicit for route in rule.get("route", ())):
+    routes = rule.get("route", ())
+    if not isinstance(routes, (list, tuple)) or any(
+        not isinstance(route, dict) or not isinstance(route.get("to"), str) for route in routes
+    ):
+        return ()
+    explicit = explicit_targets(rule)
+    if all(route["to"] in explicit for route in routes):
         return ()
     result = []
     for entry in entries:
@@ -41,19 +46,19 @@ def steps(rule):
 
 def step_rule(rule, channel):
     """Only preference targets participate in subsequent stages."""
-    explicit = _explicit_targets(rule)
+    explicit = explicit_targets(rule)
     routes = [
         {**route, "channels": [channel]} for route in rule.get("route", ())
         if route["to"] not in explicit
     ]
-    return {**rule, "route": routes}
+    return {**rule, "route": routes, "_ladder_explicit_targets": sorted(explicit)}
 
 
 def initial_routes(rule):
     routes = rule.get("route", ())
     if not rule.get("ladder"):
         return [(route, False) for route in routes]
-    explicit = _explicit_targets(rule)
+    explicit = explicit_targets(rule)
     stages = steps(rule)
     result = []
     for route in routes:
