@@ -52,6 +52,16 @@ class Outcome(str, Enum):
     NOTIFIED = "NOTIFIED"
     UNROUTED = "UNROUTED"
     RESOLVED = "RESOLVED"
+    STALE_RESOLVE = "STALE_RESOLVE"
+    QUARANTINED = "QUARANTINED"
+    RULE_FAULT = "RULE_FAULT"
+    SILENCED = "SILENCED"
+    # Reserved for the parallel Yi workstreams (feat/yi-contract):
+    LATE_OCCURRENCE = "LATE_OCCURRENCE"   # W1: event from an already-resolved episode
+    HEARTBEAT_MISSED = "HEARTBEAT_MISSED" # W2: expected heartbeat did not arrive
+    RESOLVE_PENDING = "RESOLVE_PENDING"   # W2: resolve evidence waiting for stable_for
+    SHADOW_MATCH = "SHADOW_MATCH"         # W1: shadow rule matched (never sends)
+    MERGED = "MERGED"                     # W2: notification merged into a cross-rule message
 
 
 class Transition(str, Enum):
@@ -62,6 +72,10 @@ class Transition(str, Enum):
     digest_due = "digest_due"
     resolved = "resolved"
     escalation = "escalation"
+    heartbeat_missed = "heartbeat_missed"   # W2
+    resolve_pending = "resolve_pending"     # W2 (stable_for)
+    ladder_step = "ladder_step"             # W2 (cost ladder)
+    late_occurrence = "late_occurrence"     # W1
 
 
 Transport = Literal["http", "rabbitmq", "logfile"]
@@ -86,7 +100,7 @@ class CanonicalEvent(BaseModel):
     raw: dict[str, Any]
     fields: dict[str, Any] = Field(default_factory=dict)  # flattened paths + "$alias" keys
     lane: Lane = "normal"
-    status: Literal["pending", "processed", "needs_review", "rejected"] = "pending"
+    status: Literal["pending", "processed", "needs_review", "rejected", "quarantined"] = "pending"
     trace: dict[str, Any] = Field(default_factory=dict)  # gen_sent_at, received_at, demo_clock, ...
 
 
@@ -130,7 +144,10 @@ class RenderedMessage(BaseModel):
 
 class NotificationIntent(BaseModel):
     alert_id: int
-    kind: Literal["initial", "update", "digest", "escalation", "approval_request", "throttle_summary"]
+    kind: Literal[
+        "initial", "update", "digest", "escalation", "approval_request", "throttle_summary",
+        "merged", "ladder_step", "heartbeat", "canary",
+    ]
     recipient: str  # user id, or "team:<id>" for the ui channel
     channel: Channel
     contact: str | None = None

@@ -142,7 +142,13 @@ def test_alertmanager_auto_resolve_without_firing_predicate():
     event = case_event(case)
     (op,) = evaluate(event, RULESET, {}, START).alert_ops
     event.fields.update(status="resolved", **{"$severity": "info"})
-    state = {(op.rule["id"], op.key): {"status": "open", "severity": "critical"}}
+    state = {
+        (op.rule["id"], op.key): {
+            "status": "open",
+            "severity": "critical",
+            "latest_episode": event.fields["startsAt"],
+        }
+    }
     result = evaluate(event, RULESET, state, START)
     (resolved,) = result.alert_ops
     assert resolved.transition == "resolved" and not resolved.notify
