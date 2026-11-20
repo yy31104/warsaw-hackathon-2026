@@ -23,7 +23,9 @@ def require_member(alert, actor, settings):
 
 
 @router.get("/alerts")
-async def alerts(team: str | None = None, status: str | None = None, q: str | None = None, db=Depends(get_db)):
+async def alerts(
+    team: str | None = None, status: str | None = None, q: str | None = None, db=Depends(get_db)
+):
     conditions, params = [], []
     for column, value in (("team_id", team), ("status", status)):
         if value:
@@ -34,8 +36,13 @@ async def alerts(team: str | None = None, status: str | None = None, q: str | No
         params.append(f"%{q}%")
     where = " where " + " and ".join(conditions) if conditions else ""
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-        await cur.execute("select * from alerts"+where+""" order by case status when 'open' then 0
-            when 'acknowledged' then 1 else 2 end,priority nulls last,score desc nulls last,last_seen_at desc,id""", params)
+        await cur.execute(
+            "select * from alerts"
+            + where
+            + """ order by case status when 'open' then 0
+            when 'acknowledged' then 1 else 2 end,priority nulls last,score desc nulls last,last_seen_at desc,id""",
+            params,
+        )
         items = await cur.fetchall()
         return {"items": items, "total": len(items)}
 
@@ -43,17 +50,23 @@ async def alerts(team: str | None = None, status: str | None = None, q: str | No
 @router.get("/alerts/{id}")
 async def detail(id: int, db=Depends(get_db)):
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-        alert = await get_alert(cur,id)
-        await cur.execute("""select o.event_id,o.seen_at,e.fields from alert_occurrences o join events e on e.id=o.event_id
-            where o.alert_id=%s order by event_id""", (id,))
+        alert = await get_alert(cur, id)
+        await cur.execute(
+            """select o.event_id,o.seen_at,e.fields from alert_occurrences o join events e on e.id=o.event_id
+            where o.alert_id=%s order by event_id""",
+            (id,),
+        )
         alert["occurrences"] = await cur.fetchall()
-        await cur.execute("""select created_at ts,'decision' kind,concat(rule_id,' → ',outcome) as text from decisions where alert_id=%s
+        await cur.execute(
+            """select created_at ts,'decision' kind,concat(rule_id,' → ',outcome) as text from decisions where alert_id=%s
             union all select coalesce(delivered_at,created_at),'notification',concat(channel,' → ',recipient,': ',state)
                 from notifications where alert_id=%s
             union all select d.finished_at,'notification',concat(n.channel,' → ',n.recipient,': ',d.outcome,' (attempt ',d.attempt,')')
                 from delivery_attempts d join notifications n on n.id=d.notification_id where n.alert_id=%s and d.finished_at is not null
             union all select at,'audit',concat(actor,' ',action) from audit_log where target_kind='alert' and target_id=%s
-            order by ts""", (id,id,id,str(id)))
+            order by ts""",
+            (id, id, id, str(id)),
+        )
         alert["timeline"] = await cur.fetchall()
         return alert
 
@@ -67,38 +80,64 @@ async def change(db, id, actor, resolve):
             return alert
         if alert["status"] == "resolved":
             raise HTTPException(409, "Alert already resolved")
-        assignment = "resolved_by=%s,resolved_at=%s,resolve_reason='manual'" if resolve else "acked_by=%s,acked_at=%s"
-        await cur.execute("update alerts set status=%s,"+assignment+",updated_at=now() where id=%s returning *",
-                          (target,actor,SYSTEM.now(),id))
+        assignment = (
+            "resolved_by=%s,resolved_at=%s,resolve_reason='manual'"
+            if resolve
+            else "acked_by=%s,acked_at=%s"
+        )
+        await cur.execute(
+            "update alerts set status=%s,"
+            + assignment
+            + ",updated_at=now() where id=%s returning *",
+            (target, actor, SYSTEM.now(), id),
+        )
         row = await cur.fetchone()
         await audit(cur, actor, "alert.resolve" if resolve else "alert.ack", "alert", id)
-        await alert_changed(cur,row)
+        await alert_changed(cur, row)
         return row
 
 
 @router.post("/alerts/{id}/ack")
 async def ack(id: int, x_user: str = Header(...), db=Depends(get_db)):
-    return await change(db,id,x_user,False)
+    return await change(db, id, x_user, False)
 
 
 @router.post("/alerts/{id}/resolve")
 async def resolve(id: int, x_user: str = Header(...), db=Depends(get_db)):
-    return await change(db,id,x_user,True)
+    return await change(db, id, x_user, True)
 
 
 @router.get("/events/{id}/explain")
 async def explain(id: int, db=Depends(get_db)):
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-        await cur.execute("select id,schema_id,schema_name,schema_version,trace,status from events where id=%s",(id,))
+        await cur.execute(
+            "select id,schema_id,schema_name,schema_version,trace,status from events where id=%s",
+            (id,),
+        )
         event = await cur.fetchone()
         if not event:
             raise HTTPException(404, "Event not found")
-        await cur.execute("select rule_id,rule_version,outcome,reason,alert_id from decisions where event_id=%s order by id",(id,))
+        await cur.execute(
+            "select rule_id,rule_version,outcome,reason,alert_id from decisions where event_id=%s order by id",
+            (id,),
+        )
         decisions = await cur.fetchall()
-        outcome = next((d["outcome"] for d in decisions if d["outcome"]!="NO_MATCH"), None)
+        outcome = next((d["outcome"] for d in decisions if d["outcome"] != "NO_MATCH"), None)
         keys = [key for d in decisions for key in (d["reason"] or {}).get("notifications", [])]
-        await cur.execute("select id,alert_id,kind,channel,recipient,state from notifications where dedup_key=any(%s)", (keys,))
-        return {**event, "schema_detection":event["trace"].get("schema_detection", {"schema_id":event["schema_id"]}),
-                "decisions":decisions, "notifications": await cur.fetchall(),
-                "outcome":outcome or ("NO_MATCH" if decisions else event["status"].upper())}
-
+        buckets = [
+            key for d in decisions for key in (d["reason"] or {}).get("throttle_buckets", [])
+        ]
+        await cur.execute(
+            """select id,alert_id,kind,channel,recipient,state from notifications
+            where dedup_key=any(%s) or throttle_bucket=any(%s)""",
+            (keys, buckets),
+        )
+        return {
+            **event,
+            "schema_detection": event["trace"].get(
+                "schema_detection", {"schema_id": event["schema_id"]}
+            ),
+            "decisions": decisions,
+            "notifications": await cur.fetchall(),
+            "outcome": outcome or ("NO_MATCH" if decisions else event["status"].upper()),
+        }

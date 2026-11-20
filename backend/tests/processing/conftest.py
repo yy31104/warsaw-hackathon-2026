@@ -1,11 +1,15 @@
 """Isolated PostgreSQL schema per test; never reuse the application tables."""
+
 import os
 from pathlib import Path
 from uuid import uuid4
 
+import httpx
+from alerting.api.app import app
+from alerting.rules.storage import get_db
 import psycopg
-import pytest_asyncio
 import pytest
+import pytest_asyncio
 from psycopg import sql
 from psycopg.conninfo import make_conninfo
 from psycopg_pool import AsyncConnectionPool
@@ -31,3 +35,15 @@ async def database():
                 yield pool
         finally:
             await admin.execute(sql.SQL("DROP SCHEMA {} CASCADE").format(sql.Identifier(schema)))
+
+
+@pytest_asyncio.fixture
+async def api(database):
+    app.dependency_overrides[get_db] = lambda: database
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            yield client
+    finally:
+        app.dependency_overrides.pop(get_db, None)

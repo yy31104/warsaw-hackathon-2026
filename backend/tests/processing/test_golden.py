@@ -1,4 +1,5 @@
 """Replay the published cases at the canonical-event boundary."""
+
 import json
 import re
 from collections import Counter
@@ -7,7 +8,6 @@ from pathlib import Path
 
 import pytest
 import yaml
-
 from alerting.clock import FixedClock
 from alerting.config import files
 from alerting.contracts import CanonicalEvent
@@ -36,20 +36,39 @@ def make_event(raw, schema_id):
     severity = str(fields.get("$severity") or schema.get("severity_default", "unknown"))
     fields["$severity"] = schema.get("severity_map", {}).get(severity, severity)
     fields["$schema"] = render(schema["name"], fields)
-    return CanonicalEvent(id=1, source_id="sample", transport="http", payload_hash="hash",
-                          received_at=START.now(), schema_id=schema_id, schema_name=fields["$schema"],
-                          severity=fields["$severity"], raw=raw, fields=fields)
+    return CanonicalEvent(
+        id=1,
+        source_id="sample",
+        transport="http",
+        payload_hash="hash",
+        received_at=START.now(),
+        schema_id=schema_id,
+        schema_name=fields["$schema"],
+        severity=fields["$severity"],
+        raw=raw,
+        fields=fields,
+    )
 
 
-CASES = [c for c in GOLD["cases"] if c["id"].startswith(("settlements-", "rates-", "anna-")) and "send" in c]
+CASES = [
+    c
+    for c in GOLD["cases"]
+    if c["id"].startswith(("settlements-", "rates-", "anna-")) and "send" in c
+]
 
 
 def case_event(case):
     send = case["send"]
     raw = json.loads((ROOT / send["file"]).read_text())
     merge(raw, send.get("mutate", {}))
-    return make_event(raw, {"workflow-bus": "workflow", "trade-bus": "business-envelope",
-                            "alertmanager": "alertmanager"}[send["source"]])
+    return make_event(
+        raw,
+        {
+            "workflow-bus": "workflow",
+            "trade-bus": "business-envelope",
+            "alertmanager": "alertmanager",
+        }[send["source"]],
+    )
 
 
 @pytest.mark.parametrize("case", CASES, ids=lambda c: c["id"])
@@ -76,7 +95,9 @@ def test_pricing_digest():
     for line in (ROOT / "fixtures/events/pricing-engine.log").read_text().splitlines():
         _, level, instance, rest = line.split(maxsplit=3)
         instrument = re.search("instrument=(\\w+)", rest)[1]
-        event = make_event(dict(level=level, instance=instance, instrument=instrument), "pricing-log")
+        event = make_event(
+            dict(level=level, instance=instance, instrument=instrument), "pricing-log"
+        )
         for op in evaluate(event, RULESET, {}, START).alert_ops:
             assert not op.notify
             counts[op.key] += 1
@@ -84,12 +105,11 @@ def test_pricing_digest():
 
 
 def test_alertmanager_auto_resolve_without_firing_predicate():
-    case=next(c for c in CASES if c["id"]=="anna-daytime-sms")
-    event=case_event(case)
-    op,=evaluate(event,RULESET,{},START).alert_ops
-    event.fields.update(status="resolved", **{"$severity":"info"})
-    state={(op.rule["id"],op.key):{"status":"open","severity":"critical"}}
-    result=evaluate(event,RULESET,state,START)
-    resolved,=result.alert_ops
-    assert resolved.transition=="resolved" and not resolved.notify
-
+    case = next(c for c in CASES if c["id"] == "anna-daytime-sms")
+    event = case_event(case)
+    (op,) = evaluate(event, RULESET, {}, START).alert_ops
+    event.fields.update(status="resolved", **{"$severity": "info"})
+    state = {(op.rule["id"], op.key): {"status": "open", "severity": "critical"}}
+    result = evaluate(event, RULESET, state, START)
+    (resolved,) = result.alert_ops
+    assert resolved.transition == "resolved" and not resolved.notify

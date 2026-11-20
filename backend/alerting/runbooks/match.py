@@ -1,6 +1,7 @@
 from functools import lru_cache
 
 import yaml
+
 from alerting.rules.dsl import compile
 
 

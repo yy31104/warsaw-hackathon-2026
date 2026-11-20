@@ -2,12 +2,24 @@ import pytest
 from alerting.rules.dsl import compile
 
 
-@pytest.mark.parametrize("op,value,ok", [
-    ("eq", 5, True), ("neq", 5, False), ("in", [5], True), ("not_in", [6], True),
-    ("gte", 5, True), ("gt", 5, False), ("lt", 6, True), ("lte", 4, False),
-    ("glob", "0*", True), ("regex", "^0", True), ("contains", "5", True),
-    ("exists", None, True), ("not_exists", None, False),
-])
+@pytest.mark.parametrize(
+    "op,value,ok",
+    [
+        ("eq", 5, True),
+        ("neq", 5, False),
+        ("in", [5], True),
+        ("not_in", [6], True),
+        ("gte", 5, True),
+        ("gt", 5, False),
+        ("lt", 6, True),
+        ("lte", 4, False),
+        ("glob", "0*", True),
+        ("regex", "^0", True),
+        ("contains", "5", True),
+        ("exists", None, True),
+        ("not_exists", None, False),
+    ],
+)
 def test_operators(op, value, ok):
     result, trace = compile({"field": "x", "op": op, "value": value})({"x": "05"})
     assert result is ok and trace[0]["actual"] == "05"

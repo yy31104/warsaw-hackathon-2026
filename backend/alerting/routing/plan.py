@@ -2,8 +2,13 @@ from alerting.contracts import AlertSnapshot, NotificationIntent, Plan, Rendered
 from alerting.routing.directory import by_id, preferences, team_for
 from alerting.runbooks.match import match
 
-KINDS = {"created": "initial", "severity_increased": "update", "cooldown_elapsed": "update",
-         "digest_due": "digest", "escalation": "escalation"}
+KINDS = {
+    "created": "initial",
+    "severity_increased": "update",
+    "cooldown_elapsed": "update",
+    "digest_due": "digest",
+    "escalation": "escalation",
+}
 
 
 def plan(alert, transition, rule, event_fields, directory, runbooks, recent_sends, clock):
@@ -11,7 +16,10 @@ def plan(alert, transition, rule, event_fields, directory, runbooks, recent_send
     book = match(rule["id"], event_fields, runbooks)
     result = Plan(runbook_id=book["id"] if book else None)
     kind = KINDS.get(transition)
-    if not kind or (rule.get("group", {}).get("mode") == "digest" and transition not in ("digest_due", "escalation")):
+    if not kind or (
+        rule.get("group", {}).get("mode") == "digest"
+        and transition not in ("digest_due", "escalation")
+    ):
         return result
     users, teams = by_id(directory["users"]), by_id(directory["teams"])
     destinations = {}
@@ -34,7 +42,11 @@ def plan(alert, transition, rule, event_fields, directory, runbooks, recent_send
             user = users.get(person)
             if not user:
                 continue
-            channels = preferences(user, team, directory, alert.severity, clock) if requested == "preferences" else requested
+            channels = (
+                preferences(user, team, directory, alert.severity, clock)
+                if requested == "preferences"
+                else requested
+            )
             for channel in channels:
                 recipient = f"team:{name}" if target == "team" and channel == "ui" else person
                 contact = user.get("contacts", {}).get(channel)
@@ -54,13 +66,36 @@ def plan(alert, transition, rule, event_fields, directory, runbooks, recent_send
     epoch = str(alert.occurrence_count) if kind == "initial" else clock.now().isoformat()
     for (recipient, channel), contact in destinations.items():
         suffix = f" {link}" + (" — press 1 to acknowledge" if channel == "phone" else "")
-        short = title[:160-len(suffix)] + suffix
-        message = RenderedMessage(title=title, body=body if channel in ("email", "ui") else short, short=short,
-                                  color=alert.color, fields=alert.fields, link=link,
-                                  runbook_excerpt=book["content"][:512] if book and channel in ("email", "ui") else None,
-                                  meta={"alert_id": alert.id, "rule_id": rule["id"],
-                                        "gen_sent_at": event_fields.get("gen_sent_at")})
-        result.intents.append(NotificationIntent(alert_id=alert.id, kind=kind, recipient=recipient,
-            channel=channel, contact=contact, rendered=message, priority=int((alert.priority or "P3")[1:]) + 1,
-            dedup_key=f"{alert.id}:{kind}:{recipient}:{channel}:{epoch}"))
+        short = title[: 160 - len(suffix)] + suffix
+        message = RenderedMessage(
+            title=title,
+            body=body if channel in ("email", "ui") else short,
+            short=short,
+            color=alert.color,
+            fields=alert.fields,
+            link=link,
+            runbook_excerpt=book["content"][:512] if book and channel in ("email", "ui") else None,
+            meta={
+                "alert_id": alert.id,
+                "rule_id": rule["id"],
+                "gen_sent_at": event_fields.get("gen_sent_at"),
+            },
+        )
+        result.intents.append(
+            NotificationIntent(
+                alert_id=alert.id,
+                kind=kind,
+                recipient=recipient,
+                channel=channel,
+                contact=contact,
+                rendered=message,
+                priority=int((alert.priority or "P3")[1:]) + 1,
+                dedup_key=f"{alert.id}:{kind}:{recipient}:{channel}:{epoch}",
+            )
+        )
+    if rule.get("throttle"):
+        from .throttle import apply
+
+        for intent in result.intents:
+            apply(intent, rule, recent_sends, clock)
     return result

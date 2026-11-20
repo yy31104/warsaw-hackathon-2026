@@ -11,14 +11,23 @@ def team_for(owner, directory):
     kind, _, name = owner.partition(":")
     if kind in ("team", "oncall"):
         return name
-    return next((t["id"] for t in directory["teams"] if name in t.get("members", [])), directory.get("fallback_team"))
+    return next(
+        (t["id"] for t in directory["teams"] if name in t.get("members", [])),
+        directory.get("fallback_team"),
+    )
 
 
 def preferences(user, team, directory, severity, clock):
     local = clock.now().astimezone(ZoneInfo(user.get("timezone", "UTC"))).strftime("%H:%M")
-    for rows in (user.get("preferences", []), team.get("preferences", []), directory.get("default_preferences", [])):
+    for rows in (
+        user.get("preferences", []),
+        team.get("preferences", []),
+        directory.get("default_preferences", []),
+    ):
         for row in rows:
-            if SEVERITY_ORDER.get(severity, -1) < SEVERITY_ORDER.get(row.get("min_severity", "debug"), 0):
+            if SEVERITY_ORDER.get(severity, -1) < SEVERITY_ORDER.get(
+                row.get("min_severity", "debug"), 0
+            ):
                 continue
             if "when" in row:
                 start, end = row["when"].split("-")

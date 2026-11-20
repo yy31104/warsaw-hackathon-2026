@@ -1,6 +1,8 @@
 import os
 from email.utils import parsedate_to_datetime
+
 import httpx
+
 from alerting.clock import SYSTEM
 from alerting.contracts import Channel, SendResult
 
@@ -29,13 +31,20 @@ class Telecom:
         if msg.meta.get("gen_sent_at") is not None:
             headers["X-Gen-Sent-At"] = str(msg.meta["gen_sent_at"])
         try:
-            res = await self.client.post(self.url, headers=headers, json={"to": contact, "text": msg.short}, timeout=3)
+            res = await self.client.post(
+                self.url, headers=headers, json={"to": contact, "text": msg.short}, timeout=3
+            )
         except httpx.TimeoutException as exc:
             return SendResult(outcome="unknown", error=str(exc))
         except httpx.TransportError as exc:
             return SendResult(outcome="retryable", error=str(exc))
         if res.is_success:
-            return SendResult(outcome="delivered", provider_ref=res.headers.get("X-Message-Id", idempotency_key))
+            return SendResult(
+                outcome="delivered", provider_ref=res.headers.get("X-Message-Id", idempotency_key)
+            )
         retryable = res.status_code >= 500 or res.status_code == 429
-        return SendResult(outcome="retryable" if retryable else "permanent", error=f"HTTP {res.status_code}",
-                          retry_after_s=retry_after(res.headers.get("Retry-After")))
+        return SendResult(
+            outcome="retryable" if retryable else "permanent",
+            error=f"HTTP {res.status_code}",
+            retry_after_s=retry_after(res.headers.get("Retry-After")),
+        )

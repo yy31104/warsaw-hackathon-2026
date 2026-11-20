@@ -1,4 +1,5 @@
 """Compile the shared configuration language once, preserving every leaf in its trace."""
+
 import fnmatch
 import operator
 import re
@@ -42,6 +43,7 @@ def compile(match: dict) -> Predicate:
         def group(fields):
             results = [child(fields) for child in children]
             return reduce(ok for ok, _ in results), [row for _, rows in results for row in rows]
+
         return group
     if "not" in match:
         if len(match) != 1:
@@ -51,11 +53,28 @@ def compile(match: dict) -> Predicate:
         def negate(fields):
             ok, trace = child(fields)
             return not ok, trace
+
         return negate
     if "field" not in match and "op" not in match:
         return compile({"all": [{"field": k, "op": "eq", "value": v} for k, v in match.items()]})
     path, op, expected = match.get("field"), match.get("op"), match.get("value")
-    if not isinstance(path, str) or not path or op not in {*ORDER, "eq", "neq", "in", "not_in", "contains", "glob", "regex", "exists", "not_exists"}:
+    if (
+        not isinstance(path, str)
+        or not path
+        or op
+        not in {
+            *ORDER,
+            "eq",
+            "neq",
+            "in",
+            "not_in",
+            "contains",
+            "glob",
+            "regex",
+            "exists",
+            "not_exists",
+        }
+    ):
         raise ValueError("invalid predicate field or operator")
     if op not in ("exists", "not_exists") and "value" not in match:
         raise ValueError("missing comparison value")
@@ -75,10 +94,14 @@ def compile(match: dict) -> Predicate:
     def compare(actual):
         if op in ("exists", "not_exists"):
             return (actual is not None) == (op == "exists")
-        if actual is None or (path == "$severity" and actual not in SEVERITY_ORDER):
+        if actual is None or (
+            path == "$severity" and (not isinstance(actual, str) or actual not in SEVERITY_ORDER)
+        ):
             return False
         if op in ORDER:
             rank = SEVERITY_ORDER.get if path == "$severity" else number
+            if path == "$severity" and not isinstance(expected, str):
+                return False
             a, b = rank(actual), rank(expected)
             return a is not None and b is not None and ORDER[op](a, b)
         if op in ("eq", "neq"):
@@ -88,7 +111,9 @@ def compile(match: dict) -> Predicate:
         if op == "contains":
             if isinstance(actual, list):
                 return any(equal(x, expected) for x in actual)
-            return isinstance(actual, (str, dict)) and isinstance(expected, str) and expected in actual
+            return (
+                isinstance(actual, (str, dict)) and isinstance(expected, str) and expected in actual
+            )
         if not isinstance(actual, str):
             return False
         if op == "glob":
@@ -99,4 +124,5 @@ def compile(match: dict) -> Predicate:
         actual = lookup(fields, path)
         ok = compare(actual)
         return ok, [{"field": path, "op": op, "value": expected, "actual": actual, "matched": ok}]
+
     return predicate
