@@ -138,7 +138,7 @@ function ReviewIssue({issue, retain}: {issue: Issue; retain: () => void}) {
       <div className="form-grid">
         <TextInput label="Expected recipients (optional)" placeholder="sam, lee" value={expectedRecipients}
           onChange={event => {setExpectedRecipients(event.target.value); setVerification(null);}}/>
-        <MultiSelect label="Expected channels (optional)" data={['email', 'sms', 'phone', 'ui']} value={expectedChannels}
+        <MultiSelect label="Expected channels (optional)" searchable data={['email', 'sms', 'phone', 'ui']} value={expectedChannels}
           onChange={value => {setExpectedChannels(value); setVerification(null);}}/>
       </div>
       <div className="actions">
