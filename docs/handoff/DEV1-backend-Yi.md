@@ -155,51 +155,72 @@ Status at this point: PR #1 merged, PR #2 open (hot reload, scoped approvals, pi
 > Read AGENTS.md, docs/BRIEF.md §4, docs/CONTRACT.md §4, §5, §8, §9 and the "Round 2" section of docs/handoff/DEV1-backend-Yi.md. Merge origin/main first. Implement R1–R5 in order on feat/backend-yi, each test-first against real PostgreSQL, one commit per item. Then R6 and R7. Don't redesign the architecture and don't add the "Not now" items. Report per item: PASS / FAIL / NOT_RUN, with the exact test or command.
 
 ## Full target list (all required, in order) — updated Fri 22:00
-Done ✅ = merged or verified in a PR. Everything else is a target. Details are in the sections above, in CONTRACT and in [IMPROVEMENTS.md](../IMPROVEMENTS.md).
+✅ marks behavior verified on integrated main. Everything else is a target. Details are in the sections above, in CONTRACT and in [IMPROVEMENTS.md](../IMPROVEMENTS.md).
 
 **Done**
 - ✅ Round 1 tasks 1–14 (PR #1, merged).
 - ✅ Hot reload, scoped approval codes, API shapes pinned to `fixtures/api`, NOTIFY envelopes, canonical-event contract test, inbox→delivery e2e (PR #2: clean merge with main, 81 tests, CI green → merge it).
 
 **Integration**
-- ☐ When daizhongtian's `ingest/normalize.py` lands: replace the test mini-normaliser, and run e2e from a real RabbitMQ publish.
+- ✅ When daizhongtian's `ingest/normalize.py` lands: replace the test mini-normaliser, and run e2e from a real RabbitMQ publish.
 - ☐ Keep merging teammates' PRs.
 
 **Tier 0 — hardening**
-- ☐ R1 poison-event isolation
-- ☐ R2 approval security (6 digits, attempt limit, `X-Provider-Secret`)
-- ☐ R3 DB timeouts
-- ☐ R4 stale recovery (`episode_key`, `STALE_RESOLVE`)
-- ☐ R5 action timeout = `unknown` + verification
+- ✅ R1 poison-event isolation
+- ✅ R2 approval security (6 digits, attempt limit, `X-Provider-Secret`)
+- ✅ R3 DB timeouts
+- ✅ R4 stale recovery (`episode_key`, `STALE_RESOLVE`)
+- ✅ R5 action timeout = `unknown` + verification
 
 **Tier 1**
-- ☐ R6 Rule Safety Checker (declared requirements only)
-- ☐ R7 engine support for `/schemas/verify` (draft schema + transforms, deciding fields)
-- ☐ R8 hysteresis `stable_for` + measured decision volume
+- ✅ R6 Rule Safety Checker (declared requirements only)
+- ✅ R7 engine support for `/schemas/verify` (draft schema + transforms, deciding fields)
+- ✅ R8 hysteresis `stable_for` + measured decision volume
 
 **Moved to you from daizhongtian**
-- ☐ mock-ops `mocks/mock_ops/`: `/health` toggle, `/workflows/{id}/retry` (fail N then succeed), `/services/{name}/restart`, `/tickets`, `/metrics/pool`, `/deployments`. Every call is deduplicated by `Idempotency-Key`, and `GET /executions/<key>` reports it. Simulated data is labelled. Compose alias `counterparty-service`.
+- ✅ mock-ops `mocks/mock_ops/`: `/health` toggle, `/workflows/{id}/retry` (fail N then succeed), `/services/{name}/restart`, `/tickets`, `/metrics/pool`, `/deployments`. Every call is deduplicated by `Idempotency-Key`, and `GET /executions/<key>` reports it. Simulated data is labelled. Compose alias `counterparty-service`.
 - ☐ Golden runner `loadtest/golden_runner.py`: black box over the public API, fake-telecom `/messages` and the Mailpit API; reset between cases; writes the PASS/FAIL table into GATES.md. Covers all cases in `fixtures/golden/expectations.yaml`.
   - **You build the runner; you don't own the answers.** Expected results come from the task text (the golden file) and Marlon's private holdout. If a case fails, fix the code or mark the case `DISPUTED` with a reason for Marlon to decide. Never edit an expected value to make a test pass.
 
 **Tier 2**
-- ☐ #4 late events never reopen an old episode
-- ☐ #5 DST tests
-- ☐ #1 silences (`SILENCED`)
-- ☐ #2 unacked escalation
-- ☐ #3 heartbeat / deadman rules
-- ☐ #6 graceful shutdown (workers)
-- ☐ #10 masking of `sensitive` fields in render
-- ☐ #13 guarded dynamic escalation
-- ☐ #12 canary: sender + bypass alarm
-- ☐ #11 correlation IDs in your logs
+- ✅ #4 late events never reopen an old episode
+- ✅ #5 DST tests
+- ✅ #1 silences (`SILENCED`)
+- ✅ #2 unacked escalation
+- ✅ #3 heartbeat / deadman rules
+- ✅ #6 graceful shutdown (workers)
+- ✅ #10 masking of `sensitive` fields in render
+- ✅ #13 guarded dynamic escalation
+- ✅ #12 canary: sender + bypass alarm
+- ✅ #11 correlation IDs in your logs
 
 **Tier 3**
-- ☐ #15 cross-rule merging (opt-in)
-- ☐ #16 cost ladder (opt-in, never overrides explicit channels)
-- ☐ #18 shadow-rule engine state (separate counts and cooldowns, never sends)
-- ☐ #19 SLO scoring from request totals
-- ☐ #20 incident memory (store + lookup of human-confirmed resolutions)
-- ☐ #22 fair claiming across sources/teams
+- ✅ #15 cross-rule merging (opt-in)
+- ✅ #16 cost ladder (opt-in, never overrides explicit channels)
+- ✅ #18 shadow-rule engine state (separate counts and cooldowns, never sends)
+- ✅ #19 SLO scoring from request totals
+- ✅ #20 incident memory (store + lookup of human-confirmed resolutions)
+- ✅ #22 fair claiming across sources/teams
 
 **Measure first:** act on daizhongtian's load-test evidence (e.g. compact `NO_MATCH` only if decisions dominate).
+
+### Verification on integrated main
+
+All 394 backend tests passed on `b6e14a9` with live PostgreSQL, RabbitMQ and the loopback fake-telecom gateway. Run `make test` with the environment in `.github/workflows/ci.yml` to include the broker and gateway tests. The commands below reproduce individual checks from `backend/` with those same services. The checkout contains the bundled canary configuration.
+
+| DEV1 target | Result | Focused verification |
+| --- | --- | --- |
+| Canonical ingestion, broker delivery and published-schema reload | PASS | `uv run pytest -q tests/processing/test_normalizer_contract.py tests/processing/test_broker_e2e.py tests/processing/test_e2e_schema_review.py` |
+| R1, R2, R3, R4, R5 | PASS | `uv run pytest -q tests/processing/test_isolation.py tests/processing/test_approval_codes.py tests/processing/test_db_timeouts.py tests/processing/test_episodes.py tests/processing/test_action_verification.py` |
+| R6, R7 | PASS | `uv run pytest -q tests/processing/test_safety.py tests/processing/test_safety_verification.py`. R7 covers the draft-verification engine. Its public HTTP route belongs to DEV2. |
+| R8 | PASS | `uv run pytest -q -s tests/processing/test_stable_for.py tests/processing/test_e2e_decision_volume.py`. On 1,000 distinct workflow failures sharing one alert key, all 1,000 were processed. PostgreSQL stored 4,000 decisions (1 new alert, 999 cooldown suppressions and 3,000 nonmatches). This measures decision volume for this workload. |
+| Simulated mock-ops receiver and Compose alias | PASS | `uv run pytest -q tests/tools/test_mock_ops.py`. From the repo root, `docker compose --env-file .env.example -f docker-compose.yml -f mocks/mock_ops/compose.yaml config --quiet` validated the overlay. DEV2 received the base Compose integration in [#13](https://github.com/yy31104/warsaw-hackathon-2026/pull/13#issuecomment-7051936512). |
+| Golden runner tooling | PASS | `uv run pytest -q tests/tools/test_golden_runner.py tests/tools/test_golden_cases.py` |
+| Golden run against the public stack | NOT_RUN | All 32 generated case rows in [GATES](../GATES.md#golden-run) await `POST /v1/debug/reset` on main. After it lands, regenerate the section with the runner against an isolated stack. |
+| #4, #5, #1 | PASS | `uv run pytest -q tests/processing/test_worker_episode_integration.py tests/processing/test_dst_routing.py tests/processing/test_worker_silence_integration.py` |
+| #2, #3, #6 workers | PASS | `uv run pytest -q tests/processing/test_scheduler_escalation.py tests/processing/test_heartbeat.py tests/processing/test_shutdown_rule_worker.py tests/processing/test_shutdown_delivery.py tests/processing/test_shutdown_scheduler.py` |
+| #10, #13, #12, #11 | PASS | `uv run pytest -q tests/processing/test_worker_masking.py tests/processing/test_worker_scoring_integration.py tests/processing/test_e2e_canary_config.py tests/tools/test_canary_live.py tests/processing/test_e2e_correlation.py` |
+| #15, #16, #18 | PASS | `uv run pytest -q tests/processing/test_merge_routing.py tests/processing/test_ladder_scheduler.py tests/processing/test_worker_shadow_integration.py` |
+| #19, #20, #22 | PASS | `uv run pytest -q tests/processing/test_scoring.py tests/processing/test_worker_scoring_integration.py tests/tools/test_memory_api.py tests/processing/test_fair_sources.py tests/processing/test_fair_delivery.py` |
+
+W0 merged the assigned windows in the agreed order, W3 [#11](https://github.com/yy31104/warsaw-hackathon-2026/pull/11), W1 [#10](https://github.com/yy31104/warsaw-hackathon-2026/pull/10), W2 [#12](https://github.com/yy31104/warsaw-hackathon-2026/pull/12). The broader teammate integration item remains ongoing.
