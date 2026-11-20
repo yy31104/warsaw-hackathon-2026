@@ -1,0 +1,28 @@
+# Append each list to its named section in config/. Use a local-only source key.
+sources:
+  - {id: canary, transport: http, api_key: demo-canary-key}
+
+schemas:
+  - id: canary
+    detect: {field: $source, op: eq, value: canary}
+    name: system.canary
+    event_id: "{{probe_id}}"
+    severity_default: info
+
+rules:
+  - id: delivery-canary
+    include_synthetic: true
+    owner: team:canary
+    match: {field: $source, op: eq, value: canary}
+    route: [{to: "user:canary", channels: [sms]}]
+    present: {title: "Canary {{probe_id}}"}
+    group: {by: [$source], mode: immediate, cooldown: 0s}
+
+teams:
+  - {id: canary, name: Synthetic monitors, members: [canary]}
+
+users:
+  - id: canary
+    name: Simulated receiver
+    timezone: UTC
+    contacts: {sms: "+15550100990"}
