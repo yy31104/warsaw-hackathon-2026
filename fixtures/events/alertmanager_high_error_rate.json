@@ -1,0 +1,13 @@
+{
+  "alertname": "HighErrorRate",
+  "labels": {
+    "service": "payments-api",
+    "region": "eu-west",
+    "severity": "critical"
+  },
+  "annotations": {
+    "summary": "Error rate 12% over the last 5 minutes"
+  },
+  "startsAt": "2026-10-23T09:13:00Z",
+  "status": "firing"
+}

@@ -1,0 +1,46 @@
+{
+  "runbook_id": "settlement-timeout",
+  "format": "yaml-steps",
+  "source_text": "runbook: settlement-timeout\n...",
+  "steps": [
+    {
+      "index": 0,
+      "kind": "check",
+      "text": "Is counterparty-service healthy?",
+      "action": "http_get",
+      "params": {
+        "url": "http://counterparty-service/health"
+      },
+      "approval": "none",
+      "state": null
+    },
+    {
+      "index": 1,
+      "kind": "action",
+      "text": "Retry workflow WF-20261023-00042",
+      "action": "retry_workflow",
+      "params": {
+        "workflowId": "WF-20261023-00042"
+      },
+      "approval": "none",
+      "state": "failed",
+      "runs": 2
+    },
+    {
+      "index": 2,
+      "kind": "escalate",
+      "text": "If retry fails twice: escalate to counterparty-support",
+      "action": "escalate",
+      "params": {
+        "team": "counterparty-support"
+      },
+      "approval": "required",
+      "state": "pending_approval",
+      "approvers": [
+        "lee"
+      ],
+      "suggested": true
+    }
+  ],
+  "can_structure": false
+}

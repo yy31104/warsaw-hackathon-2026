@@ -1,0 +1,73 @@
+# The four example rules from the task (Appendix A, "Example rules, in plain words").
+# Field refs: raw dotted paths (payload.desk) or aliases ($schema, $source, $severity, $service, $environment).
+rules:
+  - id: settlements-wf-failed
+    owner: team:settlements
+    description: Any WORKFLOW_FAILED for order-settlement in prod -> phone + SMS the on-call; red card in the UI.
+    match:
+      all:
+        - {field: $schema, op: eq, value: WORKFLOW_FAILED}
+        - {field: workflowName, op: eq, value: order-settlement}
+        - {field: environment, op: eq, value: prod}
+    route:
+      - {to: "oncall:settlements", channels: [phone, sms]}
+      - {to: "team:settlements", channels: [ui]}
+    present:
+      title: "Settlement failed at {{step}}: {{error.code}}"
+      body: "{{error.message}} (workflow {{workflowId}})"
+      fields: [step, error.message]
+      color: red
+    group:
+      by: [workflowName, step, error.code]
+      mode: immediate
+      cooldown: 10m
+
+  - id: pricing-warn-logs
+    owner: team:pricing
+    description: Log lines from pricing-engine-* at WARN or above -> UI only, one alert per instrument every 5 minutes.
+    match:
+      all:
+        - {field: instance, op: glob, value: "pricing-engine-*"}
+        - {field: $severity, op: gte, value: warning}
+    route:
+      - {to: "team:pricing", channels: [ui]}
+    present:
+      title: "Pricing {{instrument}}: {{msg}}"
+      fields: [instance, instrument, latency_ms]
+      color: amber
+    group:
+      by: [instrument]
+      mode: digest
+      every: 5m
+
+  - id: rates-big-rejects
+    owner: team:rates
+    description: trade.rejected.* on the rates desk with notional > 10,000,000 -> email + UI.
+    match:
+      all:
+        - {field: $schema, op: glob, value: "trade.rejected.*"}
+        - {field: payload.desk, op: eq, value: rates}
+        - {field: payload.notional, op: gt, value: 10000000}
+    route:
+      - {to: "team:rates", channels: [email, ui]}
+    present:
+      title: "Rejected {{payload.currency}} {{payload.notional}} — {{payload.reason}}"
+      fields: [payload.tradeId, payload.desk, payload.notional, payload.currency, payload.reason]
+      color: orange
+    group:
+      by: [payload.tradeId]
+      mode: immediate
+      cooldown: 10m
+
+  - id: anna-payments-critical
+    owner: user:anna
+    description: Anything critical from payments-api -> SMS between 08:00 and 20:00, otherwise email.
+    match:
+      all:
+        - {field: $severity, op: eq, value: critical}
+        - {field: $service, op: eq, value: payments-api}
+    route:
+      - {to: "user:anna", channels: preferences}
+    group:
+      mode: immediate
+      cooldown: 10m

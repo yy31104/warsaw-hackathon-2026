@@ -1,0 +1,182 @@
+# GOLDEN EXPECTATIONS — black-box acceptance cases.
+# Derived ONLY from the printed task (sections 2.x, Appendix A example rules, Appendix B runbooks),
+# not from any implementation. Owner: Lead (acceptance). Implementers: read, do not edit.
+# Lines marked INTERPRETATION are our reading of ambiguous text; Lead confirms with a mentor if needed.
+#
+# How a case runs (Lead's runner, loadtest/golden_runner.py):
+#   1. POST/publish `send` (with optional `mutate` deep-merge and `headers`).
+#   2. Wait until the event is processed (GET /v1/events/{id}/explain shows a terminal outcome) or 10 s.
+#   3. Assert `expect` via public API + fake-telecom /messages + Mailpit API. Never via direct DB reads.
+#   Isolation: every case WITHOUT `after:` starts with POST /v1/debug/reset (DEMO_MODE only; clears
+#   events/alerts/notifications/action runs, keeps config). Cases WITH `after:` continue that state.
+#
+# Default demo clock (X-Demo-Clock header, honoured when DEMO_MODE=1):
+clock_default: "2026-10-23T10:00:00+02:00"
+
+cases:
+  # ---------- Team Settlements ----------
+  - id: settlements-positive
+    send: {source: workflow-bus, file: fixtures/events/workflow_failed.json}
+    expect:
+      event: {schema: WORKFLOW_FAILED, severity: error, environment: prod}
+      alert:
+        rule: settlements-wf-failed
+        team: settlements
+        color: red
+        title_contains: [validate-counterparty, TIMEOUT]
+        fields_shown: [step, error.message]
+        occurrence_count: 1
+        runbook: settlement-timeout
+      notifications:
+        - {recipient: sam, channel: phone}
+        - {recipient: sam, channel: sms}
+        - {recipient: team:settlements, channel: ui}
+      not_notified: [lee]                      # secondary is not paged on first fire
+
+  - id: settlements-negative-env
+    send: {source: workflow-bus, file: fixtures/events/workflow_failed.json, mutate: {environment: uat, workflowId: WF-NEG-1}}
+    expect: {no_alert_for_rule: settlements-wf-failed}
+
+  - id: settlements-negative-workflow
+    send: {source: workflow-bus, file: fixtures/events/workflow_failed.json, mutate: {workflowName: order-booking, workflowId: WF-NEG-2}}
+    expect: {no_alert_for_rule: settlements-wf-failed}
+
+  - id: settlements-runbook-rendered
+    after: settlements-positive
+    expect:
+      runbook_steps:
+        - {index: 0, action: http_get, params: {url: "http://counterparty-service/health"}}
+        - {index: 1, action: retry_workflow, approval: none, params: {workflowId: WF-20261023-00042}}
+        - {index: 2, action: escalate, approval: required, params: {team: counterparty-support}}
+
+  # ---------- Team Rates ----------
+  - id: rates-positive
+    send: {source: trade-bus, file: fixtures/events/trade_rejected_v2.json}
+    expect:
+      event: {schema: trade.rejected.v2}
+      alert:
+        rule: rates-big-rejects
+        team: rates
+        title_equals: "Rejected EUR 25000000 — LIMIT_BREACH"
+      notifications:
+        - {recipient: rita, channel: email}
+        - {recipient: team:rates, channel: ui}
+
+  - id: rates-boundary-equal
+    send: {source: trade-bus, file: fixtures/events/trade_rejected_v2.json, mutate: {payload: {notional: 10000000, tradeId: T-EQ}}}
+    expect: {no_alert_for_rule: rates-big-rejects}   # rule says "> 10,000,000"
+
+  - id: rates-other-desk
+    send: {source: trade-bus, file: fixtures/events/trade_rejected_v2.json, mutate: {payload: {desk: fx, tradeId: T-FX}}}
+    expect: {no_alert_for_rule: rates-big-rejects}
+
+  - id: rates-schema-glob-v3
+    send: {source: trade-bus, file: fixtures/events/trade_rejected_v2.json, mutate: {meta: {schema: trade.rejected.v3}, payload: {tradeId: T-V3}}}
+    expect: {alert: {rule: rates-big-rejects}}
+
+  - id: rates-not-rejected
+    send: {source: trade-bus, file: fixtures/events/trade_rejected_v2.json, mutate: {meta: {schema: trade.accepted.v2}, payload: {tradeId: T-ACC}}}
+    expect: {no_alert_for_rule: rates-big-rejects}
+
+  - id: rates-missing-template-field
+    send: {source: trade-bus, file: fixtures/events/trade_rejected_v2.json, mutate: {payload: {reason: null, tradeId: T-NOREASON}}}
+    expect:
+      alert: {rule: rates-big-rejects, title_contains: ["‹missing: payload.reason›"]}   # no crash, alert still delivered
+
+  # ---------- Anna (personal) ----------
+  - id: anna-daytime-sms
+    send: {source: alertmanager, file: fixtures/events/alertmanager_high_error_rate.json, headers: {X-Demo-Clock: "2026-10-23T10:00:00+02:00"}}
+    expect:
+      notifications: [{recipient: anna, channel: sms}]
+      not_notified_channels: {anna: [email]}
+      alert: {runbook: payments-high-error-rate}
+
+  - id: anna-evening-email
+    send: {source: alertmanager, file: fixtures/events/alertmanager_high_error_rate.json, mutate: {startsAt: "2026-10-23T19:01:00Z"}, headers: {X-Demo-Clock: "2026-10-23T21:00:00+02:00"}}
+    expect:
+      notifications: [{recipient: anna, channel: email}]
+      not_notified_channels: {anna: [sms]}
+
+  - id: anna-boundary-0800
+    # INTERPRETATION: window is [08:00, 20:00) in Anna's timezone (Europe/Warsaw).
+    send: {source: alertmanager, file: fixtures/events/alertmanager_high_error_rate.json, mutate: {startsAt: "2026-10-23T06:00:00Z"}, headers: {X-Demo-Clock: "2026-10-23T08:00:00+02:00"}}
+    expect: {notifications: [{recipient: anna, channel: sms}]}
+
+  - id: anna-boundary-2000
+    send: {source: alertmanager, file: fixtures/events/alertmanager_high_error_rate.json, mutate: {startsAt: "2026-10-23T18:00:00Z"}, headers: {X-Demo-Clock: "2026-10-23T20:00:00+02:00"}}
+    expect: {notifications: [{recipient: anna, channel: email}]}
+
+  - id: anna-not-critical
+    send: {source: alertmanager, file: fixtures/events/alertmanager_high_error_rate.json, mutate: {labels: {severity: warning}, startsAt: "2026-10-23T07:30:00Z"}}
+    expect: {no_alert_for_rule: anna-payments-critical}
+
+  - id: anna-other-service
+    send: {source: alertmanager, file: fixtures/events/alertmanager_high_error_rate.json, mutate: {labels: {service: orders-api}, startsAt: "2026-10-23T07:31:00Z"}}
+    expect: {no_alert_for_rule: anna-payments-critical}
+
+  - id: alertmanager-auto-resolve
+    after: anna-daytime-sms
+    send: {source: alertmanager, file: fixtures/events/alertmanager_high_error_rate.json, mutate: {status: resolved}}
+    expect: {alert: {rule: anna-payments-critical, status: resolved, resolved_by: system}}
+
+  # ---------- Team Pricing (log file) ----------
+  - id: pricing-digest
+    send: {source: pricing-logs, file: fixtures/events/pricing-engine.log}
+    expect:
+      alerts:
+        - {rule: pricing-warn-logs, group: {instrument: EURUSD}, occurrence_count: 3}
+        - {rule: pricing-warn-logs, group: {instrument: USDJPY}, occurrence_count: 1}
+      no_alert_for: [{instrument: GBPUSD}]          # INFO only
+      notifications_channels_only: {team:pricing: [ui]}
+      excluded_lines: ["risk-engine-1"]               # instance glob does not match
+      alert_runbook: pricing-latency
+
+  # ---------- Don't flood people (2.5) ----------
+  - id: retransmission-dedup
+    send: {source: workflow-bus, file: fixtures/events/workflow_failed.json, mutate: {workflowId: WF-DUP-1}, amqp_message_id: msg-dup-1, repeat: 2}
+    expect:
+      ingest: {accepted: 1, duplicate: 1}
+      alert: {rule: settlements-wf-failed, occurrence_count_delta: 1}
+
+  - id: storm-500-one-alert
+    # 500 DIFFERENT failures of the same kind within a minute: 1 alert, count 500, paged once.
+    generate: {source: workflow-bus, file: fixtures/events/workflow_failed.json, count: 500, unique: workflowId, within_seconds: 60}
+    expect:
+      open_alerts_for_rule: {settlements-wf-failed: 1}
+      alert: {occurrence_count: 500}
+      notifications_count: {sam/phone: 1, sam/sms: 1}
+
+  # ---------- Unknown schema (Appendix A: judges bring a new one) ----------
+  - id: unknown-schema-visible
+    send: {source: generic-webhook, body: {kind: job.failed, ctx: {stage: prod, team: "settlements"}, msg: "nightly export failed", at: "2026-10-23T09:20:00Z"}}
+    expect:
+      event: {status: needs_review}
+      schema_issue: {listed: true, sample_fields_include: [kind, ctx.stage, msg]}
+      notifications: [{recipient: team:platform, channel: ui}]   # once per new schema, not per event
+
+  # ---------- Runbook actions & approval (2.6) ----------
+  - id: approval-required
+    after: settlements-positive
+    do: {execute_step: 2, actor: sam}
+    expect: {action_run: {state: pending_approval}}
+
+  - id: approval-wrong-person
+    after: approval-required
+    do: {approve: last, actor: rita}
+    expect: {http_status: 403}
+
+  - id: approval-ok
+    after: approval-required
+    do: {approve: last, actor: lee}
+    expect:
+      action_run: {state: succeeded}
+      audit_contains: [{action: action.approve, actor: lee}, {action: action.execute, actor: lee}]
+
+  # ---------- Delivery survives failure (2.3) ----------
+  - id: channel-down-no-loss
+    setup: {fake_telecom_mode: down}
+    send: {source: workflow-bus, file: fixtures/events/workflow_failed.json, mutate: {step: settle-cash, workflowId: WF-OUT-1}}
+    then: {wait_seconds: 20, fake_telecom_mode: ok, wait_until_delivered_seconds: 60}
+    expect:
+      notifications: [{recipient: sam, channel: sms, state: delivered, attempts_gte: 2}]
+      reconciliation: {lost: 0}

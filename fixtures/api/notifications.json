@@ -1,0 +1,56 @@
+{
+  "items": [
+    {
+      "id": "6f1c…a1",
+      "alert_id": 101,
+      "kind": "initial",
+      "recipient": "sam",
+      "channel": "phone",
+      "state": "delivered",
+      "attempts": 1,
+      "attempt_log": [
+        {
+          "attempt": 1,
+          "outcome": "delivered",
+          "latency_ms": 41
+        }
+      ]
+    },
+    {
+      "id": "6f1c…a2",
+      "alert_id": 101,
+      "kind": "initial",
+      "recipient": "sam",
+      "channel": "sms",
+      "state": "delivered",
+      "attempts": 3,
+      "attempt_log": [
+        {
+          "attempt": 1,
+          "outcome": "retryable",
+          "error": "503"
+        },
+        {
+          "attempt": 2,
+          "outcome": "retryable",
+          "error": "503"
+        },
+        {
+          "attempt": 3,
+          "outcome": "delivered",
+          "latency_ms": 38
+        }
+      ]
+    },
+    {
+      "id": "6f1c…a3",
+      "alert_id": 101,
+      "kind": "initial",
+      "recipient": "team:settlements",
+      "channel": "ui",
+      "state": "delivered",
+      "attempts": 1,
+      "attempt_log": []
+    }
+  ]
+}

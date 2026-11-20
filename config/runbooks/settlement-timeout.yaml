@@ -1,0 +1,15 @@
+runbook: settlement-timeout
+matches:
+  type: WORKFLOW_FAILED
+  "error.code": TIMEOUT
+steps:
+  - check: "Is counterparty-service healthy?"
+    action: http_get
+    url: "http://counterparty-service/health"
+  - action: retry_workflow
+    workflowId: "{{workflowId}}"
+    approval: none
+  - if: "retry fails twice"
+    action: escalate
+    team: counterparty-support
+    approval: required

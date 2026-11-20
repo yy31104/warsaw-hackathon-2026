@@ -1,0 +1,13 @@
+{
+  "type": "WORKFLOW_FAILED",
+  "workflowId": "WF-20261023-00042",
+  "workflowName": "order-settlement",
+  "step": "validate-counterparty",
+  "severity": "ERROR",
+  "environment": "prod",
+  "timestamp": "2026-10-23T09:14:02.331Z",
+  "error": {
+    "code": "TIMEOUT",
+    "message": "Counterparty service did not respond in 5000 ms"
+  }
+}

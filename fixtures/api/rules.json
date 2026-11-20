@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "id": "settlements-wf-failed",
+      "owner": "team:settlements",
+      "version": 1,
+      "origin": "file",
+      "enabled": true,
+      "plain_english": "When $schema = WORKFLOW_FAILED and workflowName = order-settlement and environment = prod, notify on-call of settlements by phone + SMS and team settlements in the UI.",
+      "matches_last_hour": 500
+    },
+    {
+      "id": "anna-payments-critical",
+      "owner": "user:anna",
+      "version": 2,
+      "origin": "ui",
+      "enabled": true,
+      "plain_english": "When $severity = critical and $service = payments-api, notify Anna using her preferences.",
+      "matches_last_hour": 1
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "window": "15m",
+  "raw": 10000,
+  "accepted": 9940,
+  "duplicates": 60,
+  "needs_review": 7,
+  "matched": 2480,
+  "alerts_open": 31,
+  "notifications": {
+    "delivered": 52,
+    "retrying": 2,
+    "failed": 0
+  },
+  "critical": 3,
+  "ingest_per_s": 412.5,
+  "processed_per_s": 409.8,
+  "backlog": 14,
+  "oldest_pending_s": 0.8
+}

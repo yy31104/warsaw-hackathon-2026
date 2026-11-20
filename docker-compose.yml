@@ -1,0 +1,48 @@
+# Owner: DATA. Infra only for now (G0). App services are added at G1 (api, workers, mocks, frontend)
+# so that `docker compose up` from a fresh clone runs the whole system for the judges.
+name: alertfunnel
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: alerting
+      POSTGRES_PASSWORD: alerting
+      POSTGRES_DB: alerting
+    command: ["postgres", "-c", "max_connections=200", "-c", "shared_buffers=256MB"]
+    ports: ["5432:5432"]
+    volumes:
+      - ./db/migrations:/docker-entrypoint-initdb.d:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alerting -d alerting"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    ports: ["5672:5672", "15672:15672"]   # UI: http://localhost:15672 (guest/guest)
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports: ["1025:1025", "8025:8025"]      # SMTP 1025, inbox UI http://localhost:8025
+
+  # --- added at G1 by their owners (keep the names; other services depend on them) ---
+  # fake-telecom:   DATA      port 8100   (SMS/phone gateway mock with a phone-like web UI)
+  # mock-ops:       DELIVERY  port 8200   network alias: counterparty-service (runbook targets)
+  # api:            shared    port 8000   uvicorn alerting.api.app:app
+  # ingest-amqp:    DATA      python -m alerting.ingest.amqp
+  # ingest-logtail: DATA      python -m alerting.ingest.logtail
+  # rule-worker:    RULES     python -m alerting.rules.worker --lane normal   (+ one --lane critical)
+  # scheduler:      RULES     python -m alerting.rules.scheduler              (digests, cooldown, escalations)
+  # delivery-worker: DELIVERY python -m alerting.delivery.worker
+  # frontend:       UI        port 5173
+
+volumes:
+  pgdata: {}

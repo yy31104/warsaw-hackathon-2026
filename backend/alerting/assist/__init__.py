@@ -1,0 +1,1 @@
+"""Owner: shared (each owner adds their own file). LLM assist functions. schema_suggest.py (DATA), runbook_structure.py (DELIVERY), rule_draft.py + fix_proposal.py (RULES). All use alerting.llm.structured() and return None-safe drafts."""

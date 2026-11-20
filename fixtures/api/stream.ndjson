@@ -1,0 +1,15 @@
+{"type": "alert.created", "data": {"id": 101, "team_id": "settlements", "ts": "2026-10-23T09:14:02.400Z", "title": "Settlement failed at validate-counterparty: TIMEOUT", "color": "red", "occurrence_count": 1}}
+{"type": "alert.updated", "data": {"id": 101, "team_id": "settlements", "ts": "2026-10-23T09:14:03.000Z", "occurrence_count": 2}}
+{"type": "alert.updated", "data": {"id": 101, "team_id": "settlements", "ts": "2026-10-23T09:14:04.000Z", "occurrence_count": 52}}
+{"type": "alert.updated", "data": {"id": 101, "team_id": "settlements", "ts": "2026-10-23T09:14:05.000Z", "occurrence_count": 102}}
+{"type": "alert.updated", "data": {"id": 101, "team_id": "settlements", "ts": "2026-10-23T09:14:06.000Z", "occurrence_count": 152}}
+{"type": "alert.updated", "data": {"id": 101, "team_id": "settlements", "ts": "2026-10-23T09:14:07.000Z", "occurrence_count": 202}}
+{"type": "alert.updated", "data": {"id": 101, "team_id": "settlements", "ts": "2026-10-23T09:14:08.000Z", "occurrence_count": 252}}
+{"type": "alert.updated", "data": {"id": 101, "team_id": "settlements", "ts": "2026-10-23T09:14:09.000Z", "occurrence_count": 302}}
+{"type": "alert.updated", "data": {"id": 101, "team_id": "settlements", "ts": "2026-10-23T09:14:10.000Z", "occurrence_count": 352}}
+{"type": "alert.updated", "data": {"id": 101, "team_id": "settlements", "ts": "2026-10-23T09:14:11.000Z", "occurrence_count": 402}}
+{"type": "alert.updated", "data": {"id": 101, "team_id": "settlements", "ts": "2026-10-23T09:14:12.000Z", "occurrence_count": 452}}
+{"type": "notification.updated", "data": {"id": "6f1c…a2", "alert_id": 101, "ts": "2026-10-23T09:14:05.010Z", "state": "delivered", "attempts": 3}}
+{"type": "action.updated", "data": {"id": 7, "alert_id": 101, "ts": "2026-10-23T09:18:00Z", "state": "pending_approval", "approvers": ["lee"]}}
+{"type": "schema.issue", "data": {"fingerprint": "at,ctx,kind,msg", "ts": "2026-10-23T09:20:00Z", "source_id": "generic-webhook"}}
+{"type": "stats.tick", "data": {"ts": "2026-10-23T09:20:02Z", "raw": 10000, "alerts_open": 31, "ingest_per_s": 412.5, "backlog": 14}}

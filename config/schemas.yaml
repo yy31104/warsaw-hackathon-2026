@@ -1,0 +1,59 @@
+# Schema registry. Detection runs in file order; first match wins.
+# No match -> event.status = needs_review, routed to the fallback team (docs/CONTRACT.md §3.6).
+# Templates use {{path}} over the raw (flattened) event.
+schemas:
+  - id: workflow
+    detect:
+      all:
+        - {field: type, op: exists}
+        - {field: workflowId, op: exists}
+    name: "{{type}}"                                  # -> $schema, e.g. WORKFLOW_FAILED
+    event_id: "{{workflowId}}|{{step}}|{{timestamp}}" # team-declared identity (not a blind hash)
+    aliases:
+      severity: severity
+      environment: environment
+      service: workflowName
+      time: timestamp
+    severity_map: {DEBUG: debug, INFO: info, WARN: warning, WARNING: warning, ERROR: error, FATAL: critical, CRITICAL: critical}
+    alert_key: "{{workflowName}}|{{step}}|{{error.code}}"
+
+  - id: alertmanager
+    detect:
+      all:
+        - {field: alertname, op: exists}
+        - {field: labels, op: exists}
+    name: "alertmanager"
+    event_id: "{{alertname}}|{{labels.service}}|{{labels.region}}|{{startsAt}}|{{status}}"
+    aliases:
+      severity: labels.severity
+      service: labels.service
+      environment: labels.env
+      time: startsAt
+    severity_map: {info: info, warning: warning, critical: critical, page: critical}
+    alert_key: "{{alertname}}|{{labels.service}}|{{labels.region}}"
+    resolve_when: {field: status, op: eq, value: resolved}
+
+  - id: business-envelope
+    detect:
+      all:
+        - {field: meta.schema, op: exists}
+        - {field: payload, op: exists}
+    name: "{{meta.schema}}"                           # -> trade.rejected.v2
+    event_id: "{{meta.schema}}|{{payload.tradeId}}|{{meta.ts}}"
+    aliases:
+      service: meta.producer
+      time: meta.ts
+    time_format: epoch_ms
+    severity_default: warning
+
+  - id: pricing-log
+    detect:
+      all:
+        - {field: $source, op: eq, value: pricing-logs}
+    name: "log.pricing"
+    # no event_id: every log line is a distinct occurrence (docs/CONTRACT.md §2)
+    aliases:
+      severity: level
+      service: instance
+      time: timestamp
+    severity_map: {DEBUG: debug, INFO: info, WARN: warning, ERROR: error, FATAL: critical}

@@ -1,0 +1,20 @@
+# Runbook index. Each runbook keeps its original text; format is declared or detected.
+# Attach by `rules: [...]`, by `matches:` (rule DSL or a flat {path: value} map = all-equal),
+# or by matches declared inside a yaml-steps runbook itself.
+runbooks:
+  - id: settlement-timeout
+    file: settlement-timeout.yaml
+    format: yaml-steps            # its own `matches:` block is used
+
+  - id: payments-high-error-rate
+    file: payments-high-error-rate.md
+    format: markdown
+    matches:
+      all:
+        - {field: alertname, op: eq, value: HighErrorRate}
+        - {field: $service, op: eq, value: payments-api}
+
+  - id: pricing-latency
+    file: pricing-latency.txt
+    format: text
+    rules: [pricing-warn-logs]

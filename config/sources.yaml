@@ -1,0 +1,38 @@
+# Registered sources. Hot-reloaded (see docs/CONTRACT.md §4).
+# API keys below are demo placeholders for the local stack only.
+sources:
+  - id: workflow-bus
+    transport: rabbitmq
+    queue: events.workflow
+    description: Workflow engine events (flat JSON envelope)
+
+  - id: trade-bus
+    transport: rabbitmq
+    queue: events.trade
+    description: Business events from trade-gateway (meta/payload envelope)
+
+  - id: alertmanager
+    transport: http
+    api_key: demo-alertmanager-key
+    # Real Alertmanager wraps alerts in {"alerts": [...]}. Accept both shapes:
+    split_path: alerts          # if present, each element becomes one event
+    description: Prometheus Alertmanager webhook
+
+  - id: pricing-logs
+    transport: logfile
+    path: /data/logs/pricing-engine.log
+    parser:
+      type: regex
+      pattern: '^(?P<timestamp>\S+)\s+(?P<level>[A-Z]+)\s+(?P<instance>\S+)\s+(?P<kv>.*)$'
+      kv_group: kv              # logfmt pairs inside this group become fields
+    description: Tailed pricing-engine log file
+
+  - id: generic-webhook
+    transport: http
+    api_key: demo-generic-key
+    description: Catch-all HTTP source for new teams (judge's unseen schema goes here)
+
+  - id: generic-bus
+    transport: rabbitmq
+    queue: events.generic
+    description: Catch-all broker queue for new teams

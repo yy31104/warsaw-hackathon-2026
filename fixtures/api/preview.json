@@ -1,0 +1,23 @@
+{
+  "rule_id": "pricing-warn-logs",
+  "events_replayed": 2000,
+  "starts_from_empty_state": true,
+  "current": {
+    "alerts": 40,
+    "notifications": {
+      "team:pricing/ui": 40
+    }
+  },
+  "draft": {
+    "alerts": 8,
+    "notifications": {
+      "team:pricing/ui": 8
+    }
+  },
+  "lost_all_notifications": [],
+  "new_recipients": [],
+  "sample_event_ids": [
+    9001,
+    9002
+  ]
+}

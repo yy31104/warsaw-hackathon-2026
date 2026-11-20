@@ -1,0 +1,7 @@
+2026-10-23T09:14:01.002Z INFO  pricing-engine-1 instrument=EURUSD latency_ms=120 msg="quote published"
+2026-10-23T09:14:02.331Z WARN  pricing-engine-2 instrument=EURUSD latency_ms=1450 msg="price latency above 1s"
+2026-10-23T09:14:03.010Z WARN  pricing-engine-2 instrument=EURUSD latency_ms=1610 msg="price latency above 1s"
+2026-10-23T09:14:03.500Z ERROR pricing-engine-1 instrument=USDJPY latency_ms=5000 msg="cache miss storm"
+2026-10-23T09:14:04.000Z INFO  pricing-engine-3 instrument=GBPUSD latency_ms=90 msg="quote published"
+2026-10-23T09:14:05.120Z WARN  pricing-engine-2 instrument=EURUSD latency_ms=1300 msg="price latency above 1s"
+2026-10-23T09:14:05.900Z WARN  risk-engine-1 instrument=EURUSD latency_ms=1300 msg="not a pricing engine"

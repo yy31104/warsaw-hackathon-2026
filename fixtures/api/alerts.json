@@ -1,0 +1,150 @@
+{
+  "items": [
+    {
+      "id": 101,
+      "rule_id": "settlements-wf-failed",
+      "rule_version": 1,
+      "alert_key": "order-settlement|validate-counterparty|TIMEOUT",
+      "status": "open",
+      "severity": "error",
+      "priority": "P1",
+      "score": 78.0,
+      "score_breakdown": {
+        "severity": 35,
+        "environment": 25,
+        "impact": 0,
+        "frequency": 18
+      },
+      "lane": "critical",
+      "team_id": "settlements",
+      "title": "Settlement failed at validate-counterparty: TIMEOUT",
+      "body": "Counterparty service did not respond in 5000 ms (workflow WF-20261023-00042)",
+      "color": "red",
+      "fields": {
+        "step": "validate-counterparty",
+        "error.message": "Counterparty service did not respond in 5000 ms"
+      },
+      "group_values": {
+        "workflowName": "order-settlement",
+        "step": "validate-counterparty",
+        "error.code": "TIMEOUT"
+      },
+      "runbook_id": "settlement-timeout",
+      "occurrence_count": 500,
+      "first_seen_at": "2026-10-23T09:14:02.331Z",
+      "last_seen_at": "2026-10-23T09:15:01.904Z",
+      "acked_by": null,
+      "acked_at": null,
+      "resolved_by": null,
+      "resolved_at": null
+    },
+    {
+      "id": 102,
+      "rule_id": "rates-big-rejects",
+      "rule_version": 1,
+      "alert_key": "T-998877",
+      "status": "open",
+      "severity": "warning",
+      "priority": "P2",
+      "score": 45.0,
+      "score_breakdown": {
+        "severity": 35,
+        "environment": 25,
+        "impact": 0,
+        "frequency": 18
+      },
+      "lane": "normal",
+      "team_id": "rates",
+      "title": "Rejected EUR 25000000 — LIMIT_BREACH",
+      "body": "",
+      "color": "orange",
+      "fields": {
+        "payload.tradeId": "T-998877",
+        "payload.desk": "rates",
+        "payload.notional": 25000000,
+        "payload.currency": "EUR",
+        "payload.reason": "LIMIT_BREACH"
+      },
+      "group_values": {
+        "payload.tradeId": "T-998877"
+      },
+      "runbook_id": null,
+      "occurrence_count": 1,
+      "first_seen_at": "2026-10-23T09:14:02.331Z",
+      "last_seen_at": "2026-10-23T09:15:01.904Z",
+      "acked_by": null,
+      "acked_at": null,
+      "resolved_by": null,
+      "resolved_at": null
+    },
+    {
+      "id": 103,
+      "rule_id": "pricing-warn-logs",
+      "rule_version": 1,
+      "alert_key": "EURUSD",
+      "status": "open",
+      "severity": "warning",
+      "priority": "P3",
+      "score": 37.0,
+      "score_breakdown": {
+        "severity": 35,
+        "environment": 25,
+        "impact": 0,
+        "frequency": 18
+      },
+      "lane": "normal",
+      "team_id": "pricing",
+      "title": "Pricing EURUSD: price latency above 1s",
+      "body": "",
+      "color": "amber",
+      "fields": {
+        "instance": "pricing-engine-2",
+        "instrument": "EURUSD",
+        "latency_ms": 1300
+      },
+      "group_values": {
+        "instrument": "EURUSD"
+      },
+      "runbook_id": "pricing-latency",
+      "occurrence_count": 3,
+      "first_seen_at": "2026-10-23T09:14:02.331Z",
+      "last_seen_at": "2026-10-23T09:15:01.904Z",
+      "acked_by": null,
+      "acked_at": null,
+      "resolved_by": null,
+      "resolved_at": null
+    },
+    {
+      "id": 104,
+      "rule_id": "system:needs-review",
+      "rule_version": 1,
+      "alert_key": "at,ctx,kind,msg",
+      "status": "open",
+      "severity": "unknown",
+      "priority": null,
+      "score": null,
+      "score_breakdown": {
+        "severity": 35,
+        "environment": 25,
+        "impact": 0,
+        "frequency": 18
+      },
+      "lane": "normal",
+      "team_id": "platform",
+      "title": "New event format from generic-webhook needs review",
+      "body": "Fields: kind, ctx.stage, ctx.team, msg, at",
+      "color": "grey",
+      "fields": {},
+      "group_values": {},
+      "runbook_id": null,
+      "occurrence_count": 1,
+      "first_seen_at": "2026-10-23T09:14:02.331Z",
+      "last_seen_at": "2026-10-23T09:15:01.904Z",
+      "acked_by": null,
+      "acked_at": null,
+      "resolved_by": null,
+      "resolved_at": null
+    }
+  ],
+  "total": 4
+}

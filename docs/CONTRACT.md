@@ -1,0 +1,149 @@
+# Shared Contract
+
+The one page everyone codes against. Python types live in `backend/alerting/contracts.py`; the DB in `db/migrations/001_init.sql`. Change this file only through a PR that pings the whole team (BRIEF §7).
+
+## 1. Glossary
+
+| Term | Meaning |
+|---|---|
+| **event** | One message received from a source (one JSON body, one AMQP message, one log line, or one element of a `split_path` array) |
+| **occurrence** | An accepted, non-duplicate event that matched a rule and was counted on an alert |
+| **alert** | One open problem = (rule, alert_key). Has a counter, first/last seen, status `open → acknowledged → resolved` |
+| **notification** | One logical message to one recipient on one channel (outbox row). Can have many **attempts** |
+| **action run** | One execution request of a runbook step (may wait for approval) |
+
+## 2. The three identities
+
+| Identity | Built from | Used for | Storage |
+|---|---|---|---|
+| **Event identity** `source_event_id` | 1) HTTP `Idempotency-Key` header or AMQP `message_id`; else 2) the schema's `event_id` template (team-declared, e.g. `{{workflowId}}\|{{step}}\|{{timestamp}}`); else 3) **none** (every message is a new occurrence) | Drop retransmissions. Same id + different `payload_hash` → `CONFLICT` (recorded, not overwritten) | `unique(source_id, source_event_id) where not null` |
+| **Alert key** | `rule.group.by` values; else the schema's `alert_key` template; else `$schema\|$service\|$severity` | Count real occurrences. 500 failures = 1 alert, `occurrence_count = 500` | `unique(rule_id, alert_key) where status <> 'resolved'` |
+| **Notification id** | UUID per (alert, kind, recipient, channel, epoch) via `dedup_key` | Retries reuse it. Sent to providers as `Idempotency-Key` / `X-Notification-Id` | `notifications.id`, `unique(dedup_key)` |
+
+We never claim a payload hash perfectly separates retransmission from a genuine repeat. Hash-based dedup is opt-in per source (`dedup: payload_hash`) and labelled "heuristic" in the UI.
+
+## 3. Canonical event and field references
+
+### 3.1 Stored event (table `events`, model `CanonicalEvent`)
+`id, source_id, transport(http|rabbitmq|logfile), source_event_id?, payload_hash, schema_id?, schema_version?, schema_name?, severity, service?, environment?, occurred_at?, received_at, raw (jsonb, redacted), fields (jsonb, flattened + aliases), lane(critical|normal), status(pending|processed|needs_review|rejected), trace (jsonb)`.
+
+### 3.2 Flattening
+Nested objects become dotted paths (`error.code`, `labels.service`, `payload.notional`). Arrays use indices (`items.0.id`); the whole array is also kept under its own path. Values keep their JSON types. Limits: body ≤ 256 KB, depth ≤ 20, ≤ 2,000 paths, otherwise `REJECTED` with a reason.
+
+### 3.3 Aliases (prefixed `$`, computed at ingest)
+`$source`, `$transport`, `$schema` (rendered `schema.name`), `$severity` (normalised), `$service`, `$environment`, `$time`. Rules may use raw paths **or** aliases.
+
+### 3.4 Severity
+Normalised enum `debug < info < warning < error < critical`, plus `unknown` (not comparable: `gte` on unknown is false). Mapping comes from the schema's `severity_map` (case-sensitive keys, then case-insensitive fallback); otherwise `severity_default`; otherwise `unknown`.
+
+### 3.5 Templates
+`{{path}}` over flattened fields and aliases (`{{payload.currency}}`, `{{$service}}`). A missing or null value renders as `‹missing: path›`. Substitution only, no expressions or code.
+
+### 3.6 Unknown schema
+If no `detect` matches: `status = needs_review`, the event is stored and counted, a `schema_issue` is recorded (keyed by the sorted set of top-level keys = the schema fingerprint), and **one** UI notification per new fingerprint goes to `fallback_team`. When a schema is saved, its pending events are re-processed.
+
+## 4. Config formats (files in `config/`, versioned in table `config_objects`)
+
+Kinds: `source`, `schema`, `rule`, `team`, `user`, `runbook`, plus singletons `fallback_team` and `default_preferences`. Each change creates a new version and triggers `NOTIFY config_changed '<kind>:<id>'`. **One origin per object:** objects that come from files are read-only in the UI (`origin = file`). UI/API objects have `origin = ui`.
+
+- **sources.yaml**: `id, transport, queue? | path? + parser? | api_key?, split_path?, dedup?(payload_hash)`.
+- **schemas.yaml**: `id, detect (rule DSL), name (template), event_id?, aliases{severity,service,environment,time}, severity_map?, severity_default?, time_format?(iso|epoch_ms|epoch_s), alert_key?, resolve_when? (DSL)`.
+- **rules.yaml**: see §5.
+- **teams.yaml**: `fallback_team, default_preferences[], teams[{id, members, oncall{primary, secondary?}, approvers[]}], users[{id, timezone, contacts{email,sms,phone}, preferences[]?}]`. Preference row: `{when?: "HH:MM-HH:MM" (user tz, [start,end)), min_severity, channels[]}`. The first matching row wins. If no user row matches, `default_preferences` applies. **A critical alert always gets at least one channel.**
+- **runbooks/runbooks.yaml**: `id, file, format (yaml-steps|markdown|checklist|text|url), rules[]?, matches?`. `matches` accepts the rule DSL **or** a flat `{path: value}` map (all-equal), which is the Appendix B YAML style.
+
+## 5. Rules
+
+```yaml
+id: string
+owner: "team:<id>" | "user:<id>"
+enabled: true
+description: plain English (UI shows it; generated if missing)
+match: <DSL>
+route: [{to: "user:<id>"|"team:<id>"|"oncall:<team>", channels: [email|sms|phone|ui] | preferences}]
+present: {title: tmpl, body: tmpl, fields: [paths], color: red|orange|amber|blue|grey}
+group: {by: [paths]?, mode: immediate|digest, cooldown: 10m, every: 5m, renotify_on_severity_increase: true}
+throttle: {per_recipient: 5, per: 10m}          # optional; overflow → one "N more alerts" message
+priority: P1..P4                                 # optional override; else from severity/score
+```
+
+**DSL:** `{all: [...]}`, `{any: [...]}`, `{not: {...}}`, leaf `{field, op, value?}`. Ops: `eq neq in not_in gt gte lt lte glob regex contains exists not_exists`. Numbers compare numerically (strings that parse as numbers are coerced). `gte/lte` on `$severity` use severity order. `regex` uses Python `re` on values ≤ 4 KB with a pre-compiled pattern ≤ 200 chars.
+
+**Semantics:** an event is evaluated against **all** enabled rules (a rule match is not exclusive). For each match, upsert the alert by key: a new alert gives transition `created`, an existing one gives `occurrence` (count += 1). In `immediate` mode, notify on `created`, on `severity_increased`, and after `cooldown` has passed since the last notification. In `digest` mode, notify on `digest_due` every `every` with the count since the last digest. Matching no rule gives `NO_MATCH` (visible in explain, and counted as "unrouted" if severity ≥ error). An event matching a schema's `resolve_when` resolves the open alert(s) with the same alert key (`resolved_by = system`).
+
+**Decision outcomes** (`decisions.outcome`, enum `Outcome`): `ACCEPTED DUPLICATE CONFLICT REJECTED NEEDS_REVIEW NO_MATCH NEW_ALERT EXISTING_ALERT SUPPRESSED_COOLDOWN SUPPRESSED_THROTTLE DIGEST_QUEUED NOTIFIED UNROUTED RESOLVED`.
+
+## 6. Module interfaces (Python, see `contracts.py`)
+
+```python
+# RULES — pure, no I/O. Used by rule-worker AND by the simulator.
+rules.engine.evaluate(event: CanonicalEvent, ruleset: Ruleset, state: AlertStateView, clock: Clock) -> Evaluation
+#   Evaluation = decisions[] + alert_ops[] (upsert/increment/resolve with transition)
+
+# DELIVERY — pure, no I/O. Called by rule-worker INSIDE its transaction.
+routing.plan(alert: AlertSnapshot, transition: Transition, rule: dict, event_fields: dict,
+             directory: dict, runbooks: list[dict], recent_sends: dict, clock: Clock) -> Plan
+#   Plan = intents[] + runbook_id (DELIVERY picks the runbook; the worker stores it on the alert)
+#   recent_sends[(recipient, channel)] = count in the throttle window (queried by the worker)
+
+# SHARED — templates (backend/alerting/templates.py): render(template, fields) with ‹missing: path›
+# SHARED — config files (backend/alerting/config/files.py): sources() schemas() rules() directory() runbooks()
+#          DATA later adds alerting/config/loader.py (DB-versioned, hot reload) with the same function names.
+
+# DELIVERY — providers (one class per channel; a real provider = one new class)
+class ChannelProvider(Protocol):
+    channel: Channel
+    async def send(self, msg: RenderedMessage, contact: str, idempotency_key: str) -> SendResult
+
+# DELIVERY — runbook actions (one class per action; new action = one file + registry entry)
+class Action(Protocol):
+    name: str; default_approval: Literal["none","required"]; params_schema: dict
+    async def execute(self, params: dict, ctx: ActionContext) -> ActionResult
+
+# SHARED — LLM helper (backend/alerting/llm.py). Returns None on timeout/error/refusal → caller falls back.
+await llm.structured(OutputModel, system=..., user=..., timeout_s=20) -> OutputModel | None
+```
+
+The rule-worker transaction, in order: claim a batch of events (`FOR UPDATE SKIP LOCKED`, lane-filtered) → evaluate → pre-aggregate per alert key → upsert alerts → `routing.plan()` → insert notifications (`ON CONFLICT (dedup_key) DO NOTHING`) → insert decisions → mark events processed → `NOTIFY alerts '<alert_id>'` → COMMIT.
+
+## 7. Database (owner of `001_init.sql`: shared, merged by Yi)
+
+Tables: `config_objects, events, ingest_rejections, schema_issues, decisions, alerts, alert_occurrences (sampled, last 50 per alert), notifications, delivery_attempts, action_runs, audit_log, rule_proposals`. See the SQL file for columns. New tables or columns go in your migration range (`0xx` DATA, `1xx` RULES, `2xx` DELIVERY).
+
+## 8. Channels and delivery
+
+`email` (SMTP → Mailpit, `X-Notification-Id` and `X-Gen-Sent-At` headers), `sms` and `phone` (HTTP → fake-telecom `POST /sms`, `POST /call`), `ui` (delivered on insert; the feed is the UI channel). Rendering per channel: `title`, `body`, `short` (≤ 160 chars: title + short link `http://localhost:5173/a/<id>`), `color`, `fields`, `runbook_excerpt` (email/UI full; SMS link only; phone reads `short` + "press 1 to acknowledge").
+Delivery states: `pending → sending → delivered | retrying | unknown | failed | fallback | cancelled`. A timeout after sending is `unknown`, retried with the **same** notification id. Backoff is `min(60s, 2^n s) ± 20 % jitter`, honouring `retry_after`. Max 8 attempts or 15 min → `failed` (visible), or `fallback` if a fallback channel is configured.
+
+## 9. HTTP API (prefix `/v1`; owner in brackets)
+
+| Method & path | Purpose | Owner |
+|---|---|---|
+| `POST /events/{source_id}` | Body = one object or array. Headers: `X-Api-Key`, optional `Idempotency-Key`, `X-Gen-Sent-At` (epoch ms), `X-Demo-Clock`. → `202 {accepted, duplicates, conflicts, rejected:[{index, reason}], event_ids}` | DATA |
+| `GET /events/{id}` · `GET /events/{id}/explain` | Raw + fields; decision trace (schema detection, each rule's match trace, alert op, notifications planned) | DATA · RULES |
+| `GET /sources` · `GET/POST /schemas` · `GET /schema-issues` · `POST /schemas/suggest {sample}` | Registry and onboarding (`suggest` = heuristic + LLM, returns a draft) | DATA |
+| `GET/POST /rules` · `PUT /rules/{id}` · `POST /rules/test {rule, event}` · `POST /rules/{id}/preview {draft, last_n}` · `POST /rules/draft {text}` · `GET/POST /proposals` · `POST /proposals/{id}/approve` | Rule CRUD (new version on write), match trace, simulator diff, NL draft, propose-fix flow | RULES |
+| `GET /alerts?team=&status=&q=` · `GET /alerts/{id}` · `POST /alerts/{id}/ack` · `POST /alerts/{id}/resolve` | Feed and detail (incl. occurrences sample, score breakdown, timeline) | RULES |
+| `GET /alerts/{id}/notifications` · `GET /notifications?state=` | Delivery state + attempts | DELIVERY |
+| `GET /runbooks` · `POST /runbooks` (any format) · `GET /alerts/{id}/runbook` (rendered steps) · `POST /runbooks/structure {text}` (LLM) | Runbooks | DELIVERY |
+| `POST /alerts/{id}/actions {step_index}` · `POST /action-runs/{id}/approve` · `POST /action-runs/{id}/reject` · `POST /inbound/{channel} {from, body}` | Execute, approve (UI or reply), audit | DELIVERY |
+| `GET/PUT /teams` · `GET/PUT /users/{id}/preferences` | Directory and preferences | DELIVERY |
+| `GET /stream?team=` (SSE) | Live events, §10 | DATA |
+| `GET /stats/funnel?window=15m` · `GET /health` · `GET /metrics` (Prometheus text) · `POST /debug/reset` (DEMO_MODE) | Dashboard + ops | DATA |
+
+Actor identity (demo-grade): header `X-User: <user id>` on mutating calls, checked against `approvers` / team membership. Write it in the README as "simulated auth".
+
+## 10. SSE events (`GET /v1/stream`)
+
+`event: <type>`, `data: <json>`. Types: `alert.created`, `alert.updated` (count/status/severity/score), `notification.updated` (state, attempts), `action.updated` (state, approver), `schema.issue`, `config.changed`, `stats.tick` (every 2 s, funnel numbers). Each payload carries `{id, team_id?, ts}` plus the changed fields. The UI re-fetches the detail on demand. Implementation: workers `NOTIFY <channel>, '<json>'` after commit; the API `LISTEN`s and fans out (works with several API instances).
+
+## 11. LLM usage (shared helper `backend/alerting/llm.py`)
+
+- Model `claude-opus-5-5` via the official `anthropic` SDK, `messages.parse(output_format=PydanticModel)` (structured output, validated). 20 s timeout, 1 retry.
+- **Never on the alert path.** Only onboarding, runbook structuring, rule drafts, fix proposals and summaries. On `None` (timeout/error/refusal) the endpoint returns the deterministic suggestion with `"source": "heuristic"`.
+- **Before sending:** redact emails, phone numbers, card-like digit runs, `Bearer`/`token=`/`password=` values, and truncate samples to 8 KB. Send at most 3 samples. Cache by schema fingerprint or text hash.
+- Every suggestion is a **draft**: a human confirms in the UI before it becomes config (audit: `actor`, `source: llm|heuristic`).
+
+## 12. Measurement hooks (for the load test; everyone must carry these through)
+
+`X-Gen-Sent-At` (HTTP) / AMQP header `x-gen-sent-at` → `events.trace.gen_sent_at`, plus `trace.received_at`, `trace.processed_at` → copied into `notifications.rendered.meta.gen_sent_at` → sent as the `X-Gen-Sent-At` header to fake-telecom / in email headers → the receivers record `received_at`. E2E latency = receiver time − gen_sent_at.

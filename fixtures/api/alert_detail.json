@@ -1,0 +1,102 @@
+{
+  "id": 101,
+  "rule_id": "settlements-wf-failed",
+  "rule_version": 1,
+  "alert_key": "order-settlement|validate-counterparty|TIMEOUT",
+  "status": "open",
+  "severity": "error",
+  "priority": "P1",
+  "score": 78.0,
+  "score_breakdown": {
+    "severity": 35,
+    "environment": 25,
+    "impact": 0,
+    "frequency": 18
+  },
+  "lane": "critical",
+  "team_id": "settlements",
+  "title": "Settlement failed at validate-counterparty: TIMEOUT",
+  "body": "Counterparty service did not respond in 5000 ms (workflow WF-20261023-00042)",
+  "color": "red",
+  "fields": {
+    "step": "validate-counterparty",
+    "error.message": "Counterparty service did not respond in 5000 ms"
+  },
+  "group_values": {
+    "workflowName": "order-settlement",
+    "step": "validate-counterparty",
+    "error.code": "TIMEOUT"
+  },
+  "runbook_id": "settlement-timeout",
+  "occurrence_count": 500,
+  "first_seen_at": "2026-10-23T09:14:02.331Z",
+  "last_seen_at": "2026-10-23T09:15:01.904Z",
+  "acked_by": null,
+  "acked_at": null,
+  "resolved_by": null,
+  "resolved_at": null,
+  "occurrences": [
+    {
+      "event_id": 9000,
+      "seen_at": "2026-10-23T09:14:02.000Z",
+      "fields": {
+        "workflowId": "WF-20261023-00042"
+      }
+    },
+    {
+      "event_id": 9001,
+      "seen_at": "2026-10-23T09:14:03.000Z",
+      "fields": {
+        "workflowId": "WF-20261023-00043"
+      }
+    },
+    {
+      "event_id": 9002,
+      "seen_at": "2026-10-23T09:14:04.000Z",
+      "fields": {
+        "workflowId": "WF-20261023-00044"
+      }
+    },
+    {
+      "event_id": 9003,
+      "seen_at": "2026-10-23T09:14:05.000Z",
+      "fields": {
+        "workflowId": "WF-20261023-00045"
+      }
+    },
+    {
+      "event_id": 9004,
+      "seen_at": "2026-10-23T09:14:06.000Z",
+      "fields": {
+        "workflowId": "WF-20261023-00046"
+      }
+    }
+  ],
+  "timeline": [
+    {
+      "ts": "2026-10-23T09:14:02.400Z",
+      "kind": "decision",
+      "text": "Rule settlements-wf-failed v1 matched (3/3 conditions) → NEW_ALERT"
+    },
+    {
+      "ts": "2026-10-23T09:14:02.420Z",
+      "kind": "notification",
+      "text": "phone → sam: delivered (attempt 1)"
+    },
+    {
+      "ts": "2026-10-23T09:14:02.430Z",
+      "kind": "notification",
+      "text": "sms → sam: retrying (attempt 2, gateway 503)"
+    },
+    {
+      "ts": "2026-10-23T09:14:05.010Z",
+      "kind": "notification",
+      "text": "sms → sam: delivered (attempt 3)"
+    },
+    {
+      "ts": "2026-10-23T09:16:00.000Z",
+      "kind": "audit",
+      "text": "sam acknowledged"
+    }
+  ]
+}

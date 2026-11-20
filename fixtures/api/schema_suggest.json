@@ -1,0 +1,30 @@
+{
+  "source": "llm",
+  "draft": {
+    "id": "job-events",
+    "detect": {
+      "all": [
+        {
+          "field": "kind",
+          "op": "exists"
+        },
+        {
+          "field": "ctx",
+          "op": "exists"
+        }
+      ]
+    },
+    "name": "{{kind}}",
+    "aliases": {
+      "environment": "ctx.stage",
+      "time": "at"
+    },
+    "severity_default": "error",
+    "alert_key": "{{kind}}|{{ctx.team}}"
+  },
+  "rationale": {
+    "environment": "ctx.stage holds 'prod' (stage≈environment)",
+    "time": "ISO-8601 timestamp in 'at'",
+    "severity_default": "no severity field; 'failed' suggests error"
+  }
+}

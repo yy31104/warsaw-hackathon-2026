@@ -1,0 +1,78 @@
+# Teams, people, on-call and channel preferences. Hot-reloaded.
+# Contacts are fake (example.com, 555-01xx). Delivery goes to Mailpit / fake-telecom only.
+fallback_team: platform          # receives needs_review / unrouted signals in the UI
+
+default_preferences:             # task 2.3 example: critical -> phone + SMS; warning -> email; info -> UI only
+  - {min_severity: critical, channels: [phone, sms]}
+  - {min_severity: error, channels: [sms]}
+  - {min_severity: warning, channels: [email]}
+  - {min_severity: info, channels: [ui]}
+
+teams:
+  - id: settlements
+    name: Team Settlements
+    members: [sam, lee]
+    oncall: {primary: sam, secondary: lee}
+    approvers: [lee]
+  - id: pricing
+    name: Team Pricing
+    members: [pat]
+    oncall: {primary: pat}
+    approvers: [pat]
+  - id: rates
+    name: Team Rates
+    members: [rita]
+    oncall: {primary: rita}
+    approvers: [rita]
+  - id: counterparty-support
+    name: Counterparty Support
+    members: [cara]
+    oncall: {primary: cara}
+    approvers: [cara]
+  - id: payments
+    name: Payments
+    members: [anna, paul]
+    oncall: {primary: paul}
+    approvers: [paul]            # "needs approval from the team lead" (Appendix B markdown runbook)
+  - id: platform
+    name: Platform (fallback owner)
+    members: [ops]
+    oncall: {primary: ops}
+    approvers: [ops]
+
+users:
+  - id: anna
+    name: Anna
+    timezone: Europe/Warsaw
+    contacts: {email: anna@example.com, sms: "+15550100001", phone: "+15550100001"}
+    preferences:
+      - {when: "08:00-20:00", min_severity: critical, channels: [sms]}
+      - {min_severity: critical, channels: [email]}
+  - id: sam
+    name: Sam (settlements on-call)
+    timezone: Europe/Warsaw
+    contacts: {email: sam@example.com, sms: "+15550100002", phone: "+15550100002"}
+  - id: lee
+    name: Lee (settlements lead)
+    timezone: Europe/Warsaw
+    contacts: {email: lee@example.com, sms: "+15550100003", phone: "+15550100003"}
+  - id: pat
+    name: Pat (pricing)
+    timezone: Europe/Warsaw
+    contacts: {email: pat@example.com, sms: "+15550100004", phone: "+15550100004"}
+  - id: rita
+    name: Rita (rates)
+    timezone: Europe/Warsaw
+    contacts: {email: rita@example.com, sms: "+15550100005", phone: "+15550100005"}
+  - id: cara
+    name: Cara (counterparty support)
+    timezone: Europe/Warsaw
+    contacts: {email: cara@example.com, sms: "+15550100006", phone: "+15550100006"}
+  - id: paul
+    name: Paul (payments lead)
+    timezone: Europe/Warsaw
+    contacts: {email: paul@example.com, sms: "+15550100007", phone: "+15550100007"}
+  - id: ops
+    name: Ops (platform)
+    timezone: Europe/Warsaw
+    contacts: {email: ops@example.com, sms: "+15550100008", phone: "+15550100008"}
