@@ -81,7 +81,8 @@ async def request_run(cur, alert, step, actor, settings):
         await cur.execute(
             """insert into action_runs(alert_id,runbook_id,step_index,action,params,approval,
             state,approval_code,approval_expires_at,requested_by,resolves_alert)
-            values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) on conflict do nothing returning *""",
+            values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            on conflict(approval_code) where state='pending_approval' do nothing returning *""",
             (
                 alert["id"],
                 alert["runbook_id"],

@@ -1,5 +1,6 @@
 """Replay the published cases at the canonical-event boundary."""
 
+import hashlib
 import json
 import re
 from collections import Counter
@@ -28,19 +29,48 @@ def merge(raw, changes):
             raw[k] = v
 
 
-def make_event(raw, schema_id):
+def fixture_fields(raw):
+    """Build the fixture projection at the inbox boundary while DEV2's normaliser is pending."""
+    fields = {}
+
+    def visit(path, value):
+        if isinstance(value, dict):
+            for key, child in value.items():
+                visit(f"{path}.{key}" if path else key, child)
+        else:
+            fields[path] = value
+            if isinstance(value, list):
+                for index, child in enumerate(value):
+                    visit(f"{path}.{index}", child)
+
+    visit("", raw)
+    return fields
+
+
+def make_event(raw, schema_id, source_id):
     schema = next(s for s in files.schemas() if s["id"] == schema_id)
-    fields = dict(raw)
+    source = next(s for s in files.sources() if s["id"] == source_id)
+    fields = fixture_fields(raw)
+    fields.update({"$source": source_id, "$transport": source["transport"]})
     for alias, path in schema.get("aliases", {}).items():
         fields["$" + alias] = lookup(raw, path)
-    severity = str(fields.get("$severity") or schema.get("severity_default", "unknown"))
-    fields["$severity"] = schema.get("severity_map", {}).get(severity, severity)
+    severity = str(fields.get("$severity") or "")
+    mapping = schema.get("severity_map", {})
+    folded = {str(k).casefold(): v for k, v in mapping.items()}
+    fields["$severity"] = mapping.get(
+        severity, folded.get(severity.casefold(), schema.get("severity_default", "unknown"))
+    )
     fields["$schema"] = render(schema["name"], fields)
     return CanonicalEvent(
         id=1,
-        source_id="sample",
-        transport="http",
-        payload_hash="hash",
+        source_id=source_id,
+        transport=source["transport"],
+        service=fields.get("$service"),
+        environment=fields.get("$environment"),
+        payload_hash=hashlib.sha256(
+            json.dumps(raw, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest(),
+        source_event_id=render(schema["event_id"], fields) if "event_id" in schema else None,
         received_at=START.now(),
         schema_id=schema_id,
         schema_name=fields["$schema"],
@@ -68,6 +98,7 @@ def case_event(case):
             "trade-bus": "business-envelope",
             "alertmanager": "alertmanager",
         }[send["source"]],
+        send["source"],
     )
 
 
@@ -96,7 +127,9 @@ def test_pricing_digest():
         _, level, instance, rest = line.split(maxsplit=3)
         instrument = re.search("instrument=(\\w+)", rest)[1]
         event = make_event(
-            dict(level=level, instance=instance, instrument=instrument), "pricing-log"
+            dict(level=level, instance=instance, instrument=instrument),
+            "pricing-log",
+            "pricing-logs",
         )
         for op in evaluate(event, RULESET, {}, START).alert_ops:
             assert not op.notify

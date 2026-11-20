@@ -14,7 +14,7 @@ from alerting.clock import SYSTEM
 from alerting.contracts import RenderedMessage
 from alerting.db import close_pool, open_pool, pool
 from alerting.delivery.providers import registry
-from alerting.rules.storage import emit
+from alerting.rules.storage import close_settings, emit
 
 
 def exhausted(row, now):
@@ -176,6 +176,7 @@ async def main(channels):
                 if not await deliver_one(pool(), providers, channels):
                     await asyncio.sleep(0.15)
     finally:
+        await close_settings(pool())
         await close_pool()
 
 

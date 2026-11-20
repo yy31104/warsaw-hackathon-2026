@@ -12,9 +12,11 @@
         {
           "attempt": 1,
           "outcome": "delivered",
-          "latency_ms": 41
+          "latency_ms": 41,
+          "error": null
         }
-      ]
+      ],
+      "fallback_of": null
     },
     {
       "id": "6f1c…a2",
@@ -28,19 +30,23 @@
         {
           "attempt": 1,
           "outcome": "retryable",
-          "error": "503"
+          "error": "503",
+          "latency_ms": null
         },
         {
           "attempt": 2,
           "outcome": "retryable",
-          "error": "503"
+          "error": "503",
+          "latency_ms": null
         },
         {
           "attempt": 3,
           "outcome": "delivered",
-          "latency_ms": 38
+          "latency_ms": 38,
+          "error": null
         }
-      ]
+      ],
+      "fallback_of": null
     },
     {
       "id": "6f1c…a3",
@@ -50,7 +56,8 @@
       "channel": "ui",
       "state": "delivered",
       "attempts": 1,
-      "attempt_log": []
+      "attempt_log": [],
+      "fallback_of": null
     }
   ]
 }
