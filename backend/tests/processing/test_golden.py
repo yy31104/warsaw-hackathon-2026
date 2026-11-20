@@ -81,3 +81,15 @@ def test_pricing_digest():
             assert not op.notify
             counts[op.key] += 1
     assert counts == {"EURUSD": 3, "USDJPY": 1}
+
+
+def test_alertmanager_auto_resolve_without_firing_predicate():
+    case=next(c for c in CASES if c["id"]=="anna-daytime-sms")
+    event=case_event(case)
+    op,=evaluate(event,RULESET,{},START).alert_ops
+    event.fields.update(status="resolved", **{"$severity":"info"})
+    state={(op.rule["id"],op.key):{"status":"open","severity":"critical"}}
+    result=evaluate(event,RULESET,state,START)
+    resolved,=result.alert_ops
+    assert resolved.transition=="resolved" and not resolved.notify
+
