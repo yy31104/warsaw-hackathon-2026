@@ -48,6 +48,8 @@ Kinds: `source`, `schema`, `rule`, `team`, `user`, `runbook`, plus singletons `f
 
 - **sources.yaml**: `id, transport, queue? | path? + parser? | api_key?, split_path?, dedup?(payload_hash)`.
 - **schemas.yaml**: `id, detect (rule DSL), name (template), event_id?, aliases{severity,service,environment,time}, severity_map?, severity_default?, time_format?(iso|epoch_ms|epoch_s), alert_key?, resolve_when? (DSL)`.
+  - `transforms?`: `{<path>: {scale: 0.01, unit: EUR}}`, applied after flattening and before rules (e.g. a notional sent in cents). The original value is kept as `<path>.raw`. If a rule compares a numeric field whose unit is unknown for this schema, onboarding flags it.
+  - `episode_key?`: a template identifying one firing episode (Alertmanager: `{{startsAt}}`); it is exposed as `$episode`. The alert stores its `latest_episode`. A resolve event closes the alert **only if its `$episode` equals the alert's `latest_episode`**. Otherwise the outcome is `STALE_RESOLVE` and the alert stays open, with the resolve kept as evidence.
 - **rules.yaml**: see §5.
 - **teams.yaml**: `fallback_team, default_preferences[], teams[{id, members, oncall{primary, secondary?}, approvers[]}], users[{id, timezone, contacts{email,sms,phone}, preferences[]?}]`. Preference row: `{when?: "HH:MM-HH:MM" (user tz, [start,end)), min_severity, channels[]}`. The first matching row wins. If no user row matches, `default_preferences` applies. **A critical alert always gets at least one channel.**
 - **runbooks/runbooks.yaml**: `id, file, format (yaml-steps|markdown|checklist|text|url), rules[]?, matches?`. `matches` accepts the rule DSL **or** a flat `{path: value}` map (all-equal), which is the Appendix B YAML style.
@@ -71,7 +73,14 @@ priority: P0..P3                                 # optional override; else criti
 
 **Semantics:** an event is evaluated against **all** enabled rules (a rule match is not exclusive). For each match, upsert the alert by key: a new alert gives transition `created`, an existing one gives `occurrence` (count += 1). In `immediate` mode, notify on `created`, on `severity_increased`, and after `cooldown` has passed since the last notification. In `digest` mode, notify on `digest_due` every `every` with the count since the last digest. Matching no rule gives `NO_MATCH` (visible in explain, and counted as "unrouted" if severity ≥ error). An event matching a schema's `resolve_when` resolves the open alert(s) with the same alert key (`resolved_by = system`).
 
-**Decision outcomes** (`decisions.outcome`, enum `Outcome`): `ACCEPTED DUPLICATE CONFLICT REJECTED NEEDS_REVIEW NO_MATCH NEW_ALERT EXISTING_ALERT SUPPRESSED_COOLDOWN SUPPRESSED_THROTTLE DIGEST_QUEUED NOTIFIED UNROUTED RESOLVED`.
+**Decision outcomes** (`decisions.outcome`, enum `Outcome`): `ACCEPTED DUPLICATE CONFLICT REJECTED NEEDS_REVIEW NO_MATCH NEW_ALERT EXISTING_ALERT SUPPRESSED_COOLDOWN SUPPRESSED_THROTTLE DIGEST_QUEUED NOTIFIED UNROUTED RESOLVED STALE_RESOLVE QUARANTINED RULE_FAULT`.
+
+**Processing failures** (rule-worker):
+- **Deterministic bad input** → the event becomes `status = quarantined` with `trace.processing_error`, and gets a `QUARANTINED` decision.
+- **Transient errors** (connection lost, statement/lock timeout, serialization failure) → roll back the batch and retry it after a backoff. Never quarantine for these.
+- **A rule that raises** for valid events → `RULE_FAULT` for that rule only. The rule is skipped and reported to the fallback team; all other rules keep running.
+- A failing batch is bisected to find the offending event. Each event has a retry budget (`trace.attempts`, max 3) before it is quarantined.
+- Optional hysteresis: rule `group.stable_for: 2m` closes only after the resolve evidence has held, with no newer episode, for that long.
 
 ## 6. Module interfaces (Python, see `contracts.py`)
 
@@ -113,6 +122,8 @@ Tables: `config_objects, events, ingest_rejections, schema_issues, decisions, al
 ## 8. Channels and delivery
 
 `email` (SMTP → Mailpit, `X-Notification-Id` and `X-Gen-Sent-At` headers), `sms` and `phone` (HTTP → fake-telecom `POST /sms`, `POST /call`), `ui` (delivered on insert; the feed is the UI channel). Rendering per channel: `title`, `body`, `short` (≤ 160 chars: title + short link `http://localhost:5173/a/<id>`), `color`, `fields`, `runbook_excerpt` (email/UI full; SMS link only; phone reads `short` + "press 1 to acknowledge").
+Runbook action runs: `requested → pending_approval → approved → running → succeeded | failed | unknown | rejected`. An action call that times out is **`unknown` (needs verification)**, not failed. Every action call carries `Idempotency-Key: action-<run_id>`. Before any re-run, the result is checked at the receiver (`GET /executions/<key>` on mock-ops); a re-run needs an explicit operator confirmation.
+
 Delivery states: `pending → sending → delivered | retrying | unknown | failed | fallback | cancelled`. A timeout after sending is `unknown`, retried with the **same** notification id. Backoff is `min(60s, 2^n s) ± 20 % jitter`, honouring `retry_after`. Max 8 attempts or 15 min → `failed` (visible), or `fallback` if a fallback channel is configured.
 
 ## 9. HTTP API (prefix `/v1`; owner in brackets)
@@ -134,11 +145,20 @@ Delivery states: `pending → sending → delivered | retrying | unknown | faile
 | `GET /stream?team=` (SSE) | Live events, §10 | DEV2 daizhongtian |
 | `GET /stats/funnel?window=15m` · `GET /health` · `GET /metrics` (Prometheus text) · `POST /debug/reset` (DEMO_MODE) | Dashboard + ops | DEV2 daizhongtian |
 
+| `POST /rules/check {rule}` | Rule Safety Checker → `{scenarios_checked:[...], violations:[{scenario, problem, trace}]}` (pure function `rules.safety.check` by Yi) | DEV2 daizhongtian (route) |
+| `POST /schemas/verify {schema, samples:[{event, expect: notify\|quiet, note?}]}` | Sample-based verification → per sample: recipients, channels, deciding fields, pass/fail, unit warnings (uses Yi's engine + plan, no side effects) | DEV2 daizhongtian |
+
+`POST /inbound/{channel}` requires the header `X-Provider-Secret` (shared secret `INBOUND_SECRET` in `.env`, sent by fake-telecom); a missing or wrong secret → 401. Failed code attempts are persisted per sender: 5 failures in 15 min → 429, audited.
+
 Actor identity (demo-grade): header `X-User: <user id>` on mutating calls, checked against `approvers` / team membership. Write it in the README as "simulated auth".
 
 ## 10. SSE events (`GET /v1/stream`)
 
 `event: <type>`, `data: <json>`. Types: `alert.created`, `alert.updated` (count/status/severity/score), `notification.updated` (state, attempts), `action.updated` (state, approver), `schema.issue`, `config.changed`, `stats.tick` (every 2 s, funnel numbers). Each payload carries `{id, team_id?, ts}` plus the changed fields. The UI re-fetches the detail on demand. Implementation: workers `NOTIFY <channel>, '{"type": "<sse type>", "data": {...}}'` after commit, on exactly these channels: `alerts`, `notifications`, `actions`, `schema_issues`, `config`; the API `LISTEN`s and fans out (works with several API instances).
+
+**Coalescing:** the SSE server sends `alert.updated` counter changes at most every ~400 ms per alert. `alert.created`, severity/priority increases, `action.updated` and resolutions go out immediately. Clients refetch the detail after a reconnect.
+
+**Delivery-risk fields** in `GET /stats/funnel` and `stats.tick`: `oldest_pending_s` per channel and lane, `backlog`, `retries_5m`, `delivery_target_s`, `at_risk` (true when oldest pending > target).
 
 ## 11. LLM usage (shared helper `backend/alerting/llm.py`)
 
@@ -150,4 +170,6 @@ Actor identity (demo-grade): header `X-User: <user id>` on mutating calls, check
 
 ## 12. Measurement hooks (for the load test; everyone must carry these through)
 
-`X-Gen-Sent-At` (HTTP) / AMQP header `x-gen-sent-at` → `events.trace.gen_sent_at`, plus `trace.received_at`, `trace.processed_at` → copied into `notifications.rendered.meta.gen_sent_at` → sent as the `X-Gen-Sent-At` header to fake-telecom / in email headers → the receivers record `received_at`. E2E latency = receiver time − gen_sent_at.
+`X-Gen-Sent-At` (HTTP) / AMQP header `x-gen-sent-at` → `events.trace.gen_sent_at`, plus `trace.received_at`, `trace.processed_at` → copied into `notifications.rendered.meta.gen_sent_at` → sent as the `X-Gen-Sent-At` header to fake-telecom / in email headers → the receivers record `received_at`. E2E latency = receiver time − gen_sent_at. Load reports also include **decisions written per 1,000 events** and **SMS/phone sends per 1,000 events**.
+
+DEMO_MODE fault hook (tests only): an event with `trace.demo_fault = "raise"` makes evaluation raise for that event, to demonstrate poison-event isolation.

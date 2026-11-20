@@ -106,3 +106,26 @@ Never ack before commit. Batch inserts. A body claiming `critical` only sets the
 
 ## Prompt for your coding agent
 > Read `AGENTS.md`, `docs/BRIEF.md`, `docs/CONTRACT.md` and `docs/handoff/DEV2-data-daizhongtian.md` fully. You are DEV2 (data & platform) on branch `feat/data-daizhongtian`. Work only inside the directories under "You own"; never edit shared files (if one needs a change, stop and tell me). Do task 1 (normaliser) test-first against `fixtures/events/*` and `fixtures/golden/expectations.yaml`, then tasks 2–6 in order (RabbitMQ consumer, publisher, HTTP ingest, fake-telecom, SSE). Commit after each task, run `make test`, push to `feat/data-daizhongtian`. Python 3.12, FastAPI, psycopg 3 async, aio-pika. Report what you ran and what you didn't.
+
+## Round 2 (added Fri 21:30) — after your G1 items work
+The core chain comes first: RabbitMQ → inbox, fake-telecom and SSE are still the critical path. Then, in this order (CONTRACT §4, §9, §10, §12):
+
+- **R1 fake-telecom reply forwarder** sends `X-Provider-Secret: $INBOUND_SECRET` to `POST /v1/inbound/sms` (Yi now rejects requests without it).
+- **R2 mock-ops idempotency:** every action endpoint deduplicates by `Idempotency-Key`. Add `GET /executions/<key>`, which returns whether that call happened and its result, so Yi can verify an `unknown` action before any re-run.
+- **R3 Normaliser:**
+  - apply schema `transforms` (`scale`, `unit`; keep `<path>.raw`);
+  - expose `$episode` from `episode_key`;
+  - flag numeric fields used by rules that have no known unit.
+- **R4 `POST /v1/schemas/verify` (headline innovation):** draft schema + samples marked notify/quiet → run Yi's `evaluate` + `plan` with no side effects → per sample: recipients, channels, deciding fields, pass/fail, unit warnings. Golden case `verify-unit-change`.
+- **R5 `POST /v1/rules/check`** → Yi's `rules.safety.check`. Golden case `rule-safety-counterexample`.
+- **R6 Delivery-risk metrics** in `/v1/stats/funnel` and `stats.tick`: `oldest_pending_s` per channel/lane, `backlog`, `retries_5m`, `delivery_target_s` (env `DELIVERY_TARGET_S`, default 30), `at_risk`. Also expose them on `/metrics`.
+- **R7 SSE coalescing:** `alert.updated` counters at most every ~400 ms per alert; created, critical, approval and resolved are sent immediately; the client refetches on reconnect.
+- **R8 Schema-drift flag:** if ≥ 20 recent events of a known schema lack a field that an enabled rule uses → `schema_issues` entry of kind `drift`, with the affected rules listed.
+- **R9 Experiments** (same input, before and after; report N, machine spec and raw JSON):
+  - (a) hot-key storm and (b) wide variety, each with critical events injected every second. Report ingest/s, processed/s, critical e2e p50/p99, failures, oldest pending, decisions per 1,000 events and SMS per 1,000 events;
+  - (c) poison-event injection;
+  - (d) provider outage reconciliation (lost = 0).
+- **P2 (only after everything above):** Incident Investigator `assist/investigate.py`.
+  - Read-only, runs async after the incident is created, ≤ 3 calls to allow-listed mock-ops GET endpoints (`/health`, `/metrics/pool`, `/deployments`), each returning clearly labelled simulated data.
+  - Never uses the action registry. Stores {tool, time, result, unknowns} on the alert.
+  - The LLM only summarises the evidence it actually received.

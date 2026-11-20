@@ -65,3 +65,14 @@ One page, `docs/QA.md`:
 
 ## Done when
 `REVIEW_FINDINGS.md` exists, the G3 holdout rows and the G4 rows in `GATES.md` are filled, the README is judge-ready, and the video + link file are uploaded. Confirm it by seeing them in Lockbox.
+
+## Round 2 additions — adversarial checks (run them like a judge would)
+For each one, record PASS / FAIL / NOT_RUN plus the evidence:
+1. **Poison event:** one malformed event in a batch → it is quarantined with a reason; the others complete; the worker keeps running.
+2. **Stale recovery:** episode T1 resolves late, after episode T2 started → the alert stays open; T2's own resolve closes it.
+3. **Approval abuse:** inbound SMS without the provider secret → 401; 5 wrong codes → locked; a reused code → rejected.
+4. **Same business, different unit:** a notional sent in cents → the verify page shows quiet, with the deciding field; without the transform it warns.
+5. **Rule safety:** a draft rule routing critical alerts to a non-existent on-call → a counterexample is shown before publishing.
+6. **Provider outage:** fake-telecom down for 30 s → outbox reconciliation shows lost = 0.
+7. **Time edge:** Anna at 07:59 / 08:00 / 19:59 / 20:00 and on the DST weekend (25 Oct 2026, Europe/Warsaw).
+8. **Unseen format:** time from paste to the first correct alert, and LLM-suggested vs correct fields (n/N).

@@ -22,6 +22,8 @@ A service that ingests events from many sources and formats (RabbitMQ, HTTP webh
 
 **First format to build with:** the workflow-failure event from Appendix A (`fixtures/events/workflow_failed.json`) over RabbitMQ. Next: the Alertmanager webhook over HTTP, the `meta/payload` business event over RabbitMQ, and the pricing log file.
 
+**In one line:** *Prevent* (verify sources and rules before they go live) · *Detect* (reliable ingest, rules, grouping, delivery) · *Resolve* (runbooks, approvals, audit), and stay correct under bad input, traffic storms and channel failures.
+
 ## 1b. What it looks like when it's done
 
 A judge, or a team that's new to the system, can:
@@ -83,19 +85,45 @@ Write **pure functions with tests first** (fixtures in `fixtures/`), then wire D
 - **2.4** Live push feed, ack/resolve, manage rules and preferences, per-rule look (zhaoqinghe on Yi's and daizhongtian's APIs), plus a minimal **Propose fix** on any alert: the text and author are saved (daizhongtian API, zhaoqinghe button).
 - **2.5** One alert with a counter instead of 500, grouping and throttling (Yi).
 - **2.6** Runbooks in YAML / Markdown / text / link, values filled in, shown per channel, actions with approval, audit, auto-close (Yi). Runbook store (daizhongtian).
-- **Evidence:** golden runner, load test (throughput, e2e p50/p99 with N, backlog) (daizhongtian). README "what is mocked" (Marlon).
+- **Evidence:** golden runner and load test (throughput, e2e p50/p99 with N, backlog) (daizhongtian), plus three experiments with the same input before and after:
+  1. **Poison event:** the bad event is traceable and the rest complete.
+  2. **Hot-key storm vs wide variety, with critical events injected throughout:** critical p50/p99, failures, oldest pending, decisions and SMS per 1,000 events.
+  3. **Provider outage:** outbox reconciliation with lost = 0.
+
+  README "what is mocked" (Marlon).
 
 **P0.5 — LLM onboarding (daizhongtian):** schema-mapping suggestion and runbook structuring, each with a deterministic fallback.
 
-**P1, in order:**
-1. Rule impact preview + AI suggestions for proposals (daizhongtian + zhaoqinghe).
-2. Reply-to-approve by SMS (Yi).
-3. Critical lane + weighted score (Yi).
-4. Funnel dashboard (daizhongtian + zhaoqinghe).
-5. Channel fallback (Yi).
-6. Natural-language rule draft (daizhongtian + zhaoqinghe).
+**P0 hardening — reliability under bad input and failures (Yi, before any new feature):**
+1. **Poison-event isolation.** One bad event never blocks the rest. Errors are classified: deterministic bad input → quarantine that event with its reason; transient DB errors → roll back and retry; a faulty rule → skip that rule, record it, keep processing everything else. Each event has a retry budget.
+2. **Approval security.** 6-digit codes valid for 5 minutes, a persistent failed-attempt limit with audit, and the inbound SMS callback authenticated with a shared secret (the `from` field alone can be spoofed). `X-User` stays demo-only.
+3. **Database timeouts.** Statement, lock and idle-in-transaction timeouts sized to the batch; a timeout rolls back and retries safely.
+4. **A stale recovery never closes a newer incident.** A resolve event only closes the alert if it belongs to the alert's latest episode (`episode_key`); otherwise it is kept as evidence.
+5. **A runbook action that times out is "unknown", not "failed".** Check the receiver with the same execution id before anyone re-runs it.
 
-**P2:** related-incidents panel, LLM incident summary, threshold and deadman rule types.
+**P1 — innovations, in order:**
+1. **Sample-based source verification (headline).** When a source or schema is onboarded, its owner adds one "should notify" and one "should stay quiet" sample. The preview runs both through the real engine and routing and shows recipients, channels and **the field that decided it**. Numeric unit/scale transforms are configured (e.g. a notional sent in cents). A missing unit that would change the decision is flagged instead of guessed. (daizhongtian + zhaoqinghe; engine by Yi)
+2. **Rule Safety Checker.** Before a rule is published, it generates a finite set of scenarios: severity × environment × time-of-day boundaries × missing contact. It runs the real engine + routing and shows counterexamples such as "prod critical at 23:10 reaches nobody". It reports which scenarios were checked and never claims "proved safe". (Yi `rules/safety.py`, daizhongtian endpoint, zhaoqinghe panel)
+3. Rule impact preview + AI suggestions for proposals (daizhongtian + zhaoqinghe).
+4. **Delivery-risk metrics:** oldest pending notification per channel/lane vs a target, backlog, retries; shown as an "at risk" badge (daizhongtian + zhaoqinghe).
+5. **SSE coalescing:** counter updates at most every ~400 ms per alert. Created / critical / approval / resolved events go out immediately, and a reconnect refetches state (daizhongtian).
+6. **Schema-drift flag:** a known source suddenly lacks fields its rules depend on (daizhongtian).
+7. **Recovery hysteresis**, only with positive evidence (`stable_for`) (Yi).
+8. Already built, keep tested: reply-to-approve by SMS, critical lane + weighted score, channel fallback (Yi). Funnel dashboard and natural-language rule draft (daizhongtian + zhaoqinghe).
+
+**P2 — only after the whole chain works:**
+- **Incident Investigator:** read-only, async after the incident is created, at most 3 calls to allow-listed and clearly simulated mock-ops endpoints. It never touches the action registry, and it shows tool, time, evidence and unknowns.
+- Shadow rules.
+- SLO / error-budget priority (needs request totals).
+- Incident memory cards.
+- Cross-rule notification merging.
+- End-to-end canary.
+- Dynamic escalation on rate spikes.
+- Cost ladder (never overriding a rule's explicit channels).
+- Related incidents.
+- Threshold and deadman rules.
+
+**Not doing without a measured bottleneck:** COPY staging tables, index restructuring, deleting history, Redis.
 
 **CUT:** real SMS/phone providers, SSO/RBAC, Kafka, Redis, K8s, multi-region, ML root cause.
 

@@ -82,3 +82,18 @@ Vite + React + TypeScript + **Mantine** + TanStack Query + `EventSource` for SSE
 
 ## Prompt for your coding agent
 > Read `AGENTS.md`, `docs/BRIEF.md`, `docs/CONTRACT.md` (§9, §10), `docs/handoff/DEV3-frontend-zhaoqinghe.md` and `fixtures/api/README.md` fully. You are DEV3 (frontend) on branch `feat/frontend-zhaoqinghe`. Work only inside `frontend/`. Scaffold Vite + React + TypeScript + Mantine + TanStack Query. Build screens 1 and 2 against the mock fixtures in `fixtures/api/`, with a mock-mode switch in `src/api.ts` and a fake SSE replay of `fixtures/api/stream.ndjson`. Type the API from the fixture shapes. Commit after each screen and push to `feat/frontend-zhaoqinghe`. Report what you ran and what you didn't.
+
+## Round 2 (added Fri 21:30) — after screens 1–6
+No new top-level pages; extend the existing ones (APIs in CONTRACT §9, §10):
+- **R1 Onboarding → "Verify with samples"** (headline innovation):
+  - two boxes, "Should notify" and "Should stay quiet", plus a transform editor (scale, unit) per numeric field;
+  - Run → one card per sample: pass/fail, recipients, channels, **the field that decided it**, unit warnings;
+  - a short line in plain English, e.g. "notional is 25,000,000 in cents = 250,000 EUR → below the 10,000,000 threshold → quiet".
+- **R2 Rule editor → "Safety check" panel** (`POST /v1/rules/check`): the scenarios checked (a compact table), and the counterexamples in red with a one-line reason and a fix hint.
+- **R3 States in existing screens:**
+  - "Delivery at risk" badge in the header (from `stats.tick.at_risk`);
+  - "Format changed" (schema drift) on the onboarding list;
+  - runbook step "Result unknown — check" (action state `unknown`) with a **Check result** button;
+  - timeline entries "Old recovery ignored" (`STALE_RESOLVE`) and "Event quarantined" (`QUARANTINED`).
+- **R4 SSE:** handle coalesced `alert.updated`; refetch the open detail after a reconnect.
+- **P2:** an Investigation panel on incident detail (tool, time, evidence, unknowns; label simulated data as simulated).

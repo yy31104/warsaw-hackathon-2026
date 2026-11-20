@@ -104,3 +104,49 @@
 
 ## Prompt for your coding agent
 > Read `AGENTS.md`, `docs/BRIEF.md`, `docs/CONTRACT.md` and `docs/handoff/DEV1-backend-Yi.md` fully. You are DEV1 (backend core) on branch `feat/backend-yi`. Work only inside the directories under "You own" (code part). Do tasks 1–3 (`rules/dsl.py`, pure `rules/engine.py`, pure `routing/plan.py`) test-first against `config/*.yaml` and `fixtures/golden/expectations.yaml`. Then build the rule-worker, the providers + delivery worker, and the incidents API. Commit after each task, run `make test`, and push to `feat/backend-yi`. Python 3.12, psycopg 3 async, httpx. Report what you ran and what you didn't.
+
+## Round 2 (added Fri 21:30) — hardening first, then two innovations
+Status at this point: PR #1 merged, PR #2 open (hot reload, scoped approvals, pinned API shapes). Do R1–R5 before anything new; each with real-PostgreSQL tests. Semantics are in CONTRACT §4 (`transforms`, `episode_key`), §5 (processing failures), §8 (action runs), §9 (inbound secret). New golden cases: `stale-recovery-keeps-newer-episode`, `poison-event-isolated`, `inbound-approval-*`, `rule-safety-counterexample`.
+
+- **R1 Poison-event isolation.** Classify failures:
+  - **Deterministic bad input** → `quarantined` + `QUARANTINED` decision + reason.
+  - **Transient** (connection lost, statement/lock timeout, serialization failure) → roll back and retry after a backoff. Never quarantine for these.
+  - **A rule that raises on valid events** → `RULE_FAULT` for that rule only; skip it and keep the rest running.
+  - A failing batch is bisected to find the offender. Each event gets a retry budget (`trace.attempts`, max 3).
+  - Honour `trace.demo_fault == "raise"` in DEMO_MODE (test hook).
+  - Migration `1xx`: add `quarantined` to the `events.status` check constraint.
+  - Test: 3 events, the middle one raises → 2 processed, 1 quarantined, worker still running, counts correct.
+- **R2 Approval security.**
+  - Codes: 6 digits, 5-minute expiry, single use.
+  - Failed attempts are persisted per sender: 5 in 15 min → 429 + audit `approval.locked`.
+  - `POST /v1/inbound/{channel}` requires `X-Provider-Secret` == env `INBOUND_SECRET` (401 otherwise).
+  - `X-User` stays documented as demo-only.
+  - Tests: missing secret, wrong sender, wrong code ×5, expired, replay, two concurrent approvals.
+- **R3 Database timeouts.**
+  - Set `statement_timeout`, `lock_timeout` and `idle_in_transaction_session_timeout` on pool connections (in `db.py`, which you own as tech lead).
+  - Size them from measured batch latency; make them configurable via env.
+  - A timeout is classified transient → rollback + retry.
+  - Test: hold a row lock on a hot alert in another connection → the worker times out, retries, and the final count is exact (no loss, no double count).
+- **R4 Stale recovery.**
+  - Store `latest_episode` on alerts (migration `1xx`), taken from the schema's `episode_key` (`$episode`).
+  - A resolve closes the alert only if its `$episode` == `latest_episode`; otherwise `STALE_RESOLVE` and the alert stays open.
+  - Add `episode_key: "{{startsAt}}"` to the alertmanager schema in `config/schemas.yaml`.
+- **R5 Action timeouts.**
+  - Every action call sends `Idempotency-Key: action-<run_id>`.
+  - A timeout → `unknown` ("needs verification"). Migration `1xx`: add `unknown` to the `action_runs.state` check.
+  - A "Check result" call queries mock-ops `GET /executions/<key>` (daizhongtian adds it) before any re-run.
+  - A re-run requires an explicit operator confirmation.
+- **R6 Rule Safety Checker (innovation, pure)** `rules/safety.py`: `check(rule_draft, ruleset, schemas, directory) -> {scenarios_checked, violations}`.
+  - **Scenarios:** for each condition, boundary values that satisfy and violate it (eq/in values, `gt` threshold ± 1, a glob sample); severity ∈ {critical, error, warning}; the configured environments; times {07:59, 08:00, 19:59, 20:00, 23:10} in each recipient's timezone; contact present / missing.
+  - **Policies:**
+    - (a) a matched **critical** scenario reaches ≥ 1 human with a usable contact on a non-UI channel;
+    - (b) every route target resolves to ≥ 1 user;
+    - (c) the rule matches at least one known-schema sample (otherwise warn "never fires");
+    - (d) regex too long or too complex → warn.
+  - Reports what it checked; never claims "safe". daizhongtian exposes it at `POST /v1/rules/check`.
+- **R7 Engine support for sample verification:** make sure `evaluate` + `plan` can run side-effect-free on a draft schema (with `transforms`) for `POST /v1/schemas/verify` (daizhongtian's route). Return the deciding fields from the match trace.
+- **R8 (P1, after the above)** hysteresis `group.stable_for`; then **measure** decision write volume (decisions per 1,000 events). Compact `NO_MATCH` rows (one row per event, listing the rules checked) only if the load test shows it matters, and keep "why wasn't I notified" answerable.
+- **Not now:** cross-rule SMS merging (different rules can mean different incidents, permissions and runbooks), canary, dynamic escalation, cost ladder, COPY, Redis.
+
+**Prompt for round 2:**
+> Read AGENTS.md, docs/BRIEF.md §4, docs/CONTRACT.md §4, §5, §8, §9 and the "Round 2" section of docs/handoff/DEV1-backend-Yi.md. Merge origin/main first. Implement R1–R5 in order on feat/backend-yi, each test-first against real PostgreSQL, one commit per item. Then R6 and R7. Don't redesign the architecture and don't add the "Not now" items. Report per item: PASS / FAIL / NOT_RUN, with the exact test or command.

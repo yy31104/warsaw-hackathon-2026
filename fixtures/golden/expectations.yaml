@@ -180,3 +180,53 @@ cases:
     expect:
       notifications: [{recipient: sam, channel: sms, state: delivered, attempts_gte: 2}]
       reconciliation: {lost: 0}
+
+  # ---------- Round 2: hardening (Fri 21:30) ----------
+  - id: stale-recovery-keeps-newer-episode
+    # Alertmanager episode = startsAt. Episode T2 starts while T1's resolve is still in flight.
+    steps:
+      - send: {source: alertmanager, file: fixtures/events/alertmanager_high_error_rate.json, mutate: {startsAt: "2026-10-23T17:04:00Z"}}
+      - send: {source: alertmanager, file: fixtures/events/alertmanager_high_error_rate.json, mutate: {startsAt: "2026-10-23T17:08:00Z"}}
+      - send: {source: alertmanager, file: fixtures/events/alertmanager_high_error_rate.json, mutate: {startsAt: "2026-10-23T17:04:00Z", status: resolved}}
+    expect: {alert: {rule: anna-payments-critical, status: open, occurrence_count: 2}, last_decision: STALE_RESOLVE}
+    then:
+      - send: {source: alertmanager, file: fixtures/events/alertmanager_high_error_rate.json, mutate: {startsAt: "2026-10-23T17:08:00Z", status: resolved}}
+    then_expect: {alert: {rule: anna-payments-critical, status: resolved, resolved_by: system}}
+
+  - id: poison-event-isolated
+    # DEMO_MODE fault hook: the middle event raises during evaluation; the others must complete.
+    send_batch:
+      - {source: workflow-bus, file: fixtures/events/workflow_failed.json, mutate: {workflowId: WF-P-1}}
+      - {source: workflow-bus, file: fixtures/events/workflow_failed.json, mutate: {workflowId: WF-P-2}, trace: {demo_fault: raise}}
+      - {source: workflow-bus, file: fixtures/events/workflow_failed.json, mutate: {workflowId: WF-P-3}}
+    expect:
+      events: {WF-P-1: processed, WF-P-2: quarantined, WF-P-3: processed}
+      alert: {rule: settlements-wf-failed, occurrence_count: 2}
+      worker_still_running: true
+
+  - id: inbound-approval-needs-provider-secret
+    after: approval-required
+    do: {inbound_sms: {from: "+15550100003", body: "YES <code>"}, headers: {}}
+    expect: {http_status: 401}
+
+  - id: inbound-approval-brute-force-locked
+    after: approval-required
+    do: {inbound_sms_wrong_code_times: 5, from: "+15550100003", with_secret: true}
+    expect: {sixth_attempt_http_status: 429, audit_contains: [{action: approval.locked}]}
+
+  - id: verify-unit-change
+    # Same business amount, different unit. 25,000,000 cents = 250,000 EUR (< 10,000,000 threshold).
+    request: {method: POST, path: /v1/schemas/verify}
+    body:
+      schema: {base: business-envelope, transforms: {payload.notional: {scale: 0.01, unit: EUR}}}
+      samples:
+        - {event_file: fixtures/events/trade_rejected_v2.json, mutate: {payload: {notional: 25000000}}, expect: quiet}
+        - {event_file: fixtures/events/trade_rejected_v2.json, mutate: {payload: {notional: 2500000000}}, expect: notify}
+    expect: {all_pass: true, deciding_fields_include: [payload.notional]}
+    without_transform_expect: {sample_0: fail, unit_warning: payload.notional}
+
+  - id: rule-safety-counterexample
+    request: {method: POST, path: /v1/rules/check}
+    body:
+      rule: {id: draft-ghost, match: {all: [{field: $severity, op: eq, value: critical}]}, route: [{to: "oncall:ghost-team", channels: [sms]}]}
+    expect: {violations_gte: 1, violation_problem_contains: "reaches nobody", scenarios_checked_gte: 4}
