@@ -1,6 +1,29 @@
-# Owner: DEV2 daizhongtian (infra + full stack). Infra only for now (G0). App services are added at G1 (api, workers, mocks, frontend)
-# so that `docker compose up` from a fresh clone runs the whole system for the judges.
+# Use -p and the host port overrides to run an isolated local stack.
 name: alertfunnel
+
+x-backend: &backend
+  image: ${COMPOSE_PROJECT_NAME:-alertfunnel}-backend:local
+  pull_policy: never
+  restart: unless-stopped
+  environment:
+    DATABASE_URL: postgresql://alerting:alerting@postgres:5432/alerting
+    RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    CONFIG_DIR: /app/config
+    SMTP_HOST: mailpit
+    SMTP_PORT: 1025
+    FAKE_TELECOM_URL: http://fake-telecom:8100
+    MOCK_OPS_URL: http://mock-ops:8200
+    DEMO_MODE: ${DEMO_MODE:-1}
+    INBOUND_SECRET: ${INBOUND_SECRET:-alertfunnel-local-demo}
+    DELIVERY_TARGET_S: ${DELIVERY_TARGET_S:-30}
+    ASSIST_ENABLED: ${ASSIST_ENABLED:-0}
+    ASSIST_MODEL: ${ASSIST_MODEL:-claude-opus-5-5}
+    ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  volumes:
+    - ./config:/app/config:ro
+  depends_on:
+    postgres:
+      condition: service_healthy
 
 services:
   postgres:
@@ -10,50 +33,130 @@ services:
       POSTGRES_PASSWORD: alerting
       POSTGRES_DB: alerting
     command: ["postgres", "-c", "max_connections=200", "-c", "shared_buffers=256MB"]
-    ports: ["5432:5432"]
+    ports: ["127.0.0.1:${POSTGRES_PORT:-5432}:5432"]
     volumes:
       - ./db/migrations:/docker-entrypoint-initdb.d:ro
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U alerting -d alerting"]
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "alerting", "-d", "alerting"]
       interval: 2s
       timeout: 3s
       retries: 30
 
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
-    ports: ["5672:5672", "15672:15672"]   # UI: http://localhost:15672 (guest/guest)
+    hostname: rabbitmq
+    ports:
+      - "127.0.0.1:${RABBITMQ_PORT:-5672}:5672"
+      - "127.0.0.1:${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    volumes:
+      - rabbit-data:/var/lib/rabbitmq
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      test: ["CMD", "su-exec", "rabbitmq", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
       interval: 5s
       timeout: 5s
       retries: 30
 
   mailpit:
     image: axllent/mailpit:latest
-    ports: ["1025:1025", "8025:8025"]      # SMTP 1025, inbox UI http://localhost:8025
+    ports:
+      - "127.0.0.1:${SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${MAILPIT_PORT:-8025}:8025"
 
   fake-telecom:
     build:
       context: .
       dockerfile: mocks/fake_telecom/Dockerfile
-    ports: ["127.0.0.1:8100:8100"]
+    ports: ["127.0.0.1:${TELECOM_PORT:-8100}:8100"]
     environment:
-      ALERTING_API_URL: ${ALERTING_API_URL:-http://host.docker.internal:8000}
-      INBOUND_SECRET: ${INBOUND_SECRET:-}
-    extra_hosts: ["host.docker.internal:host-gateway"]
-    volumes: ["telecom-data:/data"]
+      ALERTING_API_URL: http://api:8000
+      INBOUND_SECRET: ${INBOUND_SECRET:-alertfunnel-local-demo}
+    volumes: [telecom-data:/data]
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:8100/mode', timeout=2).close()"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
 
-  # --- added at G1 by their owners (keep the names; other services depend on them) ---
-  # mock-ops:       daizhongtian  port 8200   network alias: counterparty-service (runbook targets)
-  # api:            shared    port 8000   uvicorn alerting.api.app:app
-  # ingest-amqp:    daizhongtian  python -m alerting.ingest.amqp
-  # ingest-logtail: daizhongtian  python -m alerting.ingest.logtail
-  # rule-worker:    Yi            python -m alerting.rules.worker --lane normal   (+ one --lane critical)
-  # scheduler:      Yi            python -m alerting.rules.scheduler              (digests, cooldown, escalations)
-  # delivery-worker: Yi            python -m alerting.delivery.worker
-  # frontend:       zhaoqinghe    port 5173
+  mock-ops:
+    build:
+      context: .
+      dockerfile: mocks/mock_ops/Dockerfile
+    ports: ["127.0.0.1:${MOCK_OPS_PORT:-8200}:8200"]
+    volumes: [mock-ops-data:/data]
+    networks:
+      default:
+        aliases: [counterparty-service]
+
+  api:
+    <<: *backend
+    pull_policy: build
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["uvicorn", "alerting.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports: ["127.0.0.1:${API_PORT:-8000}:8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/health', timeout=2).close()"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  ingest-amqp:
+    <<: *backend
+    command: ["python", "-m", "alerting.ingest.amqp"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  ingest-logtail:
+    <<: *backend
+    command: ["python", "-m", "alerting.ingest.logtail", "--source", "pricing-logs"]
+    volumes:
+      - ./config:/app/config:ro
+      - ${LOG_DIR:-./fixtures/events}:/data/logs:ro
+
+  rule-worker:
+    <<: *backend
+    command: ["python", "-m", "alerting.rules.worker", "--lane", "normal"]
+
+  rule-worker-critical:
+    <<: *backend
+    command: ["python", "-m", "alerting.rules.worker", "--lane", "critical"]
+
+  scheduler:
+    <<: *backend
+    command: ["python", "-m", "alerting.rules.scheduler"]
+
+  delivery-worker:
+    <<: *backend
+    command: ["python", "-m", "alerting.delivery.worker"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      fake-telecom:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports: ["127.0.0.1:${FRONTEND_PORT:-5173}:5173"]
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:5173/"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
 
 volumes:
   pgdata: {}
+  rabbit-data: {}
   telecom-data: {}
+  mock-ops-data: {}

@@ -1,0 +1,8 @@
+**
+!backend/
+!backend/pyproject.toml
+!backend/uv.lock
+!backend/alerting/
+!backend/alerting/**
+**/__pycache__/
+**/*.pyc
