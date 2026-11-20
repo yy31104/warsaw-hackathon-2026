@@ -5,6 +5,7 @@ import asyncio
 from collections import defaultdict
 from copy import copy
 from dataclasses import replace
+from inspect import signature
 import logging
 import psycopg
 
@@ -16,9 +17,10 @@ from alerting.clock import SYSTEM, FixedClock, clock_for_event, demo_mode
 from alerting.contracts import SEVERITY_ORDER, CanonicalEvent
 from alerting.db import close_pool, open_pool, pool
 from alerting.routing import plan
+from alerting.routing.event_policy import eligible_ruleset
 from alerting.routing.directory import team_for
 from alerting.routing.throttle import lock_rules
-from alerting.rules.engine import duration, episode_for, evaluate, grouping
+from alerting.rules.engine import AlertOp, duration, episode_for, evaluate, grouping
 from alerting.rules.failures import BadEvent, RuleFault, evaluating, transient
 from alerting.rules.heartbeat import record_heartbeats
 from alerting.rules.scoring import score
@@ -39,6 +41,103 @@ COLUMNS = (
     "resolve_pending_at resolve_due_at resolve_episode resolve_event_id sensitive_paths"
 ).split()
 
+# Keep workers compatible while the spike engine and SLO scorer roll out independently.
+HAS_SPIKE_STATE = hasattr(AlertOp, "spike_state")
+SCORE_ACCEPTS_SCHEMA = "schema" in signature(score).parameters
+
+
+class BatchState(dict):
+    """Mutable open incidents and episode history projected up to this event in the batch."""
+
+    def __init__(self, current, ruleset, settings, windows):
+        super().__init__(current)
+        self.resolved = {}
+        self.firing_episodes = defaultdict(set)
+        self.rules = {r["id"]: r for r, _ in ruleset.rules}
+        self.directory = settings.directory
+        self.windows = windows
+
+    def get_resolved_episode(self, rule_id, key, episode):
+        return self.resolved.get((rule_id, key, episode))
+
+    def remember_episode(self, rule_id, key, episode, alert_id):
+        if episode is not None:
+            self.firing_episodes[alert_id].add(episode)
+
+    def close_episodes(self, rule_id, key, alert_id):
+        for episode in self.firing_episodes.pop(alert_id, ()):
+            self.resolved[rule_id, key, episode] = alert_id
+
+    def silences_for_rule(self, rule):
+        if not self.windows:
+            return ()
+        team = team_for(rule.get("owner") or "", self.directory)
+        return self.windows.get(team, ())
+
+    def get_silences(self, rule_id):
+        return self.silences_for_rule(self.rules[rule_id])
+
+
+async def load_batch_state(cur, current, keys, candidate_episodes, ruleset, settings, at):
+    """After lock_open, prefetch history for this batch's (rule, key, episode) tuples."""
+    from alerting.rules import engine
+    from alerting.rules.scheduler import load_team_silences
+
+    state = BatchState(current, ruleset, settings, await load_team_silences(cur.connection, at))
+    wanted = sorted((r, k, ep) for r, k, ep in candidate_episodes if ep is not None and (r, k) in keys)
+    if not wanted or not hasattr(engine, "resolved_episode_id"):
+        return state
+    ids, alert_keys, episodes = zip(*wanted, strict=True)
+    await cur.execute(
+        """select h.rule_id,h.alert_key,h.episode,max(h.alert_id) as alert_id
+           from unnest(%s::text[],%s::text[],%s::text[]) as w(rule_id,alert_key,episode)
+           join resolved_alert_episodes h using(rule_id,alert_key,episode)
+           group by h.rule_id,h.alert_key,h.episode""",
+        (list(ids), list(alert_keys), list(episodes)),
+    )
+    for row in await cur.fetchall():
+        state.resolved[row["rule_id"], row["alert_key"], row["episode"]] = row["alert_id"]
+    if current:
+        for (rid, key), row in current.items():
+            state.remember_episode(rid, key, row["latest_episode"], row["id"])
+        # An open incident may close in this batch, before the resolved-history view can see it.
+        await cur.execute(
+            """select distinct d.alert_id,coalesce(d.reason->>'episode',e.fields->>'$episode') as episode
+               from decisions d join events e on e.id=d.event_id where d.alert_id=any(%s::bigint[])
+               and d.reason->>'transition' in ('created','occurrence','severity_increased','cooldown_elapsed')
+               and coalesce(d.reason->>'episode',e.fields->>'$episode')=any(%s::text[])""",
+            ([row["id"] for row in current.values()], list(set(episodes))),
+        )
+        for row in await cur.fetchall():
+            state.firing_episodes[row["alert_id"]].add(row["episode"])
+    # Pre-episode writers kept the template inputs even when neither the decision
+    # nor the canonical aliases carried the rendered identity. Inspect only the
+    # candidate keys and schemas for which that older evidence could matter.
+    missing = {entry for entry in wanted if entry not in state.resolved}
+    templated = [sid for sid, schema in ruleset.schemas.items() if schema.get("episode_key")]
+    if missing and templated:
+        pairs = sorted({(r, k) for r, k, _ in missing})
+        await cur.execute(
+            """select a.rule_id,a.alert_key,a.id as alert_id,a.status,e.schema_id,e.fields
+               from unnest(%s::text[],%s::text[]) as w(rule_id,alert_key)
+               join alerts a using(rule_id,alert_key) join decisions d on d.alert_id=a.id
+               join events e on e.id=d.event_id
+               where d.reason->>'transition' in ('created','occurrence','severity_increased','cooldown_elapsed')
+                 and d.reason->>'episode' is null and e.fields->>'$episode' is null
+                 and e.schema_id=any(%s::text[])""",
+            ([r for r, _ in pairs], [k for _, k in pairs], templated),
+        )
+        for row in await cur.fetchall():
+            episode = episode_for(ruleset.schemas[row["schema_id"]], row["fields"])
+            identity = row["rule_id"], row["alert_key"], episode
+            if identity not in missing:
+                continue
+            if row["status"] == "resolved":
+                state.resolved[identity] = max(row["alert_id"], state.resolved.get(identity, 0))
+            else:
+                state.firing_episodes[row["alert_id"]].add(episode)
+    return state
+
 
 async def lock_open(cur, keys):
     state = {}
@@ -55,11 +154,12 @@ async def lock_open(cur, keys):
 
 
 async def persist(cur, row):
+    columns = [*COLUMNS, "spike_state"] if "spike_state" in row else COLUMNS
     values = [
-        Jsonb(row[k]) if k in ("fields", "group_values", "score_breakdown") else row.get(k)
-        for k in COLUMNS
+        Jsonb(row[k]) if k in ("fields", "group_values", "score_breakdown", "spike_state") else row.get(k)
+        for k in columns
     ]
-    cols = list(map(sql.Identifier, COLUMNS))
+    cols = list(map(sql.Identifier, columns))
     updates = [sql.SQL("{}=excluded.{}").format(c, c) for c in cols[1:]]
     query = sql.SQL(
         "insert into alerts ({}) values ({}) on conflict (id) do update set {},updated_at=now()"
@@ -193,32 +293,53 @@ async def isolate(conn, cur, settings, lane, rows):
 
 
 async def apply_events(cur, settings, lane, events):
+    if not events:
+        return 0
     keys = set()
-    ruleset = settings.ruleset
-    watches_heartbeats = any("expect" in rule for rule, _ in ruleset.rules)
-    if watches_heartbeats:
-        # Positive liveness evidence is handled by its own timer, never as a failure occurrence.
-        ruleset = copy(ruleset)
-        ruleset.rules = [(r, pred) for r, pred in ruleset.rules if "expect" not in r]
+    episodes = set()
+    prepared = []
     for event in events:
+        eligible = eligible_ruleset(event, settings.ruleset)
+        watches_heartbeats = any("expect" in rule for rule, _ in eligible.rules)
+        ruleset = eligible
+        if watches_heartbeats:
+            # A heartbeat advances its watch without creating a live failure.
+            ruleset = copy(eligible)
+            ruleset.rules = [(rule, pred) for rule, pred in eligible.rules if "expect" not in rule]
+        clock = FixedClock(clock_for_event(event.trace).now())
+        prepared.append((event, ruleset, eligible if watches_heartbeats else None, clock))
+        if not ruleset.rules:
+            continue
         schema = ruleset.schemas.get(event.schema_id, {})
         resolve = ruleset.resolvers.get(event.schema_id)
         resolving = resolve and resolve(event.fields)[0]
         for rule, predicate in ruleset.rules:
             with evaluating(rule):
                 if resolving or predicate(event.fields)[0]:
-                    keys.add((rule["id"], grouping(rule, schema, event.fields)[0]))
+                    key = grouping(rule, schema, event.fields)[0]
+                    keys.add((rule["id"], key))
+                    episode = episode_for(schema, event.fields)
+                    if episode is not None:
+                        episodes.add((rule["id"], key, episode))
     matched_ids = {rid for rid, _ in keys}
-    await lock_rules(cur, (r for r, _ in ruleset.rules if r["id"] in matched_ids))
-    state = await lock_open(cur, keys)
+    await lock_rules(cur, (r for r, _ in settings.ruleset.rules if r["id"] in matched_ids))
+    current = await lock_open(cur, keys)
+    state = await load_batch_state(
+        cur, current, keys, episodes, settings.ruleset, settings, min(p[3].now() for p in prepared)
+    )
     dirty, new_ids, decisions, intents = {}, set(), [], []
     samples = defaultdict(list)
-    for event in events:
-        at = clock_for_event(event.trace).now()
-        clock = FixedClock(at)
+    for event, ruleset, heartbeat_rules, clock in prepared:
+        at = clock.now()
         result = evaluate(event, ruleset, state, clock)
-        if watches_heartbeats and await record_heartbeats(cur, settings, event, clock):
+        if heartbeat_rules is not None and await record_heartbeats(
+            cur, replace(settings, ruleset=heartbeat_rules), event, clock
+        ):
             result.decisions = [d for d in result.decisions if d["rule_id"] is not None]
+        if getattr(ruleset, "shadow_rules", ()):
+            from alerting.rules.shadow import evaluate_shadow
+
+            await evaluate_shadow(cur, event, ruleset, clock, silences_for_rule=state.silences_for_rule)
         for op in result.alert_ops:
             rule = op.rule
             with evaluating(rule):
@@ -247,6 +368,8 @@ async def apply_events(cur, settings, lane, events):
                 dirty[id_] = row
                 decision = next(d for d in result.decisions if d["rule_id"] == rule["id"])
                 decision["alert_id"] = id_
+                if decision["reason"].get("notification_cause") == "first_eligible_after_silence":
+                    decision["reason"]["eligible_at"] = at.isoformat()
                 if op.transition in ("resolved", "resolve_pending"):
                     stable_for = rule.get("group", {}).get("stable_for")
                     if stable_for and duration(stable_for).total_seconds() > 0:
@@ -261,15 +384,17 @@ async def apply_events(cur, settings, lane, events):
                         resolved_at=at,
                         resolve_reason="resolve_when",
                     )
+                    state.close_episodes(*identity, id_)
                     del state[identity]
                     continue
                 if row.get("resolve_pending_at") is not None:
                     cancel_recovery(row)
+                episode = episode_for(ruleset.schemas.get(event.schema_id, {}), event.fields)
+                if episode is not None:
+                    state.remember_episode(*identity, episode, id_)
+                silenced = decision["outcome"] == "SILENCED"
                 row.update(
-                    latest_episode=episode_for(
-                        ruleset.schemas.get(event.schema_id, {}), event.fields
-                    )
-                    or row.get("latest_episode"),
+                    latest_episode=episode if episode is not None else row.get("latest_episode"),
                     rule_version=rule.get("version", 1),
                     title=op.title,
                     body=op.body,
@@ -281,21 +406,32 @@ async def apply_events(cur, settings, lane, events):
                     sensitive_paths=ruleset.schemas.get(event.schema_id, {}).get("sensitive", []),
                     last_seen_at=at,
                     occurrence_count=row["occurrence_count"] + 1,
-                    count_since_notify=row["count_since_notify"] + 1,
+                    count_since_notify=row["count_since_notify"] + int(not silenced),
                 )
-                if SEVERITY_ORDER.get(event.severity, -1) > SEVERITY_ORDER.get(row["severity"], -1):
-                    row["severity"] = event.severity.value
+                severity = event.severity
+                if HAS_SPIKE_STATE:
+                    severity = op.effective_severity or severity
+                    if op.spike_state is not None or "spike_state" in row:
+                        row["spike_state"] = op.spike_state or {}
+                if SEVERITY_ORDER.get(severity, -1) > SEVERITY_ORDER.get(row["severity"], -1):
+                    row["severity"] = severity.value
+                score_inputs = (
+                    {"fields": event.fields, "schema": ruleset.schemas.get(event.schema_id, {})}
+                    if SCORE_ACCEPTS_SCHEMA else {}
+                )
                 row["priority"], row["score"], row["score_breakdown"] = score(
                     row["severity"],
                     event.environment or event.fields.get("$environment"),
                     row["occurrence_count"],
                     rule,
+                    **score_inputs,
                 )
                 fields = {**event.fields, "gen_sent_at": event.trace.get("gen_sent_at")}
                 # Project eligibility so the next event sees the correct cooldown in this batch.
+                route_transition = getattr(op, "routing_transition", None) or op.transition
                 routing = plan(
                     row,
-                    op.transition,
+                    route_transition,
                     rule,
                     fields,
                     settings.directory,
@@ -305,9 +441,11 @@ async def apply_events(cur, settings, lane, events):
                 )
                 row["runbook_id"] = routing.runbook_id
                 samples[id_].append((id_, event.id, at))
+                if silenced:
+                    continue
                 if op.notify and routing.intents:
                     row.update(last_notified_at=at, count_since_notify=0)
-                    intents.append((dict(row), op.transition, rule, fields, clock, decision))
+                    intents.append((dict(row), route_transition, rule, fields, clock, decision))
                 elif op.notify and routing.unrouted_reason:
                     decision.update(outcome="UNROUTED")
                     decision["reason"]["routing"] = routing.unrouted_reason
