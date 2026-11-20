@@ -7,6 +7,7 @@ from datetime import timedelta
 from alerting.contracts import SEVERITY_ORDER, CanonicalEvent, Transition
 from alerting.rules.dsl import compile
 from alerting.rules.failures import evaluating
+from alerting.rules.silences import active_silence
 from alerting.templates import lookup, render, variables
 
 
@@ -155,6 +156,19 @@ def evaluate(event, ruleset, state, clock):
                 outcome = "DIGEST_QUEUED"
             if notify and not rule.get("route"):
                 outcome = "UNROUTED"
+            if not resolving and hasattr(state, "get_silences"):
+                severity = max(
+                    event.severity, (old or {}).get("severity", event.severity),
+                    key=lambda level: SEVERITY_ORDER.get(level, -1),
+                )
+                silence = active_silence(state.get_silences(rule["id"]), fields, clock.now(), severity=severity)
+                if silence:
+                    notify, outcome = False, "SILENCED"
+                    expiry = silence.expires_at.isoformat()
+                    decision["reason"].update(
+                        silence={"id": silence.id, "created_by": silence.created_by, "expires_at": expiry},
+                        message=f"Silenced by {silence.created_by} until {expiry}",
+                    )
             decision.update(outcome=outcome)
             decision["reason"].update(transition=transition.value, alert_key=key)
             present = rule.get("present", {})

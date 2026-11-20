@@ -1,10 +1,12 @@
 from contextlib import asynccontextmanager
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from psycopg.rows import dict_row
+from psycopg.types.json import Jsonb
 
 from alerting.clock import SYSTEM
 from alerting.db import pool
+from alerting.rules.silences import SILENCE_COLUMNS, SilenceDraft, active_rows
 from alerting.rules.storage import alert_changed, audit, close_settings, get_db, get_settings
 
 
@@ -44,6 +46,48 @@ def require_member(alert, actor, settings):
     if actor not in team.get("members", []):
         raise HTTPException(403, "Team membership required")
     return team
+
+
+@router.get("/silences")
+async def silences(team: str | None = None, db=Depends(get_db)):
+    async with db.connection() as conn:
+        return {"items": await active_rows(conn, SYSTEM.now(), team=team)}
+
+
+@router.post("/silences", status_code=201)
+async def create_silence(draft: SilenceDraft, x_user: str = Header(...), db=Depends(get_db)):
+    now = SYSTEM.now()
+    if draft.expires_at <= now:
+        raise HTTPException(422, "Silence expiry must be in the future")
+    require_member({"team_id": draft.team_id}, x_user, await get_settings(db))
+    async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+        await cur.execute(
+            f"""insert into silences (team_id,matcher,include_critical,created_by,created_at,expires_at)
+                values (%s,%s,%s,%s,%s,%s) returning {SILENCE_COLUMNS}""",
+            (draft.team_id, Jsonb(draft.match), draft.include_critical, x_user, now, draft.expires_at),
+        )
+        row = await cur.fetchone()
+        await audit(cur, x_user, "silence.create", "silence", row["id"], {
+            "team_id": draft.team_id,
+            "expires_at": draft.expires_at.isoformat(),
+            "include_critical": draft.include_critical,
+        })
+        return row
+
+
+@router.delete("/silences/{id}", status_code=204)
+async def delete_silence(id: int, x_user: str = Header(...), db=Depends(get_db)):
+    settings = await get_settings(db)
+    async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+        await cur.execute("select team_id,revoked_at from silences where id=%s for update", (id,))
+        row = await cur.fetchone()
+        if row is None:
+            raise HTTPException(404, "Silence not found")
+        require_member(row, x_user, settings)
+        if row["revoked_at"] is None:
+            await cur.execute("update silences set revoked_at=%s where id=%s", (SYSTEM.now(), id))
+            await audit(cur, x_user, "silence.delete", "silence", id, {"team_id": row["team_id"]})
+    return Response(status_code=204)
 
 
 @router.get("/alerts")
