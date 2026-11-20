@@ -4,15 +4,18 @@ import asyncio
 import logging
 from datetime import timedelta
 
+import psycopg
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
 from alerting.clock import SYSTEM, FixedClock, clock_for_event
 from alerting.db import close_pool, open_pool, pool
+from alerting.delivery.shutdown import termination_event, wait_or_stop
 from alerting.routing.directory import by_id, team_for
 from alerting.routing.ladder import step_rule, steps
 from alerting.routing.throttle import lock_rules
 from alerting.rules.engine import duration
+from alerting.rules.failures import transient
 from alerting.rules.heartbeat import check_deadlines
 from alerting.rules.storage import (
     alert_changed,
@@ -132,14 +135,20 @@ async def advance_ladder(cur, row, rule, fields, settings, clock):
     await cur.execute("update alerts set ladder_stage=%s where id=%s", (stage, row["id"]))
 
 
-async def tick(db, settings=None, clock=SYSTEM):
+async def tick(db, settings=None, clock=SYSTEM, stop=None):
+    if stop is not None and stop.is_set():
+        return 0
     if settings is None:
         settings = await get_settings(db)
     rules = {r["id"]: r for r, _ in settings.ruleset.rules}
     now = clock.now()
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
         await lock_rules(cur, rules.values())
+        if stop is not None and stop.is_set():
+            return 0
         missed = await check_deadlines(cur, settings, clock)
+        if stop is not None and stop.is_set():
+            return missed
         await cur.execute(
             """select a.*,e.fields as event_fields,e.trace,e.schema_id,t.unacked_due,t.ladder_due
                from alerts a left join events e on e.id=a.representative_event_id
@@ -208,14 +217,20 @@ async def tick(db, settings=None, clock=SYSTEM):
 
 
 async def main():
-    await open_pool()
-    try:
-        while True:
-            await tick(pool())
-            await asyncio.sleep(2)
-    finally:
-        await close_settings(pool())
-        await close_pool()
+    with termination_event() as stop:
+        await open_pool()
+        try:
+            while not stop.is_set():
+                try:
+                    await tick(pool(), stop=stop)
+                except psycopg.Error as exc:
+                    if not transient(exc):
+                        raise
+                    logging.getLogger(__name__).warning("Transient scheduler failure; retrying", exc_info=True)
+                await wait_or_stop(stop, 2)
+        finally:
+            await close_settings(pool())
+            await close_pool()
 
 
 if __name__ == "__main__":
