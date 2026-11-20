@@ -136,3 +136,17 @@
 .approval-status-dot{width:6px;height:6px;border-radius:50%;background:var(--motion-pink)}
 .approval-status-link:hover>span:last-child,.status-inline-health a:hover{color:var(--accent)}
 @media(max-width:650px){.overview-hero .status-unified .status-main{flex-wrap:wrap;gap:22px}.approval-status-link{min-width:0;width:100%}.status-inline-health{gap:20px}.status-definition{margin-top:0}.status-unified .status-main>.status-arrow{display:none}}
+
+/* Status and live trend share the opening viewport. */
+.overview-hero-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:clamp(32px,5vw,80px);flex:1;padding:20px 0 28px}
+.overview-hero-columns .status-unified{padding:0;min-height:0;gap:22px}
+.overview-hero-columns .status-unified .status-main{gap:24px}
+.overview-hero-columns .status-main h2{font-size:clamp(25px,2.5vw,36px)}
+.overview-hero-columns .status-orbit{width:clamp(130px,14vw,190px);height:clamp(130px,14vw,190px)}
+.overview-hero-columns .status-orbit>strong{font-size:60px}
+.overview-hero-columns .live-trend-embedded{margin:0;padding:0;min-width:0}
+.overview-hero-columns .live-trend-embedded .chart-heading{padding:0 0 24px;gap:16px}
+.overview-hero-columns .live-trend-embedded svg{height:clamp(180px,28vh,300px);margin:0}
+.overview-hero-columns .live-trend-embedded .chart-scrubber{padding:0;margin:0;flex-wrap:wrap;gap:12px}
+.overview-hero-columns .chart-scrubber strong{margin-left:0}
+@media(max-width:1000px){.overview-hero-columns{grid-template-columns:1fr;gap:36px}.overview-hero-columns .live-trend-embedded svg{height:180px}.overview-hero-columns .status-unified .status-main{justify-content:flex-start}}
