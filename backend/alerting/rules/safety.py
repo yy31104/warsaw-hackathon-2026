@@ -1,23 +1,19 @@
 """Pure rule-safety scenarios and sample verification for configuration drafts."""
 
 import json
-import math
 import re
 from collections import defaultdict
 from datetime import UTC, datetime
-from decimal import DecimalException, localcontext
 from itertools import product
-from sys import get_int_max_str_digits
 from zoneinfo import ZoneInfo
 
 from alerting.clock import FixedClock
 from alerting.contracts import CanonicalEvent, Severity
-from alerting.ingest.normalize import MAX_BYTES, _labels, _severity, _time, normalize
+from alerting.ingest.normalize import normalize, transform_scales
 from alerting.routing import plan
 from alerting.routing.directory import by_id, team_for
 from alerting.rules.dsl import compile, number
 from alerting.rules.engine import Ruleset, evaluate
-from alerting.templates import lookup, render, variables
 
 
 def _leaves(node, positive=True):
@@ -265,31 +261,7 @@ def _trace_evidence(node, rows):
     return matched, [leaf for ok, proof in branches if ok == matched for leaf in proof]
 
 
-def _scaled_values(fields, scales):
-    changes = {}
-    for path, scale in scales.items():
-        value = number(lookup(fields, path))
-        if value is None:
-            continue
-        try:
-            with localcontext() as context:
-                context.prec = len(value.as_tuple().digits) + len(scale.as_tuple().digits)
-                scaled = value * scale
-            if scaled == scaled.to_integral_value():
-                if scaled.adjusted() >= (get_int_max_str_digits() or MAX_BYTES):
-                    raise ValueError(f"scale for {path} exceeds the JSON integer limit")
-                changes[path] = int(scaled)
-            else:
-                converted = float(scaled)
-                if not math.isfinite(converted) or converted == 0:
-                    raise ValueError(f"scale for {path} exceeds JSON number precision")
-                changes[path] = converted
-        except DecimalException as exc:
-            raise ValueError(f"invalid scale for {path}") from exc
-    return changes
-
-
-def _draft_event(raw, source, schema, detector, scales, at):
+def _draft_event(raw, source, schema, detector, at):
     trace = []
 
     def detect(fields):
@@ -298,28 +270,6 @@ def _draft_event(raw, source, schema, detector, scales, at):
         return schema if matched else None
 
     event = normalize(raw, source, detect, received_at=at)
-    if event.schema_id is None:
-        return event, trace
-    changes = _scaled_values(event.fields, scales)
-    if changes:
-        # Transform only flattened paths. Re-project their aliases using the ingest semantics.
-        fields = event.fields
-        fields.update({path + ".raw": lookup(fields, path) for path in changes})
-        fields.update(changes)
-        aliases = schema.get("aliases", {})
-        if aliases.get("severity") in changes:
-            event.severity = _severity(fields[aliases["severity"]], schema)
-            fields["$severity"] = event.severity.value
-            event.lane = "critical" if event.severity == "critical" else "normal"
-        if aliases.get("time") in changes:
-            event.occurred_at = _time(fields[aliases["time"]], schema.get("time_format", "iso"))
-            fields["$time"] = event.occurred_at.isoformat() if event.occurred_at else None
-        fields.update(_labels(fields, schema))
-        event.schema_name = fields["$schema"]
-        event.service, event.environment = fields["$service"], fields["$environment"]
-    episode = schema.get("episode_key")
-    if episode and all(lookup(event.fields, p) is not None for p in variables(episode)):
-        event.fields["$episode"] = render(episode, event.fields)
     return event, trace
 
 
@@ -387,27 +337,19 @@ def verify(schema, samples, ruleset, directory, runbooks, clock):
     base = schema.get("base", schema.get("id"))
     if "base" in schema and base not in ruleset.schemas:
         raise ValueError(f"unknown base schema: {base}")
-    draft = {**ruleset.schemas.get(base, {}), **schema}
+    draft = {key: value for key, value in {**ruleset.schemas.get(base, {}), **schema}.items() if value is not None}
     if not draft.get("id"):
         raise ValueError("draft schema requires an id or a base")
     draft.setdefault("name", draft["id"])
     draft.setdefault("detect", {})
     detector = compile(draft["detect"])
-    transforms = draft.get("transforms", {})
-    scales = {}
-    for path, transform in transforms.items():
-        scale = number(transform.get("scale", 1)) if isinstance(transform, dict) else None
-        if scale is None:
-            raise ValueError(f"invalid scale for {path}")
-        scales[path] = scale
-    # Apply each scale exactly once, including when the installed normalizer supports transforms.
-    projection = {**draft, "transforms": {}}
+    transform_scales(draft.get("transforms", {}))
     trial = Ruleset([rule for rule, _ in ruleset.rules], [draft])
     clock = FixedClock(clock.now())
     results = []
     for sample in samples:
         source = {"id": sample.get("source", "preview"), "transport": sample.get("transport", "http")}
-        event, trace = _draft_event(sample["event"], source, projection, detector, scales, clock.now())
+        event, trace = _draft_event(sample["event"], source, draft, detector, clock.now())
         results.append(
             _sample_result(event, trace, draft, trial, directory, runbooks, sample["expect"], clock)
         )
