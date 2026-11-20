@@ -3,7 +3,7 @@ import {Link} from 'react-router-dom';
 import type {Alert} from './model';
 import {orderAlerts} from './ActiveAlerts';
 import {AnimatedValue} from './StatusOverview';
-const tint=(a:Alert)=>['error','critical'].includes(a.severity)?'#ef8eaf':a.severity==='warning'?'#f3bb70':'#b798ee';
+export const tint=(a:Pick<Alert,'color'>)=>({red:'#ef8eaf',orange:'#ed9a59',amber:'#e7ba59',blue:'#71adf1',grey:'#a5a4b2',gray:'#a5a4b2'}[a.color]??a.color??'#a5a4b2');
 export function AlertField({items}:{items:Alert[]}){
  const [selected,setSelected]=useState<number|null>(null);const sorted=orderAlerts(items);const focus=sorted.find(a=>a.id===selected)??sorted[0];
  if(!focus)return null;

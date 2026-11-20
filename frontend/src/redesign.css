@@ -373,3 +373,17 @@
 @media(min-width:951px){.scene-source{transform:translateX(-34px)}.scene-groups{translate:48px 0}}
 @media(max-width:650px){.scene-anchored-connections{display:none}}
 @media(prefers-reduced-motion:reduce){.scene-anchored-connections circle{display:none!important}}
+/* Stable source geometry: attach the stroke slightly inside the circular border. */
+.scene-source,.scene-icon{transform:none!important;translate:none!important;animation:none!important}.scene-source{font-family:var(--display-font)}
+.scene-intro h1{font-family:var(--display-font);font-weight:500;letter-spacing:-.035em;font-size:clamp(36px,4.2vw,58px);line-height:1.15}
+.scene-anchored-connections path{stroke-linecap:round}
+
+/* One locally served font, regular weight throughout. */
+:root{--display-font:'Open Sans',sans-serif}
+body,.horizontal-shell,.horizontal-shell button,.horizontal-shell input,.horizontal-shell select,.horizontal-shell textarea,.mantine-Popover-dropdown{font-family:'Open Sans',sans-serif;font-synthesis:none}
+.horizontal-shell *,.mantine-Popover-dropdown *{font-weight:400!important}
+/* Shared tracking for all interface typography, including portalled overlays. */
+:root{--ui-letter-spacing:.025em}
+.horizontal-shell,.horizontal-shell *,.mantine-Popover-dropdown,.mantine-Popover-dropdown *,.mantine-Modal-root,.mantine-Modal-root *,.mantine-Select-dropdown,.mantine-Select-dropdown *{letter-spacing:var(--ui-letter-spacing)!important}
+/* A single document-height ribbon crosses every overview section. */
+.continuous-overview{position:relative;isolation:isolate}.overview-long-ribbon{position:absolute;inset:0 -36px;width:calc(100% + 72px);height:100%;z-index:-1;pointer-events:none;opacity:.3;overflow:visible;filter:drop-shadow(0 0 9px #a47cdb25)}.overview-long-ribbon path{stroke-dasharray:none;animation:none}.continuous-overview .scene-background-waves{display:none}.continuous-overview .funnel-scene,.continuous-overview .overview-hero,.continuous-overview .overview-activity-section{background-color:transparent}.continuous-overview:before{content:'';position:absolute;inset:0 -36px;z-index:-2;pointer-events:none;background:radial-gradient(ellipse 80% 24% at 15% 28%,#9663ce18,transparent 80%),radial-gradient(ellipse 90% 24% at 90% 58%,#668ac51c,transparent 80%),radial-gradient(ellipse 90% 25% at 20% 92%,#9663ce1c,transparent 80%)}
