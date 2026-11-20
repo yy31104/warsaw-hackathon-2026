@@ -1,0 +1,15 @@
+{
+  "volume_after": "dev2perffinal-telecom-outage_telecom-data",
+  "volume_before": "dev2perffinal-telecom-outage_telecom-data",
+  "start_requested_at_utc": "2026-11-20T22:37:34.1661647Z",
+  "restored_at_utc": "2026-11-20T22:37:37.3881636Z",
+  "container_id_before": "87f7ea222277cc787a0bdbd799e7f6da6ed93fa8f042e325aea40f33b3519c2e",
+  "stopped_before_start_seconds": 30.0200821,
+  "stopped_at_utc": "2026-11-20T22:37:04.1433178Z",
+  "stopped_container_state": "exited",
+  "receiver_items_before": 0,
+  "stopped_http_error": "The request was canceled due to the configured HttpClient.Timeout of 2 seconds elapsing.",
+  "mode_after": "ok",
+  "container_id_after": "87f7ea222277cc787a0bdbd799e7f6da6ed93fa8f042e325aea40f33b3519c2e",
+  "requested_seconds": 30
+}

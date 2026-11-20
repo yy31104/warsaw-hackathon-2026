@@ -1,0 +1,53 @@
+{
+  "id": "funnel",
+  "team_id": null,
+  "ts": "2026-11-20T23:39:16.943747+01:00",
+  "alerts_open": 14,
+  "backlog": 0,
+  "retries_5m": 7,
+  "oldest_pending_s": 0,
+  "delivery_target_s": 30.0,
+  "at_risk": false,
+  "delivery": [
+    {
+      "channel": "phone",
+      "lane": "critical",
+      "backlog": 0,
+      "oldest_pending_s": 0.0,
+      "retries_5m": 3,
+      "delivery_target_s": 30.0,
+      "at_risk": false
+    },
+    {
+      "channel": "sms",
+      "lane": "critical",
+      "backlog": 0,
+      "oldest_pending_s": 0.0,
+      "retries_5m": 4,
+      "delivery_target_s": 30.0,
+      "at_risk": false
+    }
+  ],
+  "window": "15m",
+  "raw": 19,
+  "ingest_per_s": 0.0,
+  "accepted": 19,
+  "duplicates": 0,
+  "conflicts": 0,
+  "rejected": 0,
+  "needs_review": 0,
+  "matched": 16,
+  "critical": 12,
+  "notifications": {
+    "pending": 0,
+    "sending": 0,
+    "delivered": 36,
+    "retrying": 0,
+    "unknown": 0,
+    "failed": 0,
+    "fallback": 0,
+    "cancelled": 0
+  },
+  "processed_per_s": 0.0,
+  "processing_backlog": 0
+}

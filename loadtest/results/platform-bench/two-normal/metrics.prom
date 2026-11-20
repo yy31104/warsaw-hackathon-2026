@@ -1,0 +1,63 @@
+# HELP events_ingested_total Events durably stored in the inbox.
+# TYPE events_ingested_total counter
+events_ingested_total 14047
+# HELP events_processed_total Events marked processed by the rule workers.
+# TYPE events_processed_total counter
+events_processed_total 14047
+# HELP events_backlog Events awaiting a rule worker.
+# TYPE events_backlog gauge
+events_backlog{lane="normal"} 0
+events_backlog{lane="critical"} 0
+# HELP events_ingest_rejections_total Duplicate, conflicting, or invalid arrivals.
+# TYPE events_ingest_rejections_total counter
+# HELP notifications_by_state Current outbox rows by delivery state.
+# TYPE notifications_by_state gauge
+notifications_by_state{state="pending"} 0
+notifications_by_state{state="sending"} 0
+notifications_by_state{state="delivered"} 123
+notifications_by_state{state="retrying"} 0
+notifications_by_state{state="unknown"} 0
+notifications_by_state{state="failed"} 0
+notifications_by_state{state="fallback"} 0
+notifications_by_state{state="cancelled"} 0
+# HELP delivery_attempts_total Recorded attempts by channel.
+# TYPE delivery_attempts_total counter
+delivery_attempts_total{channel="sms"} 41
+delivery_attempts_total{channel="phone"} 41
+delivery_attempts_total{channel="email"} 0
+delivery_attempts_total{channel="ui"} 0
+# HELP delivery_attempts_by_outcome Recorded attempts by current outcome.
+# TYPE delivery_attempts_by_outcome gauge
+delivery_attempts_by_outcome{channel="phone",outcome="delivered"} 41
+delivery_attempts_by_outcome{channel="sms",outcome="delivered"} 41
+# HELP notification_confirmation_latency_seconds Time from generator timestamp to recorded provider confirmation.
+# TYPE notification_confirmation_latency_seconds histogram
+notification_confirmation_latency_seconds_bucket{le="0.01"} 0
+notification_confirmation_latency_seconds_bucket{le="0.05"} 0
+notification_confirmation_latency_seconds_bucket{le="0.1"} 1
+notification_confirmation_latency_seconds_bucket{le="0.25"} 47
+notification_confirmation_latency_seconds_bucket{le="0.5"} 82
+notification_confirmation_latency_seconds_bucket{le="1"} 82
+notification_confirmation_latency_seconds_bucket{le="2"} 82
+notification_confirmation_latency_seconds_bucket{le="5"} 82
+notification_confirmation_latency_seconds_bucket{le="10"} 82
+notification_confirmation_latency_seconds_bucket{le="30"} 82
+notification_confirmation_latency_seconds_bucket{le="60"} 82
+notification_confirmation_latency_seconds_bucket{le="+Inf"} 82
+notification_confirmation_latency_seconds_count 82
+notification_confirmation_latency_seconds_sum 19.739242
+# HELP delivery_backlog Unfinished outbox rows.
+# TYPE delivery_backlog gauge
+delivery_backlog 0
+# HELP oldest_pending_age_seconds Age of the oldest unfinished outbox row.
+# TYPE oldest_pending_age_seconds gauge
+oldest_pending_age_seconds 0
+# HELP delivery_retries_5m Retry attempts started in the last five minutes.
+# TYPE delivery_retries_5m gauge
+delivery_retries_5m 0
+# HELP delivery_target_seconds Delivery backlog age target.
+# TYPE delivery_target_seconds gauge
+delivery_target_seconds 30.0
+# HELP delivery_at_risk Whether the backlog age exceeds the delivery target.
+# TYPE delivery_at_risk gauge
+delivery_at_risk 0

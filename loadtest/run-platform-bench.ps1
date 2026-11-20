@@ -108,7 +108,7 @@ $benchMachine = @{
     docker = ((& docker info --format '{{json .}}' | ConvertFrom-Json) |
         Select-Object ServerVersion, OperatingSystem, OSType, Architecture, NCPU, MemTotal, KernelVersion)
     compose_version = (& docker compose version)
-    elapsed_clock = 'Docker VM monotonic clock for arrival schedule and outage; shared VM epoch clock for delivery'
+    elapsed_clock = 'Host monotonic clock for container downtime; Docker VM monotonic scheduling and VM epoch delivery stamps'
 }
 if ($IsWindows) {
     $benchMachine['host_cpu'] = Get-CimInstance Win32_Processor |
