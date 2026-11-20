@@ -6,8 +6,8 @@ Team workspace for the 2026 Goldman Sachs Warsaw Hackathon (Software Engineering
 
 ## Team: start here
 1. Read [docs/BRIEF.md](docs/BRIEF.md) (what, scope, gates, ownership), then [docs/CONTRACT.md](docs/CONTRACT.md).
-2. Open your handoff: [BACKEND](docs/handoff/BACKEND.md) · [DATA](docs/handoff/DATA.md) · [UI](docs/handoff/UI.md) · [REVIEW & PRESENT](docs/handoff/REVIEW.md) (joins at G3).
-3. Check out your branch: `backend/core`, `data/platform`, `ui/frontend`, `review/present`.
+2. Read [AGENTS.md](AGENTS.md), then your handoff: [DEV1 platform](docs/handoff/DEV1-platform.md) · [DEV2 ingestion](docs/handoff/DEV2-ingestion.md) · [DEV3 incidents](docs/handoff/DEV3-incidents.md) · [DEV4 notifications](docs/handoff/DEV4-notifications.md) · [UI](docs/handoff/UI.md) · [Review & present](docs/handoff/REVIEW.md).
+3. Switch to your branch: `feat/platform`, `feat/ingestion`, `feat/processing`, `feat/delivery`, `feat/frontend`. Never push to `main`; open a PR.
 4. Run the base:
    ```bash
    cp .env.example .env          # add ANTHROPIC_API_KEY locally if you work on an assist feature
@@ -24,10 +24,10 @@ config/            sources, schemas, rules, teams/preferences, runbooks (hot-rel
 fixtures/events/   Appendix A sample events (+ a pricing log file)
 fixtures/golden/   black-box acceptance cases derived from the task text
 fixtures/api/      mock API responses for UI work
-db/migrations/     001 shared; 0xx DATA, 1xx BACKEND
+db/migrations/     001 shared; 0xx DEV1, 1xx DEV2, 2xx DEV3, 3xx DEV4
 backend/alerting/  contracts.py, llm.py, templates.py, clock.py, db.py (shared) + ingest/ schemas/ config/ rules/ routing/ delivery/ runbooks/ assist/ api/
-mocks/             fake_telecom, mock_ops (DATA)
-loadtest/          load generator, collector, reports (DATA)
+mocks/             fake_telecom (DEV4), mock_ops (DEV1)
+loadtest/          golden runner, load/chaos reports (DEV1)
 frontend/          React app (UI)
 ```
 

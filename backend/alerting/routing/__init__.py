@@ -1,1 +1,1 @@
-"""Owner: BACKEND. Pure routing.plan(): recipients (user/team/oncall), preferences + time windows, throttle, rendering per channel."""
+"""Owner: DEV4. Directory + pure routing.plan(): recipients, preferences/time windows, on-call, throttle, per-channel rendering."""

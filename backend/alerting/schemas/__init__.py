@@ -1,1 +1,1 @@
-"""Owner: DATA. Schema registry: detect/aliases/severity_map/templates; unknown-schema issues; heuristic + LLM suggestion (P0.5)."""
+"""Owner: DEV2. Schema registry, unknown-schema issues, onboarding."""

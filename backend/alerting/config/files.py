@@ -1,6 +1,6 @@
-"""Minimal file reader for config/*.yaml so BACKEND and DATA are unblocked from minute one.
+"""Minimal file reader for config/*.yaml so every developer is unblocked from minute one.
 
-DATA replaces the *source of truth* with config_objects (versioned, hot-reloaded) behind the same
+DEV2 replaces the *source of truth* with config_objects (versioned, hot-reloaded) behind the same
 function names in alerting/config/loader.py; callers switch by changing one import.
 """
 from __future__ import annotations

@@ -1,3 +1,3 @@
 # tools
 
-CLI helpers (publish.py etc.), owner DATA.
+CLI helpers (publish.py etc.), owner DEV2.

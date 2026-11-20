@@ -1,4 +1,4 @@
-"""FastAPI app. SHARED FILE — every router is already wired; owners edit only their routes_*.py."""
+"""FastAPI app. SHARED FILE (DEV1) — every router is already wired; owners (see each routes_*.py docstring) edit only their own file."""
 from __future__ import annotations
 
 import os
@@ -45,15 +45,15 @@ app.add_middleware(
 )
 
 for module in (
-    routes_ops,            # DATA
-    routes_ingest,         # DATA
-    routes_schemas,        # DATA
-    routes_stream,         # DATA
-    routes_rules,          # DATA (config CRUD + simulator + drafts)
-    routes_teams,          # DATA
-    routes_config,         # DATA (runbook store + structuring)
-    routes_alerts,         # BACKEND
-    routes_notifications,  # BACKEND
-    routes_runbooks,       # BACKEND
+    routes_ops,
+    routes_ingest,
+    routes_schemas,
+    routes_stream,
+    routes_rules,
+    routes_teams,
+    routes_config,
+    routes_alerts,
+    routes_notifications,
+    routes_runbooks,
 ):
     app.include_router(module.router)

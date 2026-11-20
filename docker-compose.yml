@@ -1,4 +1,4 @@
-# Owner: DATA. Infra only for now (G0). App services are added at G1 (api, workers, mocks, frontend)
+# Owner: DEV1 (tech lead). Infra only for now (G0). App services are added at G1 (api, workers, mocks, frontend)
 # so that `docker compose up` from a fresh clone runs the whole system for the judges.
 name: alertfunnel
 
@@ -34,14 +34,14 @@ services:
     ports: ["1025:1025", "8025:8025"]      # SMTP 1025, inbox UI http://localhost:8025
 
   # --- added at G1 by their owners (keep the names; other services depend on them) ---
-  # fake-telecom:   DATA      port 8100   (SMS/phone gateway mock with a phone-like web UI)
-  # mock-ops:       DATA      port 8200   network alias: counterparty-service (runbook targets)
+  # fake-telecom:   DEV4      port 8100   (SMS/phone gateway mock with a phone-like web UI)
+  # mock-ops:       DEV1      port 8200   network alias: counterparty-service (runbook targets)
   # api:            shared    port 8000   uvicorn alerting.api.app:app
-  # ingest-amqp:    DATA      python -m alerting.ingest.amqp
-  # ingest-logtail: DATA      python -m alerting.ingest.logtail
-  # rule-worker:    BACKEND     python -m alerting.rules.worker --lane normal   (+ one --lane critical)
-  # scheduler:      BACKEND     python -m alerting.rules.scheduler              (digests, cooldown, escalations)
-  # delivery-worker: BACKEND python -m alerting.delivery.worker
+  # ingest-amqp:    DEV2      python -m alerting.ingest.amqp
+  # ingest-logtail: DEV2      python -m alerting.ingest.logtail
+  # rule-worker:    DEV3        python -m alerting.rules.worker --lane normal   (+ one --lane critical)
+  # scheduler:      DEV3        python -m alerting.rules.scheduler              (digests, cooldown, escalations)
+  # delivery-worker: DEV4    python -m alerting.delivery.worker
   # frontend:       UI        port 5173
 
 volumes:

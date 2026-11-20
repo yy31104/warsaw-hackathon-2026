@@ -1,6 +1,6 @@
 # Handoff — REVIEW & PRESENT (joins at G3, Sat ~07:30; earlier if free)
 
-**Branch:** `review/present` (docs, video assets). Fixes go as small PRs to the owner's branch, or directly to `main` with Yi's OK after G3.
+**Branch:** `feat/review` (docs, video assets). Fixes go as small PRs to the owner's branch, or directly to `main` with Yi's OK after G3.
 **Read first:** BRIEF (all), `docs/GATES.md`, the task paper (all pages). Skim CONTRACT §1–2.
 
 ## Why you come in last
@@ -16,7 +16,7 @@ Without help, try these on the running system (`main`). Time each one and note e
 → Write the findings in `docs/REVIEW_FINDINGS.md` (severity, screen, what happened, suggested fix). Hand them to the owner, or fix small copy/UI issues yourself.
 
 ### 2. Hidden-input rehearsal (~30 min)
-Yi gives you the private holdout folder (not in the repo). Send each unseen schema and runbook through the UI **without code changes**, exactly like the judges will. Record PASS / FAIL, minutes to the first correct alert, and LLM-suggested vs correct fields (n/N) in GATES.md (G3 rows). FAIL is a valid, useful result.
+Yi (DEV1) runs the private holdout at G3; ask for the items that FAILED and re-run them after fixes, plus add one unseen format of your own. Send each unseen schema and runbook through the UI **without code changes**, exactly like the judges will. Record PASS / FAIL, minutes to the first correct alert, and LLM-suggested vs correct fields (n/N) in GATES.md (G3 rows). FAIL is a valid, useful result.
 
 ### 3. Evidence audit (~20 min)
 For every number and claim in the README / video script, find the script or result file that produced it (`loadtest/results/`, GATES.md). Anything without a source is removed or marked "not measured". Check that "what is mocked" is complete (fake-telecom = SMS/phone gateway, Mailpit = SMTP inbox, mock-ops = workflow/ops targets, simulated auth via `X-User`).
@@ -24,7 +24,7 @@ For every number and claim in the README / video script, find the script or resu
 ### 4. README for judges (~30 min)
 Rewrite `README.md` top to bottom for a judge. Keep it short:
 - one-paragraph pitch;
-- architecture diagram (BRIEF §5);
+- architecture diagram (BRIEF §3 seams);
 - quick start (the commands you actually ran in step 1);
 - feature → task-requirement map (2.1–2.6);
 - measured results table (with N and machine spec);
@@ -33,7 +33,7 @@ Rewrite `README.md` top to bottom for a judge. Keep it short:
 - known limitations / next steps (single Postgres as the bottleneck and single point of failure; real providers; RBAC).
 
 ### 5. Video (≤ 5:00) (~90 min including retakes)
-Follow BRIEF §9. Record at 1440×900, large fonts, one narrator. Show real runs (fake-telecom phone page, Mailpit inbox, live counter, approval by SMS reply, unseen-schema onboarding with a stopwatch, measured numbers). No number on screen without a source. Upload to Lockbox `All Teams/<team>` together with a text file containing the repo link.
+Follow BRIEF §8. Record at 1440×900, large fonts, one narrator. Show real runs (fake-telecom phone page, Mailpit inbox, live counter, approval by SMS reply, unseen-schema onboarding with a stopwatch, measured numbers). No number on screen without a source. Upload to Lockbox `All Teams/<team>` together with a text file containing the repo link.
 
 ### 6. Q&A prep for the top-5 final (~20 min)
 One page `docs/QA.md`: bottleneck (Postgres write path and the hot alert row → batch claims + pre-aggregation; next step is partitioning or sharding by team), single point of failure (Postgres; replica + failover in production), exactly-once (we give durable intake, idempotent effects inside the DB, and idempotency keys outward; a timeout is "unknown", not "failed"), why no Redis/Kafka, how a real SMS provider is added (one class), how the LLM is kept safe (drafts only, human confirms, redaction, fallback).

@@ -1,5 +1,5 @@
 -- 001_init.sql — shared base schema (see docs/CONTRACT.md §7).
--- Ranges for later files: 0xx DATA, 1xx BACKEND. Add files; never edit merged ones.
+-- Ranges for later files: 0xx DEV1, 1xx DEV2, 2xx DEV3, 3xx DEV4. Add files; never edit merged ones.
 -- Applied automatically on a fresh volume (docker-entrypoint-initdb.d). `make reset-db` to re-apply.
 
 create extension if not exists pgcrypto;
@@ -45,6 +45,8 @@ create table if not exists events (
 create unique index if not exists events_identity on events (source_id, source_event_id) where source_event_id is not null;
 create index if not exists events_pending on events (lane, id) where status = 'pending';
 create index if not exists events_received on events (received_at);
+-- Unstructured but queryable: any flattened path, e.g. fields @> '{"error.code": "TIMEOUT"}'
+create index if not exists events_fields_gin on events using gin (fields jsonb_path_ops);
 
 create table if not exists ingest_rejections (
   id               bigserial   primary key,

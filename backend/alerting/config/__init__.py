@@ -1,1 +1,1 @@
-"""Owner: DATA. Config importer: config/*.yaml -> config_objects (versioned), file watcher, NOTIFY config_changed; loaders for every kind."""
+"""Owner: DEV2. Config: files.py (bootstrap reader, shared) and loader.py (config_objects, versioned, hot reload)."""

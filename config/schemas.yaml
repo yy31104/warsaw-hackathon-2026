@@ -13,6 +13,8 @@ schemas:
       severity: severity
       environment: environment
       service: workflowName
+      error_code: error.code
+      message: error.message
       time: timestamp
     severity_map: {DEBUG: debug, INFO: info, WARN: warning, WARNING: warning, ERROR: error, FATAL: critical, CRITICAL: critical}
     alert_key: "{{workflowName}}|{{step}}|{{error.code}}"
@@ -28,6 +30,8 @@ schemas:
       severity: labels.severity
       service: labels.service
       environment: labels.env
+      error_code: alertname
+      message: annotations.summary
       time: startsAt
     severity_map: {info: info, warning: warning, critical: critical, page: critical}
     alert_key: "{{alertname}}|{{labels.service}}|{{labels.region}}"
@@ -42,6 +46,7 @@ schemas:
     event_id: "{{meta.schema}}|{{payload.tradeId}}|{{meta.ts}}"
     aliases:
       service: meta.producer
+      error_code: payload.reason
       time: meta.ts
     time_format: epoch_ms
     severity_default: warning
@@ -55,5 +60,6 @@ schemas:
     aliases:
       severity: level
       service: instance
+      message: msg
       time: timestamp
     severity_map: {DEBUG: debug, INFO: info, WARN: warning, ERROR: error, FATAL: critical}

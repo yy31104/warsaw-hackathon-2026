@@ -1,1 +1,1 @@
-"""Owner: BACKEND. Runbook store/format detection/matching/rendering; action registry; approvals; audit; auto-resolve. (Runbook store/CRUD + LLM structuring: DATA.)"""
+"""Runbooks. match.py + render.py: DEV4 (pure). actions/ + approvals.py: DEV3. Store/CRUD + LLM structuring: DEV2 (config, assist)."""

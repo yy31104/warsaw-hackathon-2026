@@ -1,0 +1,28 @@
+name: ci
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env: {POSTGRES_USER: alerting, POSTGRES_PASSWORD: alerting, POSTGRES_DB: alerting}
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U alerting" --health-interval 2s --health-timeout 3s --health-retries 30
+    env:
+      DATABASE_URL: postgresql://alerting:alerting@localhost:5432/alerting
+      DEMO_MODE: "1"
+      ASSIST_ENABLED: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Apply migrations
+        run: for f in db/migrations/*.sql; do PGPASSWORD=alerting psql -h localhost -U alerting -d alerting -v ON_ERROR_STOP=1 -f "$f"; done
+      - name: Tests
+        working-directory: backend
+        run: uv sync && uv run pytest -q

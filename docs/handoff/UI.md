@@ -1,8 +1,8 @@
 # Handoff — UI (Frontend)
 
-**Branch:** `ui/frontend` · **Layers:** L6 user experience, funnel dashboard
+**Branch:** `feat/frontend` · **Started by:** DEV1 (BRIEF §5), joined by the first developer free after G2 · **Layers:** L6 user experience, funnel dashboard
 **You own:** `frontend/` (everything)
-**Read first:** BRIEF §1, §9 (storyboard: build the screens in this order), CONTRACT §9 (API), §10 (SSE), `fixtures/api/README.md`
+**Read first:** BRIEF §1, §8 (storyboard: build the screens in this order), CONTRACT §9 (API), §10 (SSE), `fixtures/api/README.md`
 
 ## Mission
 Someone who has never seen the product must be able to (a) watch alerts arrive live, (b) understand why they got one and what to do, (c) change a rule or a preference and see its impact *before* saving, and (d) onboard a new event format without code. The UX is judged directly ("usable by someone who has never seen it", "is the rule editor understandable"), and the video is made of your screens.

@@ -1,1 +1,1 @@
-"""Owner: DATA. Rule impact simulator: replays recent events through BACKEND's pure engine.evaluate + routing.plan with in-memory state. No DB writes."""
+"""Owner: DEV2. Rule impact simulator: replays recent events through DEV3's engine.evaluate + DEV4's routing.plan in memory. No DB writes."""
