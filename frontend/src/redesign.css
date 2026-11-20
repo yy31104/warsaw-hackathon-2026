@@ -17,3 +17,36 @@
 .horizontal-shell main{padding-top:20px;padding-bottom:60px}.horizontal-shell .page-title{margin:18px 0 30px}.horizontal-shell .page-title p:empty{display:none}.horizontal-shell .mock-banner{font-size:11px;margin-bottom:22px;padding-bottom:14px}.demo-session{margin:0 0 32px;padding:0;border:0}.demo-session>summary{display:flex;align-items:center;gap:14px;font-size:11px;color:var(--quiet);font-weight:400;list-style:none}.demo-session>summary:before{content:'＋';color:var(--accent);font-size:14px}.demo-session[open]>summary:before{content:'−'}.demo-session>summary>span{font-size:10px;border-left:1px solid var(--line);padding-left:14px}.demo-session .demo-controls{margin:18px 0 0;padding:16px 0;border-top:1px solid var(--line)}.status-landscape{padding:8px 0 30px;margin-bottom:36px;gap:40px}.status-main{gap:24px}.status-attention{gap:22px}.status-risk{gap:11px}.overview-primary{gap:36px}.horizontal-shell .overview-grid{gap:36px}.active-workspace{padding:28px 0 26px}.active-toolbar{margin-bottom:30px}.active-toolbar p{margin-top:8px}.active-composition{gap:34px}.lead-alert h3{margin:22px 0 16px;font-size:25px;line-height:1.45}.lead-context{line-height:1.8;margin-bottom:30px}.lead-bottom{padding-top:14px}.lead-time{margin-top:24px;font-size:11px}.other-alerts{padding-left:28px}.queue-label{margin-bottom:10px}.alert-line{padding:21px 0;gap:13px}.alert-line h3{font-size:14px;line-height:1.65;margin:9px 0}.alert-line small{font-size:11px}.alert-line-meta{font-size:11px}.line-count span{font-size:10px}.line-count{padding-left:10px}.activity-feed{padding-top:28px}.activity-tools{margin-top:24px}.activity-explainer{margin:16px 0 22px}.activity-events .activity-line{padding:21px 0;gap:14px}.activity-events .activity-line p{font-size:13px;line-height:1.75;margin:0 0 10px}.activity-events .activity-line small{font-size:11px}.activity-footnote{margin-top:22px}.activity-events{max-height:680px}.grouping-note{margin:22px 0 0}.grouping-note>summary{font-size:11px;color:var(--quiet);font-weight:400}.grouping-note .muted{margin-top:14px}.chart-heading p{font-size:11px;margin:10px 0 14px}.chart-scrubber{gap:15px;margin-top:14px}.horizontal-shell .panel{padding:26px}.live-trend{padding:26px}.live-trend svg{height:165px}.horizontal-shell .secondary-nav{padding-top:14px;padding-bottom:14px}.horizontal-shell .condition-group{padding:24px}.horizontal-shell .form-grid{gap:24px}.horizontal-shell .row{padding:24px 0}.horizontal-shell .step{padding:26px 0}.horizontal-shell .mantine-InputWrapper-root{margin-bottom:20px}.workspace-toolbar .mantine-InputWrapper-root,.demo-controls .mantine-InputWrapper-root,.activity-tools .mantine-InputWrapper-root{margin-bottom:0}@media(max-width:800px){.status-landscape{margin-bottom:28px;gap:25px}.horizontal-shell .overview-grid{gap:28px}.active-composition{gap:25px}.lead-alert h3{font-size:22px}.other-alerts{padding-left:0}.active-toolbar{gap:18px}.active-workspace{padding-top:24px}.demo-session>summary{flex-wrap:wrap}.activity-feed{margin-top:10px}}
 /* Shared section baseline for alert workspace and activity stream. */
 .horizontal-shell .overview-secondary{padding-top:0}.overview-secondary .activity-feed{margin-top:0;padding-top:28px;border-top:1px solid var(--line)}.activity-heading h2{font-size:17px;font-weight:500}.active-toolbar{align-items:flex-start;min-height:78px;margin-bottom:20px}.activity-heading{min-height:31px;align-items:flex-start}.activity-tools{margin-top:16px;min-height:31px}.activity-explainer{display:none}.activity-events{margin-top:20px}.activity-events .activity-line:first-child{padding-top:0}.active-workspace,.activity-feed{box-sizing:border-box}.overview-grid{align-items:start}@media(max-width:800px){.active-toolbar{min-height:0;margin-bottom:25px}.activity-feed{margin-top:0}.activity-tools{margin-bottom:0}}
+
+/* A single reading flow: urgent alerts, recent activity, optional analysis. */
+.overview-stack{display:flex;flex-direction:column;gap:44px;min-width:0}
+.overview-stack>.activity-feed{margin:0;padding-top:28px}
+.overview-stack .activity-tools{max-width:420px}
+.overview-stack .activity-events{max-height:none;overflow:visible;padding-right:0}
+.overview-stack .activity-events .activity-line>div{display:flex;align-items:baseline;justify-content:space-between;gap:24px;flex:1}
+.overview-stack .activity-events .activity-line p{margin:0;max-width:850px}
+.overview-stack .activity-events .activity-line small{white-space:nowrap}
+.overview-insights{border-top:1px solid var(--line);padding-top:24px}
+.overview-insights>summary{cursor:pointer;font-size:15px;color:var(--secondary);padding:4px 0}
+.overview-insights-content{display:grid;grid-template-columns:1fr 1.4fr;gap:32px;margin-top:28px}
+.overview-insights-content>.panel,.overview-insights-content>.live-trend{margin:0}
+@media(max-width:800px){.overview-stack{gap:32px}.overview-stack .activity-events .activity-line>div{display:block}.overview-stack .activity-events .activity-line p{margin-bottom:8px}.overview-insights-content{grid-template-columns:1fr}}
+
+/* Compact count circles, without implying progress percentages. */
+.status-landscape{display:flex;justify-content:space-between;gap:48px;padding:8px 0 28px}
+.status-main{flex:1;max-width:660px}
+.status-signals{display:flex;flex-direction:column;align-items:center;gap:18px;padding-right:24px}
+.status-bubbles{display:flex;align-items:center;gap:34px}
+.status-bubble{--signal:var(--motion-orange);display:flex;flex-direction:column;align-items:center;gap:9px;min-width:92px}
+.status-bubble.delivery-bubble{--signal:var(--motion-cyan);transform:translateY(9px)}
+.status-bubble strong{position:relative;display:grid;place-items:center;width:66px;height:66px;border:1px solid var(--line);border-radius:50%;font-size:30px;font-weight:400;color:var(--secondary);transition:background .25s,border-color .25s;font-variant-numeric:tabular-nums}
+.status-bubble>span{font-size:12px;color:var(--secondary)}
+.status-bubble.has-attention strong{color:var(--signal);border-color:var(--signal);background:color-mix(in srgb,var(--signal) 8%,transparent)}
+.status-bubble.has-attention strong:after{content:'';position:absolute;inset:-5px;border:1px solid var(--signal);border-radius:50%;animation:signal-ripple 2.8s ease-out infinite;pointer-events:none}
+.status-bubble:hover strong{border-color:var(--signal);background:color-mix(in srgb,var(--signal) 10%,transparent)}
+.status-bubble:focus-visible{outline:2px solid var(--accent);outline-offset:6px;border-radius:8px}
+.status-approval.status-approval-inline{transform:none;background:none;padding:8px 0;gap:10px;border:0;border-radius:0}
+.status-approval-inline strong{font-size:21px}.status-approval-inline .status-arrow{margin-left:12px}
+@keyframes signal-ripple{0%{transform:scale(.95);opacity:.35}75%,100%{transform:scale(1.15);opacity:0}}
+@media(max-width:650px){.status-landscape{flex-direction:column;align-items:stretch;gap:24px}.status-signals{flex-direction:row;flex-wrap:wrap;justify-content:space-between;padding-right:0;gap:20px}.status-bubbles{gap:18px}.status-main{padding:0}.status-bubble strong{width:54px;height:54px;font-size:26px}}
+@media(prefers-reduced-motion:reduce){.status-bubble.has-attention strong:after{animation:none;opacity:.2}.status-bubble strong{transition:none}}
