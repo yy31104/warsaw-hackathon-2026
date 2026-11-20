@@ -1,8 +1,13 @@
-from fastapi import APIRouter, Depends, Header, HTTPException
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from psycopg.rows import dict_row
+from psycopg_pool import AsyncConnectionPool
 from pydantic import BaseModel, Field, StrictBool
 
-from alerting.api.routes_alerts import get_alert, require_member
+from alerting.api.routes_alerts import get_alert, public_alert, require_member
+from alerting.memory import ResolutionNote
+from alerting.memory import store as memory
 from alerting.rules.storage import get_db, get_settings
 from alerting.runbooks.approvals import decide, execute, request_run, runbook_for, verify_run
 
@@ -77,3 +82,33 @@ async def retry(id: int, body: RetryRequest, x_user: str = Header(...), db=Depen
     if not body.confirm:
         raise HTTPException(409, "An operator must explicitly confirm the retry")
     return await verify_run(db, id, x_user, retry=True)
+
+
+@router.post("/alerts/{id}/resolve-with-note")
+async def resolve_with_note(
+    id: int,
+    body: ResolutionNote,
+    x_user: Annotated[str, Header()],
+    db: Annotated[AsyncConnectionPool, Depends(get_db)],
+):
+    """Resolve with a verified note, or attach the original resolver's note to a manual resolution."""
+    settings = await get_settings(db)
+    async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+        alert = await get_alert(cur, id, lock=True)
+        require_member(alert, x_user, settings)
+        return public_alert(await memory.resolve_with_note(cur, alert, x_user, body, settings))
+
+
+@router.get("/alerts/{id}/similar")
+async def similar(
+    id: int,
+    x_user: Annotated[str, Header()],
+    db: Annotated[AsyncConnectionPool, Depends(get_db)],
+    limit: Annotated[int, Query(ge=1, le=50)] = 5,
+):
+    """Return the team's historical hints, strongest match first and newest resolution first within a match."""
+    settings = await get_settings(db)
+    async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+        alert = await get_alert(cur, id)
+        require_member(alert, x_user, settings)
+        return {"hints": await memory.similar(cur, alert, limit)}

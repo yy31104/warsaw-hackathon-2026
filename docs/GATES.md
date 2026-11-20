@@ -48,3 +48,42 @@ Status: **PASS / FAIL / NOT_RUN** only. Record who ran it, when, and the evidenc
 | README: run steps, architecture, what is mocked, measured results, AI use + privacy | NOT_RUN | | |
 | Video ≤ 5:00 uploaded to Lockbox `All Teams/<team>` | NOT_RUN | | |
 | Text file with repo link uploaded | NOT_RUN | | |
+
+## Golden run
+
+Run by `golden_runner.py` on 2026-11-20 21:50:12 UTC. Command `backend/.venv/bin/python loadtest/golden_runner.py --no-broker` with API `http://127.0.0.1:52139`, fake-telecom `http://127.0.0.1:52140` and Mailpit `http://127.0.0.1:8025`.
+
+| Case | Status | Evidence |
+|---|---|---|
+| settlements-positive | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| settlements-negative-env | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| settlements-negative-workflow | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| settlements-runbook-rendered | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| rates-positive | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| rates-boundary-equal | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| rates-other-desk | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| rates-schema-glob-v3 | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| rates-not-rejected | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| rates-missing-template-field | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| anna-daytime-sms | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| anna-evening-email | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| anna-boundary-0800 | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| anna-boundary-2000 | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| anna-not-critical | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| anna-other-service | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| alertmanager-auto-resolve | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| pricing-digest | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| retransmission-dedup | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| storm-500-one-alert | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| unknown-schema-visible | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| approval-required | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| approval-wrong-person | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| approval-ok | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| channel-down-no-loss | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| stale-recovery-keeps-newer-episode | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| poison-event-isolated | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| inbound-approval-needs-provider-secret | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| inbound-approval-brute-force-locked | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| verify-unit-change | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| rule-safety-counterexample | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
+| rule-safety-ui-only-is-valid | NOT_RUN | POST /v1/debug/reset returned HTTP 404 (Not Found) |
