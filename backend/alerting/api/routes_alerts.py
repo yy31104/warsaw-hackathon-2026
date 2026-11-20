@@ -5,6 +5,7 @@ from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
 from alerting.clock import SYSTEM
+from alerting.contracts import Outcome
 from alerting.db import pool
 from alerting.rules.silences import SILENCE_COLUMNS, SilenceDraft, active_rows
 from alerting.rules.storage import alert_changed, audit, close_settings, get_db, get_settings
@@ -191,10 +192,16 @@ async def explain(id: int, db=Depends(get_db)):
             (id,),
         )
         decisions = await cur.fetchall()
-        outcome = next((d["outcome"] for d in decisions if d["outcome"] != "NO_MATCH"), None)
-        keys = [key for d in decisions for key in (d["reason"] or {}).get("notifications", [])]
+        live = [
+            decision
+            for decision in decisions
+            if decision["outcome"] != Outcome.SHADOW_MATCH
+            and not (decision["reason"] or {}).get("shadow")
+        ]
+        outcome = next((d["outcome"] for d in live if d["outcome"] != "NO_MATCH"), None)
+        keys = [key for d in live for key in (d["reason"] or {}).get("notifications", [])]
         buckets = [
-            key for d in decisions for key in (d["reason"] or {}).get("throttle_buckets", [])
+            key for d in live for key in (d["reason"] or {}).get("throttle_buckets", [])
         ]
         await cur.execute(
             """select id,alert_id,kind,channel,recipient,state from notifications
@@ -208,5 +215,5 @@ async def explain(id: int, db=Depends(get_db)):
             ),
             "decisions": decisions,
             "notifications": await cur.fetchall(),
-            "outcome": outcome or ("NO_MATCH" if decisions else event["status"].upper()),
+            "outcome": outcome or ("NO_MATCH" if live else event["status"].upper()),
         }

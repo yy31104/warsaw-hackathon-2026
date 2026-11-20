@@ -24,6 +24,7 @@ def duration(value):
 class Ruleset:
     def __init__(self, rules, schemas=()):
         self.rules = []
+        self.shadow_rules = []
         for rule in rules:
             if rule.get("enabled", True):
                 try:
@@ -33,7 +34,8 @@ class Ruleset:
                     def predicate(fields, reason=str(exc)):
                         raise ValueError(reason)
 
-                self.rules.append((rule, predicate))
+                destination = self.shadow_rules if rule.get("shadow") is True else self.rules
+                destination.append((rule, predicate))
         self.schemas = {s["id"]: s for s in schemas}
         self.resolvers = {
             s["id"]: compile(s["resolve_when"]) for s in schemas if s.get("resolve_when")
