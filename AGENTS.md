@@ -10,4 +10,3 @@
 8. **Honesty:** report exactly what you ran and what you did not run. Never present an estimate as a measurement. Mark results PASS / FAIL / NOT_RUN.
 9. **Data:** synthetic only. Nothing goes to an LLM except through `alerting/llm.py`, which redacts and times out. For events, send `llm.describe_sample(fields)`, never raw JSON text.
 10. **No hardcoding of the sample formats.** Never write `if schema == "WORKFLOW_FAILED"`, and never put field names from the four example rules into code. Everything goes through config, rules and the schema registry: the judges will bring a schema and a runbook we have never seen.
-11. **Review before PR.** Before opening a PR, get the diff reviewed — by a teammate or by a second AI tool.

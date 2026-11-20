@@ -110,13 +110,6 @@ Write **pure functions with tests first** (fixtures in `fixtures/`), then wire D
 - **AI agents:** one coding agent per person, on that person's branch, working inside that person's directories. Every agent reads `AGENTS.md` first. A feature counts as done only when it runs from the integrated `main`.
 - Never commit `.env` or keys. Use synthetic data only.
 
-**General tips, whatever tools you use:**
-- Give your AI one numbered task from your handoff at a time. Ask for tests first (built from `fixtures/`), then the code. Commit after each task.
-- Don't accept "done" until you've seen it run, or a test proves it. Ask for a PASS / FAIL / NOT_RUN list.
-- When something breaks, give the AI the exact failing input (event, request, log line, error), not a description of it.
-- Before opening a PR, get the diff reviewed: by a teammate, or by a second AI tool if you have one.
-- Make sure you can explain your own part yourself. The judges will ask.
-
 ```bash
 git clone https://github.com/yy31104/warsaw-hackathon-2026.git && cd warsaw-hackathon-2026
 git switch feat/data-daizhongtian                  # your branch (already exists)
