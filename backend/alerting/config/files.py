@@ -1,6 +1,6 @@
 """Minimal file reader for config/*.yaml so every developer is unblocked from minute one.
 
-DEV2 replaces the *source of truth* with config_objects (versioned, hot-reloaded) behind the same
+daizhongtian (DEV2) replaces the *source of truth* with config_objects (versioned, hot-reloaded) behind the same
 function names in alerting/config/loader.py; callers switch by changing one import.
 """
 from __future__ import annotations

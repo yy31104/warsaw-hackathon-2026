@@ -1,4 +1,4 @@
-"""FastAPI app. SHARED FILE (DEV1) — every router is already wired; owners (see each routes_*.py docstring) edit only their own file."""
+"""FastAPI app. SHARED FILE (DEV1 Yi, tech lead) — every router is already wired; owners (see each routes_*.py docstring) edit only their own file."""
 from __future__ import annotations
 
 import os

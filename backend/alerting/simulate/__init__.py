@@ -1,1 +1,1 @@
-"""Owner: DEV2. Rule impact simulator: replays recent events through DEV3's engine.evaluate + DEV4's routing.plan in memory. No DB writes."""
+"""Owner: DEV2 daizhongtian. Rule impact simulator: replays recent events through Yi's pure engine.evaluate + routing.plan in memory. No DB writes."""

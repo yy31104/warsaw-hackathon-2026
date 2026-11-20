@@ -1,3 +1,3 @@
-# tools
+# tools (owner: DEV2 daizhongtian)
 
-CLI helpers (publish.py etc.), owner DEV2.
+CLI helpers: publish.py (RabbitMQ/HTTP publisher for demos and load).

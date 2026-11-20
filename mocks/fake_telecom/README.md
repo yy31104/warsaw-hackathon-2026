@@ -1,3 +1,3 @@
-# fake-telecom (owner: DEV4)
+# fake-telecom (owner: DEV2 daizhongtian)
 
-SMS/phone gateway mock. Spec: docs/handoff/DEV4-notifications.md task 3.
+SMS/phone gateway mock. Spec: docs/handoff/DEV2-data-daizhongtian.md task 5.

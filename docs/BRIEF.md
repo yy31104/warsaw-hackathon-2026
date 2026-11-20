@@ -1,122 +1,140 @@
-# Alert Funnel — Team Brief (final split)
+# Alert Funnel — Team Brief
 
 GS Warsaw Hackathon 2026 · "Flexible Alerting & Notification Service"
-Version: Fri 2026-11-20 ~20:45 CET · Tech lead: Yi (DEV1)
+Version: Fri 2026-11-20 ~21:15 CET · Tech lead: Yi
 
-**Read order (15 min):** this brief → [CONTRACT.md](CONTRACT.md) → your handoff:
-[DEV1 Platform](handoff/DEV1-platform.md) · [DEV2 Ingestion](handoff/DEV2-ingestion.md) · [DEV3 Incidents](handoff/DEV3-incidents.md) · [DEV4 Notifications](handoff/DEV4-notifications.md) · [UI](handoff/UI.md) · [Review & present](handoff/REVIEW.md)
+**Read order (15 min):** this brief → [AGENTS.md](../AGENTS.md) → [CONTRACT.md](CONTRACT.md) → your handoff:
+
+| Who | Role | Branch | Handoff |
+|---|---|---|---|
+| **Yi** (GitHub `yy31104`) | DEV1 · Tech lead + backend core | `feat/backend-yi` | [DEV1-backend-Yi.md](handoff/DEV1-backend-Yi.md) |
+| **daizhongtian** (GitHub `daizhongtian`) | DEV2 · Data & platform | `feat/data-daizhongtian` | [DEV2-data-daizhongtian.md](handoff/DEV2-data-daizhongtian.md) |
+| **zhaoqinghe** (GitHub `Petitaire`) | DEV3 · Frontend | `feat/frontend-zhaoqinghe` | [DEV3-frontend-zhaoqinghe.md](handoff/DEV3-frontend-zhaoqinghe.md) |
+| **Marlon Mejia** (GitHub `MarlonMejia15`) | DEV4 · Review & presentation (joins at G3) | `feat/review-marlon` | [DEV4-review-Marlon.md](handoff/DEV4-review-Marlon.md) |
 
 ---
 
 ## 1. What we build
 
-A service that ingests events from many sources and formats (RabbitMQ, HTTP webhooks, a tailed log file), lets each team write rules on **any field**, and delivers **the right alert to the right people on the channel they prefer** (email / SMS / phone / live UI). It doesn't flood them: duplicates are collapsed, real occurrences are counted, and sends are grouped and throttled. It then helps them **resolve** the alert with runbooks whose steps can be executed, with human approval for risky steps and an audit trail.
+A service that ingests events from many sources and formats (RabbitMQ, HTTP webhooks, a tailed log file), lets each team write rules on **any field**, and delivers **the right alert to the right people on the channel they prefer** (email / SMS / phone / live UI). It doesn't flood them: duplicates are collapsed, real occurrences are counted, and sends are grouped and throttled. Then it helps them **resolve** the alert with runbooks whose steps can be executed, with human approval for risky steps and an audit trail.
 
-**Events are stored as-is and stay queryable.** Every event keeps its raw JSON and a flattened `path → value` map (indexed). Known formats are *configured* (schema registry: aliases like `$severity`, `$service`), not hard-coded. Unknown formats are kept and flagged `needs_review`, so a developer or an agent can always query and investigate them. The judges will bring an unseen schema and an unseen runbook. We onboard both without code, with an LLM suggesting and a human confirming.
+**Events are stored as-is and stay queryable.** Every event keeps its raw JSON plus a flattened, indexed `path → value` map. Known formats are *configured* in a schema registry with aliases like `$severity` and `$service`, not hard-coded. Unknown formats are kept and flagged `needs_review`, so a developer or an agent can always query them. The judges will bring an unseen schema and an unseen runbook to the demo. We onboard both without code: an LLM suggests, a human confirms.
 
-**First format to build with:** the **workflow-failure** event from Appendix A (`fixtures/events/workflow_failed.json`) over RabbitMQ. It's the simplest flat JSON. The other Appendix A formats (Alertmanager webhook over HTTP, `meta/payload` business event over RabbitMQ) and the pricing log file follow once the slice works.
+**First format to build with:** the workflow-failure event from Appendix A (`fixtures/events/workflow_failed.json`) over RabbitMQ. Next: the Alertmanager webhook over HTTP, the `meta/payload` business event over RabbitMQ, and the pricing log file.
 
 ## 2. Non-negotiables
 
 1. **Durable before ack.** An event is committed to the `events` inbox before HTTP returns 202 or RabbitMQ gets its ACK. A notification is committed to the `notifications` outbox in the same transaction as the incident change.
-2. **Three identities, never mixed.** *Event identity* (a retransmission is not a new fact) ≠ *alert key* (500 real failures = 1 incident, count 500) ≠ *notification id* (3 send attempts = 1 notification).
-3. **Deterministic core.** Matching, routing and delivery never wait for an LLM. The LLM only suggests (schema mapping, runbook structure, rule drafts), a human confirms, and there is always a fallback.
-4. **Nothing silently dropped.** Unknown schema → `needs_review` + fallback team. Missing template field → `‹missing: path›`. A critical alert always reaches at least one channel.
-5. **Measured, not estimated.** Numbers in the README or video come from scripts in the repo, with sample counts. Anything unrun is `NOT_RUN`.
+2. **Three identities, never mixed.**
+   - *Event identity:* a retransmission is not a new fact.
+   - *Alert key:* 500 real failures = 1 incident with count 500.
+   - *Notification id:* 3 send attempts = 1 notification.
+3. **Deterministic core.** Matching, routing and delivery never wait for an LLM. The LLM only suggests (schema mapping, runbook structure, rule drafts). A human confirms, and a fallback always exists.
+4. **Nothing silently dropped.**
+   - Unknown schema → `needs_review`, routed to the fallback team.
+   - Missing template field → shown as `‹missing: path›`.
+   - A critical alert always reaches at least one channel.
+5. **Measured, not estimated.** Numbers come from scripts in the repo, with sample counts. Anything not run is marked `NOT_RUN`.
 
-## 3. The four roles (from our team plan, mapped onto the full task)
+## 3. Who does what
 
-| | Role | Owner | Branch | Owns |
-|---|---|---|---|---|
-| **DEV1** | Tech lead: platform, DB, integration, evidence | **Yi** | `feat/platform` | Shared contracts, DB schema & migrations, Docker Compose, Dockerfile, CI, AGENTS.md, PR reviews & merges, mock-ops, golden runner, load/chaos report, `/health` `/metrics` `/stats`. Second track: the **UI** until someone frees up (see §5) |
-| **DEV2** | Ingestion & data: HTTP, RabbitMQ, normalisation, dedup, config | teammate | `feat/ingestion` | Sources (HTTP, RabbitMQ, log tail), flatten + schema registry + aliases + severity, event identity (dedup), unknown-schema onboarding, event query API, config store + hot reload + config CRUD APIs, LLM assists (schema suggestion, runbook structuring), load generator. P1: rule simulator, NL rule draft |
-| **DEV3** | Incidents & priorities: grouping, rules, criticality, resolution | teammate | `feat/processing` | Rule DSL + pure engine, rule-worker (grouping, counting, P0–P3 priority, score, lanes), digest/cooldown scheduler, incidents API (list/detail/ack/resolve, explain), runbook **actions + approvals + audit + auto-resolve** |
-| **DEV4** | Notifications & routing: recipients, outbox, delivery, retries | teammate | `feat/delivery` | Directory (teams, on-call, preferences with time windows), pure `routing.plan`, runbook matching + rendering per channel, providers (Mailpit email, fake-telecom SMS/phone, UI), delivery worker (retries, breaker, fallback), escalation, reply-to-approve, **SSE live stream** |
+| | Yi · DEV1 · backend core | daizhongtian · DEV2 · data & platform | zhaoqinghe · DEV3 · frontend |
+|---|---|---|---|
+| Layers | L3 grouping, L4 decision, L5 routing + delivery, L6 runbook actions | L1 ingest, L2 normalise, config, LLM assist, live stream, infra, measurement | L6 user experience, dashboard |
+| Core | Rule DSL + **pure** engine, rule-worker (grouping, counting, P0–P3 priority), incidents API, pure `routing.plan` (preferences, time windows, on-call), delivery worker (retries, breaker), providers, runbook render + actions + approvals + audit | HTTP / RabbitMQ / log-file ingest, normalise + schema registry + dedup, unknown schemas + event query API, config store + hot reload + all config CRUD APIs, LLM assists, rule simulator, SSE, fake-telecom + mock-ops, compose + Dockerfile, golden runner + load/chaos | Live feed (SSE), incident detail + timeline + explain, runbook panel + approvals, rule editor + impact preview, preferences, onboarding page for unknown formats, funnel dashboard |
+| Also | Tech lead: shared files, CI, reviews and merges PRs into `main` | | Starts on mock data in `fixtures/api/`, switches to the real API screen by screen |
 
-How the team plan's words map to the code: *ingestion* = `alerting/ingest`, `schemas`, `config`; *processing / incidents* = `alerting/rules` + `runbooks/actions`; *routing / delivery* = `alerting/routing`, `delivery`, `runbooks/render`. "Incident" in our talk = `alerts` table / `/v1/alerts` API (the task text says "alert").
+**Marlon (DEV4)** joins at G3 (~07:30) with fresh eyes: product review, the private hidden-input rehearsal, an evidence audit, the README for judges, the ≤5-min video and Q&A prep.
 
 **The seams (who calls whom):**
 ```
-DEV2 ingest ──writes──► events (INBOX, raw + flattened fields)
-DEV3 rule-worker ──claims events──► engine.evaluate (DEV3, pure)
-                 ──calls──► routing.plan (DEV4, pure) ──► incident + notifications (OUTBOX)  [same transaction]
-DEV4 delivery-worker ──claims outbox──► Mailpit / fake-telecom / UI (SSE)
-DEV3 actions ──may enqueue──► approval_request / escalation notifications (via routing.plan)
-DEV2 simulator + rule validation ──call──► engine.evaluate / dsl.compile / routing.plan (pure, no side effects)
-DEV1 ──owns──► contracts.py, 001_init.sql, compose, CI; merges everything
+daizhongtian: ingest ──writes──► events (INBOX: raw + flattened fields)
+Yi: rule-worker ──claims events──► engine.evaluate (pure)
+            ──calls──► routing.plan (pure) ──► incident + notifications (OUTBOX)   [one transaction]
+Yi: delivery-worker ──claims outbox──► Mailpit / fake-telecom / UI
+daizhongtian: SSE ◄── NOTIFY from Yi's workers ──► zhaoqinghe's UI
+daizhongtian: simulator + rule validation ──call──► Yi's pure engine / dsl / routing.plan (no side effects)
+zhaoqinghe: UI ──HTTP──► /v1/* (owners listed in CONTRACT §9)
 ```
-Everyone writes **pure functions with tests first** (fixtures in `fixtures/`), then wires DB, queues and HTTP around them.
+Write **pure functions with tests first** (fixtures in `fixtures/`), then wire DB, queues and HTTP around them.
 
 ## 4. Scope
 
-**P0: must work by G2. Every explicit requirement in sections 2.1–2.6.**
-- 2.1 ≥ 2 source types (RabbitMQ + HTTP; the log file covers the Pricing rule), arbitrary schemas, new schema = config not code (DEV2).
-- 2.2 rules on any field, AND/OR, per-rule routing + presentation, runtime changes via API/UI/config files (DEV3 engine, DEV2 config APIs).
-- 2.3 email/SMS/phone/UI, per-user/team preferences with working hours, on-call, simulated providers behind one interface, retries + no loss when a channel is down (DEV4).
-- 2.4 live feed by push, ack/resolve, manage rules and preferences, per-rule look (UI + DEV3/DEV4/DEV2 APIs).
-- 2.5 one alert with a counter for 500 duplicates, grouping/throttling per rule or recipient (DEV3, DEV4).
-- 2.6 runbooks in YAML / Markdown / free text / link, values filled in, shown per channel; actions with approval for risky ones; audit; auto-close (DEV4 render, DEV3 actions).
-- Evidence: golden runner, load test (throughput, e2e p50/p99 with N, backlog), README with "what is mocked" (DEV1).
+**P0 — must work by G2. Covers every explicit requirement in 2.1–2.6:**
+- **2.1** ≥ 2 source types plus the log file, arbitrary schemas, a new schema is config not code (daizhongtian).
+- **2.2** Rules on any field with AND/OR, per-rule routing and presentation (Yi). Runtime changes via API / UI / config files (daizhongtian).
+- **2.3** Email / SMS / phone / UI, preferences with working hours, on-call, simulated providers behind one interface, retries, no loss when a channel is down (Yi; fake-telecom by daizhongtian).
+- **2.4** Live push feed, ack/resolve, manage rules and preferences, per-rule look (zhaoqinghe on Yi's and daizhongtian's APIs).
+- **2.5** One alert with a counter instead of 500, grouping and throttling (Yi).
+- **2.6** Runbooks in YAML / Markdown / text / link, values filled in, shown per channel, actions with approval, audit, auto-close (Yi). Runbook store (daizhongtian).
+- **Evidence:** golden runner, load test (throughput, e2e p50/p99 with N, backlog) (daizhongtian). README "what is mocked" (Marlon).
 
-**P0.5: LLM onboarding, answers "judges bring an unseen schema/runbook" (DEV2):** schema-mapping suggestion and runbook structuring, each with a deterministic fallback.
+**P0.5 — LLM onboarding (daizhongtian):** schema-mapping suggestion and runbook structuring, each with a deterministic fallback.
 
-**P1, in order:** (1) rule impact preview / "Propose fixes" (DEV2 + UI), (2) reply-to-approve by SMS (DEV4), (3) critical lane + weighted score (DEV3), (4) funnel dashboard (DEV1 + UI), (5) channel fallback (DEV4), (6) NL → rule draft (DEV2).
+**P1, in order:**
+1. Rule impact preview / "Propose fixes" (daizhongtian + zhaoqinghe).
+2. Reply-to-approve by SMS (Yi).
+3. Critical lane + weighted score (Yi).
+4. Funnel dashboard (daizhongtian + zhaoqinghe).
+5. Channel fallback (Yi).
+6. Natural-language rule draft (daizhongtian + zhaoqinghe).
+
 **P2:** related-incidents panel, LLM incident summary, threshold and deadman rule types.
+
 **CUT:** real SMS/phone providers, SSO/RBAC, Kafka, Redis, K8s, multi-region, ML root cause.
 
-## 5. Open gap: the frontend
+## 5. GitHub workflow
 
-Our team plan covers the backend. The task **requires** a UI (live push feed, ack/resolve, rule and preference management), and the UX is judged directly. The video is made of UI screens. **Decision:** DEV1 starts the UI with a coding agent right after G0, against the mock fixtures in `fixtures/api/` (the base is already laid, so DEV1 has capacity). The first developer to finish their G2 items joins the UI. The late-joining teammate takes [REVIEW.md](handoff/REVIEW.md) (fresh-eyes review + video) from G3.
-
-## 6. GitHub workflow
-
-- `main` = stable and protected by agreement: **nobody pushes to `main` directly**. One branch per developer (`feat/platform`, `feat/ingestion`, `feat/processing`, `feat/delivery`, `feat/frontend`).
-- Small PRs into `main` at least every 1–2 hours. CI (`.github/workflows/ci.yml`) must be green. DEV1 reviews and merges. After a merge, everyone runs `git switch <your-branch> && git pull --rebase origin main`.
-- **Shared files** (`docs/CONTRACT.md`, `backend/alerting/contracts.py`, `llm.py`, `templates.py`, `clock.py`, `db.py`, `api/app.py`, `db/migrations/001_init.sql`, `docker-compose.yml`): change only via a small PR from DEV1 after telling the team.
-- **Migrations:** add files only, in your range: `0xx` DEV1, `1xx` DEV2, `2xx` DEV3, `3xx` DEV4. Never edit a merged migration.
-- **AI agents:** one agent per developer, on that developer's branch, inside that developer's directories. Every agent reads `AGENTS.md` first. A feature isn't done until it runs from the integrated `main`.
-- Never commit `.env` or real keys. Synthetic data only.
+- `main` is the stable branch. **Nobody pushes to `main`**; changes reach it only through PRs.
+- One branch per person: `feat/backend-yi`, `feat/data-daizhongtian`, `feat/frontend-zhaoqinghe`, `feat/review-marlon`. All are cut from `main`, so every branch already contains the brief, contract, AGENTS.md, config, fixtures and every handoff.
+- Open a small PR into `main` every 1–2 hours. CI (`.github/workflows/ci.yml`) must be green. Yi reviews and merges.
+- After each merge, everyone runs `git pull --rebase origin main` on their own branch.
+- **Shared files** change only through a small PR from Yi after telling the team: `docs/CONTRACT.md`, `AGENTS.md`, `backend/alerting/contracts.py`, `llm.py`, `templates.py`, `clock.py`, `db.py`, `api/app.py`, `db/migrations/001_init.sql`, `.github/`.
+- **Migrations:** only add files, in your own range: `1xx` Yi, `2xx` daizhongtian. Never edit a migration that's already merged.
+- **AI agents:** one coding agent per person, on that person's branch, working inside that person's directories. Every agent reads `AGENTS.md` first. A feature counts as done only when it runs from the integrated `main`.
+- Never commit `.env` or keys. Use synthetic data only.
 
 ```bash
 git clone https://github.com/yy31104/warsaw-hackathon-2026.git && cd warsaw-hackathon-2026
-git switch feat/ingestion            # your branch (already created)
+git switch feat/data-daizhongtian                  # your branch (already exists)
 cp .env.example .env && make infra && (cd backend && uv sync) && make test
-# work, commit small
-git push origin feat/ingestion       # then open a PR into main
+git push origin feat/data-daizhongtian             # then open a PR into main
 ```
 
-## 7. Gates
+## 6. Gates
 
-The deadline is unconfirmed: ~11:00 Sat (18-hour format) or 23:00 Sat (team plan). **Plan for a safe submission at 10:30.** If it turns out to be 23:00, the morning build is the fallback and we polish until 21:00.
+The deadline isn't confirmed: either ~11:00 Sat (18-hour format) or 23:00 Sat. **We plan a safe submission at 10:30.** If the deadline turns out to be 23:00, that morning build becomes the fallback and we polish until 21:00.
 
 | Gate | When | Must PASS |
 |---|---|---|
-| G0 base | Fri 21:15 | Everyone has cloned, read their handoff, and has `make infra` + `make test` green. Mentor asked: deadline, Lockbox path, meaning of 2.4 |
-| G1 first slice | Sat 00:00 | `workflow_failed.json` over RabbitMQ → inbox → rule → incident → outbox → fake-telecom shows phone + SMS to sam → card appears live in the UI (SSE). All merged into `main` |
-| G2 all example rules | Sat 04:00 | Golden cases for Settlements, Rates, Anna, Pricing, dedup, storm-500, unknown-schema and approvals PASS. All three runbook formats render |
-| G3 freeze | Sat 07:30 | P0.5 + top P1. Holdout by DEV1. Channel-down chaos = 0 lost. Load results committed. Fresh-clone timing |
-| G4 submit | Sat 10:30 | Judge README + ≤ 5-minute video + repo-link text file in Lockbox `All Teams/<team>` |
+| G0 base | Fri 21:30 | Everyone has cloned, read their handoff, `make infra` + `make test` green. Mentor asked: deadline, Lockbox path, meaning of 2.4 |
+| G1 first slice | Sat 00:00 | `workflow_failed.json` over RabbitMQ → inbox → rule → incident → outbox → fake-telecom shows phone + SMS to sam → card appears live in the UI. Merged into `main` |
+| G2 all example rules | Sat 04:00 | Golden cases PASS: Settlements, Rates, Anna, Pricing, dedup, storm-500, unknown schema, approvals. Three runbook formats render |
+| G3 freeze | Sat 07:30 | P0.5 + top P1 done. Marlon runs the holdout. Channel-down chaos loses 0. Load results committed. Fresh-clone timing done |
+| G4 submit | Sat 10:30 | Judge README + ≤ 5-min video + repo-link text file in Lockbox `All Teams/<team>` |
 
-Every 60–90 min each developer answers in chat: what works (command/test), what's merged, what I need from whom, what's blocked, what's next.
+Every 60–90 min, each person posts in the chat: what works (a command or test), what got merged, what they need from whom, what's blocked, what's next.
 
-## 8. Demo storyboard (5:00)
+## 7. Demo storyboard (5:00)
+
 | t | Shot |
 |---|---|
 | 0:00 | The problem: the right person finds out late, or drowns in duplicates |
-| 0:20 | Three sources at once → Settlements gets phone + SMS (fake-telecom page), Rates gets email (Mailpit), Anna's SMS vs email depends on the time |
-| 1:10 | Storm: 500 failures → 1 red incident counting live; funnel 500 → 1 → 2 sends |
-| 1:40 | Runbook with the real workflowId → retry → fails twice → escalate needs approval → lead replies `YES 4821` by SMS → audit → auto-resolve |
-| 2:40 | Judge's unseen schema: paste → `needs_review` → LLM-suggested mapping → confirm → rule from the sample → next event routed. Unseen runbook → structured steps |
+| 0:20 | Three sources at once → Settlements gets phone + SMS, Rates gets an email, Anna gets SMS or email depending on the time |
+| 1:10 | Storm: 500 failures → 1 red incident counting live. Funnel 500 → 1 → 2 sends |
+| 1:40 | Runbook with the real workflowId → retry → fails twice → escalation needs approval → lead replies `YES 4821` by SMS → audit trail → auto-resolve |
+| 2:40 | Judge's unseen schema → `needs_review` → LLM-suggested mapping → confirm → rule from the sample → next event routed. Unseen runbook → structured steps |
 | 3:30 | "Too noisy" → proposed rule → impact preview → approve → hot reload |
-| 4:00 | Measured: msgs/s, e2e p50/p99 (N), 1 vs 2 workers, channel down = 0 lost |
-| 4:40 | One file adds a provider or action; fresh clone → N commands; what's mocked; AI use and privacy |
+| 4:00 | Measured: msgs/s, e2e p50/p99 (with N), 1 vs 2 workers, channel down = 0 lost |
+| 4:40 | One file adds a provider or an action. Fresh clone → N commands. What's mocked. AI use and privacy |
 
-## 9. Risks
+## 8. Risks
+
 | Risk | Mitigation |
 |---|---|
-| Late integration | G1 slice by midnight; pure functions + fixtures first; PRs every 1–2 h |
-| Agents editing shared files | AGENTS.md rules + owner directories + migration ranges + DEV1 merges |
-| Hidden judge inputs | Raw + flattened storage, `needs_review`, LLM assist, DEV1's private holdout at G3 |
-| Frontend has no owner | §5: DEV1 starts it on mocks; first free developer joins |
-| Hot incident row in a storm | Batch claim + in-batch pre-aggregation (`count = count + k`) |
+| Late integration | G1 slice by midnight. Pure functions + fixtures first. PRs every 1–2 h |
+| Agents editing shared files | AGENTS.md + directory ownership + migration ranges + Yi merges |
+| Hidden judge inputs | Raw + flattened storage, `needs_review`, LLM assist, Marlon's private holdout at G3 |
+| Yi and daizhongtian carry the heaviest load | P1 is cut first. Marlon takes polish, README and video from G3 |
+| A storm hammering one incident row | Batch claim + in-batch pre-aggregation (`count = count + k`) |
 | Deadline ambiguity | Safe submission at 10:30 regardless |

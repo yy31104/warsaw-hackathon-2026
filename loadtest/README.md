@@ -1,3 +1,3 @@
-# loadtest (owner: DEV1)
+# loadtest (owner: DEV2 daizhongtian)
 
-Generator, collector, golden runner, chaos script. Raw results go in results/ with the machine spec. Spec: docs/handoff/DEV1-platform.md tasks 9 and 11.
+Golden runner, load generator/collector, chaos script. Raw results go in results/ with the machine spec. Spec: docs/handoff/DEV2-data-daizhongtian.md tasks 14 and 17.

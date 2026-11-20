@@ -7,7 +7,7 @@ Status: **PASS / FAIL / NOT_RUN** only. Record who ran it, when, and the evidenc
 |---|---|---|---|
 | All four read BRIEF + CONTRACT + own handoff | NOT_RUN | | |
 | `make infra` + `make test` green on all four laptops | NOT_RUN | | |
-| Golden expectations checked line by line against the printed task (DEV1 + DEV2) | NOT_RUN | | |
+| Golden expectations checked line by line against the printed task (Yi + daizhongtian) | NOT_RUN | | |
 | Mentor answers: deadline, Lockbox path, 2.4 meaning | NOT_RUN | | |
 
 ## G1 — vertical slice (Sat 00:00)
@@ -34,8 +34,8 @@ Status: **PASS / FAIL / NOT_RUN** only. Record who ran it, when, and the evidenc
 |---|---|---|---|
 | channel-down-no-loss (0 lost) | NOT_RUN | | |
 | Worker kill -9 recovery (ingest + delivery) | NOT_RUN | | |
-| Private holdout (DEV1): unseen schemas onboarded without code (time each) | NOT_RUN | | |
-| Private holdout (DEV1): unseen runbook → usable steps | NOT_RUN | | |
+| Private holdout (Marlon): unseen schemas onboarded without code (time each) | NOT_RUN | | |
+| Private holdout (Marlon): unseen runbook → usable steps | NOT_RUN | | |
 | Load test raw results committed (1 vs 2 workers, p50/p99 with N) | NOT_RUN | | |
 | Fresh clone → first alert: commands + minutes (other laptop) | NOT_RUN | | |
 | Rule preview leaves DB unchanged | NOT_RUN | | |

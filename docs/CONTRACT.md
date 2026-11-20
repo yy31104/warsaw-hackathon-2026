@@ -76,26 +76,26 @@ priority: P0..P3                                 # optional override; else criti
 ## 6. Module interfaces (Python, see `contracts.py`)
 
 ```python
-# DEV3 — pure, no I/O. Used by rule-worker AND by DEV2's simulator.
+# DEV1 Yi — pure, no I/O. Used by the rule-worker AND by daizhongtian's simulator.
 rules.engine.evaluate(event: CanonicalEvent, ruleset: Ruleset, state: AlertStateView, clock: Clock) -> Evaluation
 #   Evaluation = decisions[] + alert_ops[] (upsert/increment/resolve with transition)
 
-# DEV4 — pure, no I/O. Called by DEV3's rule-worker INSIDE its transaction.
+# DEV1 Yi — pure, no I/O. Called by the rule-worker INSIDE its transaction.
 routing.plan(alert: AlertSnapshot, transition: Transition, rule: dict, event_fields: dict,
              directory: dict, runbooks: list[dict], recent_sends: dict, clock: Clock) -> Plan
-#   Plan = intents[] + runbook_id (DEV4 picks the runbook; the worker stores it on the alert)
+#   Plan = intents[] + runbook_id (Yi's routing picks the runbook; the worker stores it on the alert)
 #   recent_sends[(recipient, channel)] = count in the throttle window (queried by the worker)
 
 # SHARED — templates (backend/alerting/templates.py): render(template, fields) with ‹missing: path›
 # SHARED — config files (backend/alerting/config/files.py): sources() schemas() rules() directory() runbooks()
-#          DEV2 later adds alerting/config/loader.py (DB-versioned, hot reload) with the same function names.
+#          daizhongtian later adds alerting/config/loader.py (DB-versioned, hot reload) with the same function names.
 
-# DEV4 — providers (one class per channel; a real provider = one new class)
+# DEV1 Yi — providers (one class per channel; a real provider = one new class)
 class ChannelProvider(Protocol):
     channel: Channel
     async def send(self, msg: RenderedMessage, contact: str, idempotency_key: str) -> SendResult
 
-# DEV3 — runbook actions (one class per action; new action = one file + registry entry)
+# DEV1 Yi — runbook actions (one class per action; new action = one file + registry entry)
 class Action(Protocol):
     name: str; default_approval: Literal["none","required"]; params_schema: dict
     async def execute(self, params: dict, ctx: ActionContext) -> ActionResult
@@ -106,9 +106,9 @@ await llm.structured(OutputModel, system=..., user=..., timeout_s=20) -> OutputM
 
 The rule-worker transaction, in order: claim a batch of events (`FOR UPDATE SKIP LOCKED`, lane-filtered) → evaluate → pre-aggregate per alert key → upsert alerts → `routing.plan()` → insert notifications (`ON CONFLICT (dedup_key) DO NOTHING`) → insert decisions → mark events processed → `NOTIFY alerts '<alert_id>'` → COMMIT.
 
-## 7. Database (owner of `001_init.sql`: DEV1)
+## 7. Database (owner of `001_init.sql`: DEV1 Yi, tech lead)
 
-Tables: `config_objects, events, ingest_rejections, schema_issues, decisions, alerts, alert_occurrences (sampled, last 50 per alert), notifications, delivery_attempts, action_runs, audit_log, rule_proposals`. See the SQL file for columns. New tables or columns go in your migration range (`0xx` DEV1, `1xx` DEV2, `2xx` DEV3, `3xx` DEV4).
+Tables: `config_objects, events, ingest_rejections, schema_issues, decisions, alerts, alert_occurrences (sampled, last 50 per alert), notifications, delivery_attempts, action_runs, audit_log, rule_proposals`. See the SQL file for columns. New tables or columns go in your migration range (`1xx` DEV1 Yi, `2xx` DEV2 daizhongtian; `001` is shared).
 
 ## 8. Channels and delivery
 
@@ -119,20 +119,20 @@ Delivery states: `pending → sending → delivered | retrying | unknown | faile
 
 | Method & path | Purpose | Owner |
 |---|---|---|
-| `POST /events/{source_id}` | Body = one object or array. Headers: `X-Api-Key`, optional `Idempotency-Key`, `X-Gen-Sent-At` (epoch ms), `X-Demo-Clock`. → `202 {accepted, duplicates, conflicts, rejected:[{index, reason}], event_ids}` | DEV2 |
-| `GET /events?source=&schema=&status=&field=&value=` · `GET /events/{id}` | Query/inspect stored events (raw + flattened, GIN-indexed) | DEV2 |
-| `GET /events/{id}/explain` | Decision trace (schema detection, each rule's match trace, incident op, notifications planned) | DEV3 |
-| `GET /sources` · `GET/POST /schemas` · `GET /schema-issues` · `POST /schemas/suggest {sample}` | Registry and onboarding (`suggest` = heuristic + LLM, returns a draft) | DEV2 |
-| `GET/POST /rules` · `PUT /rules/{id}` · `POST /rules/test {rule, event}` · `POST /rules/{id}/preview {draft, last_n}` · `POST /rules/draft {text}` · `GET/POST /proposals` · `POST /proposals/{id}/approve` | Rule CRUD (new version on write), match trace, simulator diff, NL draft, propose-fix flow | DEV2 (calls DEV3's pure engine) |
-| `GET /alerts?team=&status=&q=` · `GET /alerts/{id}` · `POST /alerts/{id}/ack` · `POST /alerts/{id}/resolve` | Feed and detail (incl. occurrences sample, priority + score breakdown, timeline) | DEV3 |
-| `GET /alerts/{id}/notifications` · `GET /notifications?state=` | Delivery state + attempts | DEV4 |
-| `GET /runbooks` · `POST /runbooks` (any format) · `POST /runbooks/structure {text}` (LLM) | Runbook store + structuring | DEV2 |
-| `GET /alerts/{id}/runbook` | Rendered steps (DEV4 `render`) + run state | DEV3 |
-| `POST /alerts/{id}/actions {step_index}` · `POST /action-runs/{id}/approve` · `POST /action-runs/{id}/reject` | Execute, approve, audit | DEV3 |
-| `POST /inbound/{channel} {from, body}` | Reply-to-approve (calls DEV3's approve) | DEV4 |
-| `GET/PUT /teams` · `GET/PUT /users/{id}/preferences` | Directory and preferences (config CRUD) | DEV2 |
-| `GET /stream?team=` (SSE) | Live events, §10 | DEV4 |
-| `GET /stats/funnel?window=15m` · `GET /health` · `GET /metrics` (Prometheus text) · `POST /debug/reset` (DEMO_MODE) | Dashboard + ops | DEV1 |
+| `POST /events/{source_id}` | Body = one object or array. Headers: `X-Api-Key`, optional `Idempotency-Key`, `X-Gen-Sent-At` (epoch ms), `X-Demo-Clock`. → `202 {accepted, duplicates, conflicts, rejected:[{index, reason}], event_ids}` | DEV2 daizhongtian |
+| `GET /events?source=&schema=&status=&field=&value=` · `GET /events/{id}` | Query/inspect stored events (raw + flattened, GIN-indexed) | DEV2 daizhongtian |
+| `GET /events/{id}/explain` | Decision trace (schema detection, each rule's match trace, incident op, notifications planned) | DEV1 Yi |
+| `GET /sources` · `GET/POST /schemas` · `GET /schema-issues` · `POST /schemas/suggest {sample}` | Registry and onboarding (`suggest` = heuristic + LLM, returns a draft) | DEV2 daizhongtian |
+| `GET/POST /rules` · `PUT /rules/{id}` · `POST /rules/test {rule, event}` · `POST /rules/{id}/preview {draft, last_n}` · `POST /rules/draft {text}` · `GET/POST /proposals` · `POST /proposals/{id}/approve` | Rule CRUD (new version on write), match trace, simulator diff, NL draft, propose-fix flow | DEV2 daizhongtian (calls Yi's pure engine) |
+| `GET /alerts?team=&status=&q=` · `GET /alerts/{id}` · `POST /alerts/{id}/ack` · `POST /alerts/{id}/resolve` | Feed and detail (incl. occurrences sample, priority + score breakdown, timeline) | DEV1 Yi |
+| `GET /alerts/{id}/notifications` · `GET /notifications?state=` | Delivery state + attempts | DEV1 Yi |
+| `GET /runbooks` · `POST /runbooks` (any format) · `POST /runbooks/structure {text}` (LLM) | Runbook store + structuring | DEV2 daizhongtian |
+| `GET /alerts/{id}/runbook` | Rendered steps + run state | DEV1 Yi |
+| `POST /alerts/{id}/actions {step_index}` · `POST /action-runs/{id}/approve` · `POST /action-runs/{id}/reject` | Execute, approve, audit | DEV1 Yi |
+| `POST /inbound/{channel} {from, body}` | Reply-to-approve | DEV1 Yi |
+| `GET/PUT /teams` · `GET/PUT /users/{id}/preferences` | Directory and preferences (config CRUD) | DEV2 daizhongtian |
+| `GET /stream?team=` (SSE) | Live events, §10 | DEV2 daizhongtian |
+| `GET /stats/funnel?window=15m` · `GET /health` · `GET /metrics` (Prometheus text) · `POST /debug/reset` (DEMO_MODE) | Dashboard + ops | DEV2 daizhongtian |
 
 Actor identity (demo-grade): header `X-User: <user id>` on mutating calls, checked against `approvers` / team membership. Write it in the README as "simulated auth".
 

@@ -1,4 +1,4 @@
-"""Owner: DEV1. /health, /metrics, GET /v1/stats/funnel, POST /v1/debug/reset (CONTRACT §9)."""
+"""Owner: DEV2 daizhongtian. /health, /metrics, GET /v1/stats/funnel, POST /v1/debug/reset (CONTRACT §9)."""
 from fastapi import APIRouter
 from fastapi.responses import PlainTextResponse
 
@@ -12,6 +12,6 @@ async def health() -> dict:
 
 @router.get("/metrics", response_class=PlainTextResponse)
 async def metrics() -> str:
-    # TODO(DEV1): Prometheus text — events_ingested_total, events_processed_total, backlog, oldest_pending_age_s,
+    # TODO(DEV2 daizhongtian): Prometheus text — events_ingested_total, events_processed_total, backlog, oldest_pending_age_s,
     # notifications_by_state, delivery_attempts_total, e2e_latency histogram.
     return "# alert-funnel metrics: not implemented yet\n"
