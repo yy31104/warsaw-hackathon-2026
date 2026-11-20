@@ -408,7 +408,7 @@ async function assistsAndProposal(env, rule) {
   const ruleDraft = await clickForResponse(page, 'Generate draft & open editor', 'POST', '/rules/draft');
   assert(['heuristic', 'llm'].includes(ruleDraft.source));
   assert(ruleDraft.draft.match);
-  await page.getByRole('heading', {name: 'Rule editor'}).waitFor();
+  await page.getByRole('heading', {name: 'Rule editor', exact: true}).waitFor();
   await page.getByText(`Draft source · ${ruleDraft.source}`, {exact: true}).waitFor();
 
   await page.getByRole('link', {name: 'Runbooks', exact: true}).click();
