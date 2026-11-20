@@ -52,6 +52,7 @@ class AlertOp:
     notify: bool
     effective_severity: Severity | None = None
     spike_state: dict | None = None
+    routing_transition: Transition | None = None
 
 
 @dataclass
@@ -222,6 +223,14 @@ def evaluate(event, ruleset, state, clock):
             else:
                 transition, outcome = Transition.occurrence, "SUPPRESSED_COOLDOWN"
             notify = not digest and transition not in (Transition.occurrence, Transition.resolved)
+            # Silenced matches count on the alert but never enter its pending delivery count.
+            first_after_silence = (
+                not digest and not resolving and old is not None and old.get("status") == "open"
+                and old.get("last_notified_at") is None and old.get("count_since_notify") == 0
+                and old.get("occurrence_count", 0) > 0
+            )
+            if first_after_silence:
+                notify, outcome = True, "EXISTING_ALERT"
             if digest and not resolving:
                 outcome = "DIGEST_QUEUED"
             if notify and not rule.get("route"):
@@ -237,6 +246,10 @@ def evaluate(event, ruleset, state, clock):
                         silence={"id": silence.id, "created_by": silence.created_by, "expires_at": expiry},
                         message=f"Silenced by {silence.created_by} until {expiry}",
                     )
+            routing_transition = transition
+            if first_after_silence and notify:
+                routing_transition = Transition.created
+                decision["reason"]["notification_cause"] = "first_eligible_after_silence"
             decision.update(outcome=outcome)
             decision["reason"].update(transition=transition.value, alert_key=key)
             present = rule.get("present", {})
@@ -252,6 +265,7 @@ def evaluate(event, ruleset, state, clock):
                     notify,
                     effective_severity=severity,
                     spike_state=spike_state,
+                    routing_transition=routing_transition,
                 )
             )
     if not result.alert_ops and all(d["outcome"] == "NO_MATCH" for d in result.decisions):
