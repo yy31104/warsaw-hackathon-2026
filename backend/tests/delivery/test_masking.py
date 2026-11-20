@@ -32,5 +32,6 @@ def test_nested_container_masking_with_literals_and_overlapping_values():
         "private": {"values": ["****1234", "****", None]}, "count": 5,
     }
     assert mask_external({"private": 704}, {}, ["private"]) == {"private": "****"}
+    assert mask_external({"private.ref": 123456789}, {}, ["private"]) == {"private.ref": "****6789"}
     assert mask_external(fields, fields, []) == fields
     assert mask_value("1234") == "****"
