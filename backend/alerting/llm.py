@@ -32,9 +32,37 @@ _REDACTIONS: list[tuple[re.Pattern[str], str]] = [
 
 
 def redact(text: str) -> str:
+    """Redact free TEXT (runbook text, rule descriptions). Never run it on a raw JSON string:
+    it can mask numbers (e.g. epoch-ms timestamps) and break the JSON. For events use describe_sample()."""
     for pattern, repl in _REDACTIONS:
         text = pattern.sub(repl, text)
     return text[:MAX_INPUT_CHARS]
+
+
+_SENSITIVE_PATH = re.compile(r"(?i)(card|pan|iban|account|acct|phone|msisdn|email|password|secret|token|api[_-]?key)")
+
+
+def describe_sample(fields: dict, max_fields: int = 200) -> list[dict]:
+    """Structured, redacted view of ONE event for the LLM: [{path, type, example}].
+
+    `fields` is the flattened event (path -> value). Strings are redacted and truncated; numbers and booleans keep
+    their value (needed to recognise epoch-ms times, amounts, codes) unless the path itself looks sensitive.
+    Serialise the result with json.dumps(...) and send that — it is always valid JSON.
+    """
+    out: list[dict] = []
+    for path in sorted(fields)[:max_fields]:
+        value = fields[path]
+        kind = "null" if value is None else type(value).__name__
+        if isinstance(value, (dict, list)):
+            example = f"<{kind} len={len(value)}>"
+        elif _SENSITIVE_PATH.search(path):
+            example = "<redacted>"
+        elif isinstance(value, str):
+            example = redact(value)[:120]
+        else:
+            example = value
+        out.append({"path": path, "type": kind, "example": example})
+    return out
 
 
 _client = None

@@ -27,7 +27,7 @@ Every event, from any source and in any shape, lands durably in `events` with th
    - `identity()`, following the order in CONTRACT §2. `payload_hash` = sha256 of canonical JSON.
    - Tests: the 4 files in `fixtures/events/*` produce the schemas and severities the golden file expects.
 2. ★ **RabbitMQ consumer** `python -m alerting.ingest.amqp` (aio-pika):
-   - Prefetch 200. Batch up to 200 messages or 50 ms into one multi-row insert transaction, then **ack after commit** (`multiple=True`).
+   - Prefetch 200. Batch up to 200 messages or 50 ms into one multi-row insert transaction, then **ack each message individually after the commit** (`await message.ack()` per delivery). Don't use `multiple=True`: with several queues on one channel it can also acknowledge another queue's messages that aren't committed yet.
    - Event identity = `message_id`. Headers `x-gen-sent-at` and `x-demo-clock` go into `trace`.
    - Lane hint: `$severity == critical` → `critical`.
 3. ★ **Publisher tool** `tools/publish.py --source … --file … [--count N --rate R --unique workflowId --message-id X]`.
@@ -61,6 +61,7 @@ Every event, from any source and in any shape, lands durably in `events` with th
     - `GET/POST/PUT /v1/rules` (validated with `dsl.compile`); `POST /v1/rules/test`
     - `GET/PUT /v1/teams`; `GET/PUT /v1/users/{id}/preferences`
     - `GET/POST /v1/runbooks` (stored verbatim)
+11b. **Minimal "Propose fix" (task 2.4, P0):** `POST /v1/proposals {alert_id, text}` stores the text, the author (`X-User`), the alert's `rule_id` and `base_version` in `rule_proposals` (`source = human`, `draft = {}`). `GET /v1/proposals?rule_id=&status=`. Previews, LLM suggestions and approval come in P1 (task 19).
 12. **Ops** (`routes_ops`): `GET /v1/stats/funnel`, `POST /v1/debug/reset` (DEMO_MODE only), `/metrics`.
 13. **mock-ops** `mocks/mock_ops/` (port 8200, network alias `counterparty-service`):
     - `GET /health` (toggleable)
@@ -74,7 +75,8 @@ Every event, from any source and in any shape, lands durably in `events` with th
 
 ### By G3 (Sat 07:30): P0.5 first, then P1
 15. **P0.5 schema suggestion** `assist/schema_suggest.py` + `POST /v1/schemas/suggest`:
-    - Name-similarity heuristic first, then `llm.structured(...)` fills only the gaps.
+    - Name-similarity heuristic first, then `llm.structured(...)` fills only the gaps. Send it `json.dumps(llm.describe_sample(fields))`, never the raw event JSON.
+   - Keep an eval set (8–10 samples with expected aliases) in `backend/tests/ingest/` and report accuracy as n/N.
     - Returns `{draft, source, rationale}`. Cached per fingerprint.
 16. **P0.5 runbook structuring** `assist/runbook_structure.py` + `POST /v1/runbooks/structure`:
     - Maps the text onto Yi's action `REGISTRY`, using Yi's step shape.

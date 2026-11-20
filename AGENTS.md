@@ -8,4 +8,5 @@
 6. **Tests:** `make test` must pass before every commit. Put your tests in `backend/tests/<your area>/` (backend) or `frontend/` (UI).
 7. **Git:** work only on your person's branch (`feat/backend-yi`, `feat/data-daizhongtian`, `feat/frontend-zhaoqinghe`, `feat/review-marlon`). Make small commits with conventional messages (`feat(data): …`). Never push to `main`; open a PR. Never commit `.env` or keys.
 8. **Honesty:** report exactly what you ran and what you did not run. Never present an estimate as a measurement. Mark results PASS / FAIL / NOT_RUN.
-9. **Data:** synthetic only. Nothing goes to an LLM except through `alerting/llm.py`, which redacts and times out.
+9. **Data:** synthetic only. Nothing goes to an LLM except through `alerting/llm.py`, which redacts and times out. For events, send `llm.describe_sample(fields)`, never raw JSON text.
+10. **No hardcoding of the sample formats.** Never write `if schema == "WORKFLOW_FAILED"`, and never put field names from the four example rules into code. Everything goes through config, rules and the schema registry: the judges will bring a schema and a runbook we have never seen.

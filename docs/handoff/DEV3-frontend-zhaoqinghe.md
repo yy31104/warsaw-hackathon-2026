@@ -41,6 +41,7 @@ Vite + React + TypeScript + **Mantine** + TanStack Query + `EventSource` for SSE
    - **Run** button for `approval: none`. **Request approval** for `required`, which shows "Waiting for lee (code 4821)"; the approver sees Approve / Reject.
    - Markdown rendered; checklist ticks are written to the audit log.
    - Free-text runbooks show a **"Structure with AI"** button → editable steps → save.
+3b. **Propose fix (task 2.4, P0):** a "Propose fix" button on every incident → text box → `POST /v1/proposals {alert_id, text}` (with `X-User`) → shows "Proposal sent to <rule owner>". A `/proposals` list for owners. Preview and AI suggestion come later (screen 7).
 4. **Rules** (`/rules`):
    - List with owner, an origin badge (`file` = read-only), version, and matches in the last hour.
    - Editor:
