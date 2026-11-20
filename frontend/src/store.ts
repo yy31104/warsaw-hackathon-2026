@@ -1,8 +1,8 @@
 import YAML from 'yaml';
 import rulesText from '../../config/rules.yaml?raw';
 import teamsText from '../../config/teams.yaml?raw';
-import type {Rule,Preference} from './types';
-export const directory=YAML.parse(teamsText) as {default_preferences:Preference[];teams:{id:string;members:string[];approvers:string[];oncall?:{primary:string};required_channels?:Record<string,string[]>}[];users:{id:string;name:string;timezone:string;contacts?:Record<string,string>;preferences?:Preference[]}[]};
+import type {Directory,Rule,Preference} from './types';
+export const directory=YAML.parse(teamsText) as Directory;
 const initial=(YAML.parse(rulesText).rules as Rule[]).map(r=>({...r,origin:'file' as const,version:1,enabled:true}));
 export type Proposal={id:number;rule:Rule;actor:string;reason:string;state:string};
 function read<T>(key:string,fallback:T):T{try{return JSON.parse(localStorage.getItem(key)??'null')??fallback;}catch{return fallback;}}
