@@ -1,6 +1,7 @@
 """Pick due open alerts in bounded batches. The row lock also serializes incoming occurrences."""
 
 import asyncio
+import logging
 from datetime import timedelta
 
 from psycopg.rows import dict_row
@@ -8,6 +9,8 @@ from psycopg.types.json import Jsonb
 
 from alerting.clock import SYSTEM, FixedClock, clock_for_event
 from alerting.db import close_pool, open_pool, pool
+from alerting.routing.directory import by_id, team_for
+from alerting.routing.ladder import step_rule, steps
 from alerting.routing.throttle import lock_rules
 from alerting.rules.engine import duration
 from alerting.rules.heartbeat import check_deadlines
@@ -70,6 +73,65 @@ async def finish_recovery(cur, row, now):
     return True
 
 
+def timer_policies(rules, directory):
+    """Current policy applies to open incidents, including ones created before rollout."""
+    teams = by_id(directory["teams"])
+    policies = []
+    for rule in rules.values():
+        team = teams.get(team_for(rule.get("owner", ""), directory), {})
+        interval = rule.get("escalate_after", team.get("escalate_after"))
+        try:
+            seconds = int(duration(interval).total_seconds()) if interval else 0
+        except (ValueError, OverflowError) as exc:
+            logging.getLogger(__name__).warning("Invalid escalate_after for rule %s: %s", rule["id"], exc)
+            seconds = 0
+        delays = [int(offset.total_seconds()) for _, offset in steps(rule)[1:]]
+        if seconds or delays:
+            policies.append({"id": rule["id"], "unacked": seconds or None, "ladder": delays})
+    return policies
+
+
+async def escalate(cur, row, rule, fields, settings, clock):
+    team = by_id(settings.directory["teams"]).get(row["team_id"], {})
+    if row["escalation_stage"] == 0:
+        step = "secondary"
+        secondary = team.get("oncall", {}).get("secondary")
+        people = [secondary] if secondary else []
+    else:
+        step = "approvers"
+        people = team.get("approvers", [])
+    targets = [{"to": f"user:{person}", "channels": "preferences"} for person in people]
+    routing = await delivery_plan(
+        cur, row, "escalation", {**rule, "route": targets}, fields, settings, clock
+    )
+    # The route planner's generic critical fallback is not a secondary or designated approver.
+    intents = [i for i in routing.intents if i.recipient in people]
+    for intent in intents:
+        intent.rendered.meta.update(requires_open_alert=True, escalation_step=step)
+        if intent.kind == "escalation":
+            intent.dedup_key = f"{row['id']}:escalation:{intent.recipient}:{intent.channel.value}:{step}"
+    await enqueue(cur, intents, row["team_id"])
+    await audit(cur, "system", "alert.escalate", "alert", row["id"], {
+        "step": step, "targets": people, "notifications": [i.dedup_key for i in intents],
+    })
+    await cur.execute("update alerts set escalation_stage=escalation_stage+1 where id=%s", (row["id"],))
+
+
+async def advance_ladder(cur, row, rule, fields, settings, clock):
+    stage = row["ladder_stage"] + 1
+    channel, _ = steps(rule)[stage]
+    routing = await delivery_plan(cur, row, "ladder_step", step_rule(rule, channel), fields, settings, clock)
+    for intent in routing.intents:
+        intent.rendered.meta.update(ladder_stage=stage, requires_open_alert=True)
+        if intent.kind == "ladder_step":
+            intent.dedup_key = f"{row['id']}:ladder_step:{intent.recipient}:{channel}:{stage}"
+    await enqueue(cur, routing.intents, row["team_id"])
+    await audit(cur, "system", "alert.ladder_step", "alert", row["id"], {
+        "stage": stage, "channel": channel, "notifications": [i.dedup_key for i in routing.intents],
+    })
+    await cur.execute("update alerts set ladder_stage=%s where id=%s", (stage, row["id"]))
+
+
 async def tick(db, settings=None, clock=SYSTEM):
     if settings is None:
         settings = await get_settings(db)
@@ -79,20 +141,36 @@ async def tick(db, settings=None, clock=SYSTEM):
         await lock_rules(cur, rules.values())
         missed = await check_deadlines(cur, settings, clock)
         await cur.execute(
-            """select a.*,e.fields as event_fields,e.trace,e.schema_id from alerts a left join events e
-            on e.id=a.representative_event_id where
-            (a.resolve_due_at<=%s and a.status<>'resolved') or (a.next_notify_at<=%s and a.status='open')
-            order by least(a.next_notify_at,a.resolve_due_at),a.id limit 200 for update of a skip locked""",
-            (now, now),
+            """select a.*,e.fields as event_fields,e.trace,e.schema_id,t.unacked_due,t.ladder_due
+               from alerts a left join events e on e.id=a.representative_event_id
+               left join jsonb_to_recordset(%s) as p(id text,unacked bigint,ladder bigint[])
+               on p.id=a.rule_id
+               cross join lateral (select coalesce(a.first_seen_at,a.created_at) as opened) anchor
+               cross join lateral (select
+                 case when a.escalation_stage<2 then anchor.opened +
+                   (a.escalation_stage+1)*p.unacked*interval '1 second' end as unacked_due,
+                 anchor.opened + p.ladder[a.ladder_stage+1]*interval '1 second' as ladder_due) t
+               where (a.status<>'resolved' and a.resolve_due_at<=%s)
+                  or (a.status='open' and least(a.next_notify_at,t.unacked_due,t.ladder_due)<=%s)
+               order by least(a.next_notify_at,a.resolve_due_at,t.unacked_due,t.ladder_due),a.id
+               limit 200 for update of a skip locked""",
+            (Jsonb(timer_policies(rules, settings.directory)), now, now),
         )
         rows = await cur.fetchall()
         for row in rows:
             if row["resolve_due_at"] is not None and row["resolve_due_at"] <= now:
                 if await finish_recovery(cur, row, now):
                     continue
-            if row["status"] != "open" or row["next_notify_at"] is None or row["next_notify_at"] > now:
+            if row["status"] != "open":
                 continue
             rule = rules.get(row["rule_id"])
+            fields = {**(row["event_fields"] or {}), "gen_sent_at": (row["trace"] or {}).get("gen_sent_at")}
+            if row["unacked_due"] is not None and row["unacked_due"] <= now:
+                await escalate(cur, row, rule, fields, settings, clock)
+            if row["ladder_due"] is not None and row["ladder_due"] <= now:
+                await advance_ladder(cur, row, rule, fields, settings, clock)
+            if row["next_notify_at"] is None or row["next_notify_at"] > now:
+                continue
             next_due = None
             group = (rule or {}).get("group", {})
             digest = group.get("mode") == "digest"
@@ -109,7 +187,7 @@ async def tick(db, settings=None, clock=SYSTEM):
                     row,
                     transition,
                     rule,
-                    {**row["event_fields"], "gen_sent_at": row["trace"].get("gen_sent_at")},
+                    fields,
                     settings,
                     effective,
                 )
