@@ -2,7 +2,13 @@
 
 Team workspace for the 2026 Goldman Sachs Warsaw Hackathon (Software Engineering track).
 
-> **Status: G0 scaffold.** Contracts, configs, fixtures and the backend skeleton are in place; features are being built on the four role branches. This README becomes the judges' README at G4.
+This local integration runs the React frontend, ingestion, rule workers, delivery services and simulators together. Start it from the repository root with Docker Desktop or Docker Compose.
+
+```sh
+docker compose up -d --build --wait
+```
+
+Open the frontend on port 5173 and the simulated phone on port 8100. The frontend uses the real API. The local acceptance report includes the browser demonstration, current test results, measured throughput and outage recovery. [Integration report](loadtest/results/dev2-integration/README.md)
 
 ## Team: start here
 1. Read [docs/BRIEF.md](docs/BRIEF.md) (what, scope, gates, ownership), then [docs/CONTRACT.md](docs/CONTRACT.md).
