@@ -9,10 +9,18 @@ from alerting.clock import SYSTEM, FixedClock, clock_for_event
 from alerting.db import close_pool, open_pool, pool
 from alerting.routing.throttle import lock_rules
 from alerting.rules.engine import duration
-from alerting.rules.storage import Settings, alert_changed, delivery_plan, enqueue
+from alerting.rules.storage import (
+    alert_changed,
+    close_settings,
+    delivery_plan,
+    enqueue,
+    get_settings,
+)
 
 
-async def tick(db, settings, clock=SYSTEM):
+async def tick(db, settings=None, clock=SYSTEM):
+    if settings is None:
+        settings = await get_settings(db)
     rules = {r["id"]: r for r, _ in settings.ruleset.rules}
     now = clock.now()
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
@@ -65,11 +73,11 @@ async def tick(db, settings, clock=SYSTEM):
 async def main():
     await open_pool()
     try:
-        settings = Settings.load()
         while True:
-            await tick(pool(), settings)
+            await tick(pool())
             await asyncio.sleep(2)
     finally:
+        await close_settings(pool())
         await close_pool()
 
 

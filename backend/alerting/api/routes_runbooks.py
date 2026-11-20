@@ -3,7 +3,7 @@ from psycopg.rows import dict_row
 from pydantic import BaseModel, Field
 
 from alerting.api.routes_alerts import get_alert, require_member
-from alerting.rules.storage import Settings, get_db
+from alerting.rules.storage import get_db, get_settings
 from alerting.runbooks.approvals import decide, execute, request_run, runbook_for
 
 router = APIRouter(prefix="/v1", tags=["runbooks"])
@@ -15,13 +15,14 @@ class StepRequest(BaseModel):
 
 @router.get("/alerts/{id}/runbook")
 async def runbook(id: int, db=Depends(get_db)):
+    settings = await get_settings(db)
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-        return await runbook_for(cur, await get_alert(cur, id), Settings.load())
+        return await runbook_for(cur, await get_alert(cur, id), settings)
 
 
 @router.post("/alerts/{id}/actions")
 async def start(id: int, body: StepRequest, x_user: str = Header(...), db=Depends(get_db)):
-    settings = Settings.load()
+    settings = await get_settings(db)
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
         alert = await get_alert(cur, id, lock=True)
         require_member(alert, x_user, settings)
@@ -35,7 +36,7 @@ async def start(id: int, body: StepRequest, x_user: str = Header(...), db=Depend
 
 
 async def decision(db, id, actor, approve):
-    settings = Settings.load()
+    settings = await get_settings(db)
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
         row = await decide(cur, id, actor, approve, settings)
     return await execute(db, id, actor, settings) if approve else row

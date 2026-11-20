@@ -16,7 +16,14 @@ from alerting.routing.directory import team_for
 from alerting.routing.throttle import lock_rules
 from alerting.rules.engine import duration, evaluate, grouping
 from alerting.rules.scoring import score
-from alerting.rules.storage import Settings, alert_changed, delivery_plan, enqueue
+from alerting.rules.storage import (
+    Settings,
+    alert_changed,
+    close_settings,
+    delivery_plan,
+    enqueue,
+    get_settings,
+)
 
 COLUMNS = (
     "id rule_id rule_version alert_key status severity priority lane team_id title body color fields group_values "
@@ -59,7 +66,9 @@ async def persist(cur, row):
     )
 
 
-async def process_batch(db, settings, lane="normal", batch=200):
+async def process_batch(db, settings: Settings | None = None, lane="normal", batch=200):
+    if settings is None:
+        settings = await get_settings(db)
     async with (
         db.connection() as conn,
         conn.transaction(),
@@ -128,6 +137,7 @@ async def process_batch(db, settings, lane="normal", batch=200):
                     del state[identity]
                     continue
                 row.update(
+                    rule_version=rule.get("version", 1),
                     title=op.title,
                     body=op.body,
                     color=rule.get("present", {}).get("color"),
@@ -237,12 +247,12 @@ async def process_batch(db, settings, lane="normal", batch=200):
 
 async def main(lane, batch):
     await open_pool()
-    settings = Settings.load()
     try:
         while True:
-            if not await process_batch(pool(), settings, lane, batch):
+            if not await process_batch(pool(), lane=lane, batch=batch):
                 await asyncio.sleep(0.15)
     finally:
+        await close_settings(pool())
         await close_pool()
 
 

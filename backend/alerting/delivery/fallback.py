@@ -4,10 +4,11 @@ from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
 from alerting.routing.directory import by_id, preferences
-from alerting.rules.storage import Settings, emit
+from alerting.rules.storage import emit, get_settings
 
 
 async def fallback_one(db, channels, clock):
+    directory = (await get_settings(db)).directory
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
         await cur.execute(
             """select n.*,a.team_id,a.severity from delivery_breakers b join notifications n using(channel)
@@ -20,7 +21,7 @@ async def fallback_one(db, channels, clock):
         row = await cur.fetchone()
         if not row:
             return False
-        directory = Settings.load().directory
+
         user = by_id(directory["users"]).get(row["recipient"], {})
         team = by_id(directory["teams"]).get(row["team_id"], {})
         options = list(preferences(user, team, directory, row["severity"], clock))

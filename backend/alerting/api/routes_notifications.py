@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from psycopg.rows import dict_row
 from pydantic import BaseModel, Field
 
-from alerting.rules.storage import Settings, get_db
+from alerting.rules.storage import get_db, get_settings
 from alerting.runbooks.approvals import decide, execute
 
 router = APIRouter(prefix="/v1", tags=["notifications"])
@@ -46,7 +46,7 @@ async def inbound(channel: Literal["sms"], body: Reply, db=Depends(get_db)):
     match = re.fullmatch(r"(YES|NO)\s+(\d{4})", body.body.strip(), re.IGNORECASE)
     if not match:
         raise HTTPException(422, "Use YES or NO followed by the four-digit code")
-    cfg = Settings.load()
+    cfg = await get_settings(db)
     users = [
         u["id"] for u in cfg.directory["users"] if u.get("contacts", {}).get(channel) == body.sender
     ]

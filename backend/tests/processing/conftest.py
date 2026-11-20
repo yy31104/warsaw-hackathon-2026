@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import httpx
 from alerting.api.app import app
-from alerting.rules.storage import get_db
+from alerting.rules.storage import close_settings, get_db
 import psycopg
 import pytest
 import pytest_asyncio
@@ -32,7 +32,10 @@ async def database():
                     migrations = Path(__file__).resolve().parents[3] / "db/migrations"
                     for path in sorted(migrations.glob("*.sql")):
                         await conn.execute(path.read_text())
-                yield pool
+                try:
+                    yield pool
+                finally:
+                    await close_settings(pool)
         finally:
             await admin.execute(sql.SQL("DROP SCHEMA {} CASCADE").format(sql.Identifier(schema)))
 

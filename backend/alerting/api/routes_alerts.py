@@ -1,10 +1,22 @@
+from contextlib import asynccontextmanager
+
 from fastapi import APIRouter, Depends, Header, HTTPException
 from psycopg.rows import dict_row
 
 from alerting.clock import SYSTEM
-from alerting.rules.storage import Settings, alert_changed, audit, get_db
+from alerting.db import pool
+from alerting.rules.storage import alert_changed, audit, close_settings, get_db, get_settings
 
-router = APIRouter(prefix="/v1", tags=["alerts"])
+
+@asynccontextmanager
+async def lifespan(app):
+    try:
+        yield
+    finally:
+        await close_settings(pool())
+
+
+router = APIRouter(prefix="/v1", tags=["alerts"], lifespan=lifespan)
 
 
 async def get_alert(cur, id, lock=False):
@@ -72,9 +84,10 @@ async def detail(id: int, db=Depends(get_db)):
 
 
 async def change(db, id, actor, resolve):
+    settings = await get_settings(db)
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
         alert = await get_alert(cur, id, lock=True)
-        require_member(alert, actor, Settings.load())
+        require_member(alert, actor, settings)
         target = "resolved" if resolve else "acknowledged"
         if alert["status"] == target:
             return alert
