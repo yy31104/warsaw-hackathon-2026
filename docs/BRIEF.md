@@ -3,7 +3,7 @@
 GS Warsaw Hackathon 2026 · "Flexible Alerting & Notification Service"
 Version: Fri 2026-11-20 ~21:15 CET · Tech lead: Yi
 
-**Read order (15 min):** this brief → [AGENTS.md](../AGENTS.md) → [CONTRACT.md](CONTRACT.md) → your handoff:
+**Read order (15 min):** this brief → [AGENTS.md](../AGENTS.md) → [CONTRACT.md](CONTRACT.md) → [PLAYBOOK.md](PLAYBOOK.md) (models, skills, techniques) → your handoff:
 
 | Who | Role | Branch | Handoff |
 |---|---|---|---|
@@ -21,6 +21,22 @@ A service that ingests events from many sources and formats (RabbitMQ, HTTP webh
 **Events are stored as-is and stay queryable.** Every event keeps its raw JSON plus a flattened, indexed `path → value` map. Known formats are *configured* in a schema registry with aliases like `$severity` and `$service`, not hard-coded. Unknown formats are kept and flagged `needs_review`, so a developer or an agent can always query them. The judges will bring an unseen schema and an unseen runbook to the demo. We onboard both without code: an LLM suggests, a human confirms.
 
 **First format to build with:** the workflow-failure event from Appendix A (`fixtures/events/workflow_failed.json`) over RabbitMQ. Next: the Alertmanager webhook over HTTP, the `meta/payload` business event over RabbitMQ, and the pricing log file.
+
+## 1b. What it looks like when it's done
+
+A judge, or a team that's new to the system, can:
+1. **Send events in different shapes** over RabbitMQ, HTTP or a log file. Each one is stored, recognised (or flagged "needs review"), and queryable by any field.
+2. **Write a rule on any field** in the UI (AND/OR, any path), see it as a plain-English sentence, and test it against a real event. It takes effect without a restart.
+3. **Watch an alert appear live** with no page refresh. It is coloured by its rule and has a counter: 500 identical failures = 1 alert × 500, and the on-call person is paged once.
+4. **See the right people notified on the channel they prefer:**
+   - a fake phone call + SMS, a Mailpit email, and the UI;
+   - Anna's preference honoured: SMS during the day, email at night;
+   - every attempt and retry visible;
+   - the SMS gateway taken down without losing anything.
+5. **Handle the alert to the end.** Open it and read "why was I notified". Follow the runbook with the real values filled in. Run a step, request approval for a risky one, and approve it (in the UI or by replying to the SMS). Watch the alert close itself once the problem goes away. All of this lands in the audit trail.
+6. **Paste an event format nobody has seen.** The system shows what's missing, the LLM proposes a mapping, a person confirms, and the next event is routed, with no code change. The same works for a runbook in an unseen format.
+7. **Propose a fix** on a noisy alert. As P1: preview its impact before the owner approves it.
+8. **Read measured numbers:** events/s, end-to-end p50/p99 with N, and the reconciliation after a channel outage.
 
 ## 2. Non-negotiables
 
@@ -64,7 +80,7 @@ Write **pure functions with tests first** (fixtures in `fixtures/`), then wire D
 - **2.1** ≥ 2 source types plus the log file, arbitrary schemas, a new schema is config not code (daizhongtian).
 - **2.2** Rules on any field with AND/OR, per-rule routing and presentation (Yi). Runtime changes via API / UI / config files (daizhongtian).
 - **2.3** Email / SMS / phone / UI, preferences with working hours, on-call, simulated providers behind one interface, retries, no loss when a channel is down (Yi; fake-telecom by daizhongtian).
-- **2.4** Live push feed, ack/resolve, manage rules and preferences, per-rule look (zhaoqinghe on Yi's and daizhongtian's APIs).
+- **2.4** Live push feed, ack/resolve, manage rules and preferences, per-rule look (zhaoqinghe on Yi's and daizhongtian's APIs), plus a minimal **Propose fix** on any alert: the text and author are saved (daizhongtian API, zhaoqinghe button).
 - **2.5** One alert with a counter instead of 500, grouping and throttling (Yi).
 - **2.6** Runbooks in YAML / Markdown / text / link, values filled in, shown per channel, actions with approval, audit, auto-close (Yi). Runbook store (daizhongtian).
 - **Evidence:** golden runner, load test (throughput, e2e p50/p99 with N, backlog) (daizhongtian). README "what is mocked" (Marlon).
@@ -72,7 +88,7 @@ Write **pure functions with tests first** (fixtures in `fixtures/`), then wire D
 **P0.5 — LLM onboarding (daizhongtian):** schema-mapping suggestion and runbook structuring, each with a deterministic fallback.
 
 **P1, in order:**
-1. Rule impact preview / "Propose fixes" (daizhongtian + zhaoqinghe).
+1. Rule impact preview + AI suggestions for proposals (daizhongtian + zhaoqinghe).
 2. Reply-to-approve by SMS (Yi).
 3. Critical lane + weighted score (Yi).
 4. Funnel dashboard (daizhongtian + zhaoqinghe).

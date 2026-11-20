@@ -102,5 +102,8 @@
 - A timeout is `unknown`, not failed.
 - Anna's time window is in her timezone: use `clock_for_event(event.trace)`.
 
+## Tips
+See [PLAYBOOK](../PLAYBOOK.md) §1 (models, skills, two-model review), §2 (LedgerOps techniques: outbox, attempts, kill -9 fault flags, mutation checks), §3 (Yi).
+
 ## Prompt for your coding agent
 > Read `AGENTS.md`, `docs/BRIEF.md`, `docs/CONTRACT.md` and `docs/handoff/DEV1-backend-Yi.md` fully. You are DEV1 (backend core) on branch `feat/backend-yi`. Work only inside the directories under "You own" (code part). Do tasks 1–3 (`rules/dsl.py`, pure `rules/engine.py`, pure `routing/plan.py`) test-first against `config/*.yaml` and `fixtures/golden/expectations.yaml`. Then build the rule-worker, the providers + delivery worker, and the incidents API. Commit after each task, run `make test`, and push to `feat/backend-yi`. Python 3.12, psycopg 3 async, httpx. Report what you ran and what you didn't.

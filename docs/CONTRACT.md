@@ -44,7 +44,7 @@ If no `detect` matches: `status = needs_review`, the event is stored and counted
 
 ## 4. Config formats (files in `config/`, versioned in table `config_objects`)
 
-Kinds: `source`, `schema`, `rule`, `team`, `user`, `runbook`, plus singletons `fallback_team` and `default_preferences`. Each change creates a new version and triggers `NOTIFY config_changed '<kind>:<id>'`. **One origin per object:** objects that come from files are read-only in the UI (`origin = file`). UI/API objects have `origin = ui`.
+Kinds: `source`, `schema`, `rule`, `team`, `user`, `runbook`, plus singletons `fallback_team` and `default_preferences`. Each change creates a new version and triggers `NOTIFY config, '{"kind": "<kind>", "id": "<id>", "version": <n>}'` (channel name is exactly `config`). **One origin per object:** objects that come from files are read-only in the UI (`origin = file`). UI/API objects have `origin = ui`.
 
 - **sources.yaml**: `id, transport, queue? | path? + parser? | api_key?, split_path?, dedup?(payload_hash)`.
 - **schemas.yaml**: `id, detect (rule DSL), name (template), event_id?, aliases{severity,service,environment,time}, severity_map?, severity_default?, time_format?(iso|epoch_ms|epoch_s), alert_key?, resolve_when? (DSL)`.
@@ -138,12 +138,13 @@ Actor identity (demo-grade): header `X-User: <user id>` on mutating calls, check
 
 ## 10. SSE events (`GET /v1/stream`)
 
-`event: <type>`, `data: <json>`. Types: `alert.created`, `alert.updated` (count/status/severity/score), `notification.updated` (state, attempts), `action.updated` (state, approver), `schema.issue`, `config.changed`, `stats.tick` (every 2 s, funnel numbers). Each payload carries `{id, team_id?, ts}` plus the changed fields. The UI re-fetches the detail on demand. Implementation: workers `NOTIFY <channel>, '<json>'` after commit; the API `LISTEN`s and fans out (works with several API instances).
+`event: <type>`, `data: <json>`. Types: `alert.created`, `alert.updated` (count/status/severity/score), `notification.updated` (state, attempts), `action.updated` (state, approver), `schema.issue`, `config.changed`, `stats.tick` (every 2 s, funnel numbers). Each payload carries `{id, team_id?, ts}` plus the changed fields. The UI re-fetches the detail on demand. Implementation: workers `NOTIFY <channel>, '{"type": "<sse type>", "data": {...}}'` after commit, on exactly these channels: `alerts`, `notifications`, `actions`, `schema_issues`, `config`; the API `LISTEN`s and fans out (works with several API instances).
 
 ## 11. LLM usage (shared helper `backend/alerting/llm.py`)
 
 - Model `claude-opus-5-5` via the official `anthropic` SDK, `messages.parse(output_format=PydanticModel)` (structured output, validated). 20 s timeout, 1 retry.
 - **Never on the alert path.** Only onboarding, runbook structuring, rule drafts, fix proposals and summaries. On `None` (timeout/error/refusal) the endpoint returns the deterministic suggestion with `"source": "heuristic"`.
+- **What to send for an event:** `json.dumps(llm.describe_sample(fields))` (path, type, redacted example). Never a raw JSON string: `redact()` on raw JSON can mask numbers such as epoch-ms timestamps and break the JSON. Use `redact()` only on free text.
 - **Before sending:** redact emails, phone numbers, card-like digit runs, `Bearer`/`token=`/`password=` values, and truncate samples to 8 KB. Send at most 3 samples. Cache by schema fingerprint or text hash.
 - Every suggestion is a **draft**: a human confirms in the UI before it becomes config (audit: `actor`, `source: llm|heuristic`).
 
