@@ -21,6 +21,7 @@ from alerting.routing.throttle import lock_rules
 from alerting.rules.engine import duration, episode_for, evaluate, grouping
 from alerting.rules.failures import BadEvent, RuleFault, evaluating, transient
 from alerting.rules.scoring import score
+from alerting.rules.scheduler import cancel_recovery, start_recovery
 from alerting.rules.storage import (
     Settings,
     alert_changed,
@@ -33,7 +34,8 @@ from alerting.rules.storage import (
 COLUMNS = (
     "id rule_id rule_version alert_key status severity priority lane team_id title body color fields group_values "
     "runbook_id occurrence_count count_since_notify first_seen_at last_seen_at last_notified_at "
-    "representative_event_id resolved_by resolved_at resolve_reason score score_breakdown next_notify_at latest_episode"
+    "representative_event_id resolved_by resolved_at resolve_reason score score_breakdown next_notify_at latest_episode "
+    "resolve_pending_at resolve_due_at resolve_episode resolve_event_id"
 ).split()
 
 
@@ -192,7 +194,14 @@ async def apply_events(cur, settings, lane, events):
                 dirty[id_] = row
                 decision = next(d for d in result.decisions if d["rule_id"] == rule["id"])
                 decision["alert_id"] = id_
-                if op.transition == "resolved":
+                if op.transition in ("resolved", "resolve_pending"):
+                    stable_for = rule.get("group", {}).get("stable_for")
+                    if stable_for and duration(stable_for).total_seconds() > 0:
+                        start_recovery(row, event.id, at, duration(stable_for))
+                        decision.update(outcome="RESOLVE_PENDING")
+                        decision["reason"]["transition"] = "resolve_pending"
+                        continue
+                    cancel_recovery(row)
                     row.update(
                         status="resolved",
                         resolved_by="system",
@@ -201,6 +210,8 @@ async def apply_events(cur, settings, lane, events):
                     )
                     del state[identity]
                     continue
+                if row.get("resolve_pending_at") is not None:
+                    cancel_recovery(row)
                 row.update(
                     latest_episode=episode_for(
                         ruleset.schemas.get(event.schema_id, {}), event.fields
