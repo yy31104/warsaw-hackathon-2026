@@ -91,6 +91,21 @@ def test_severity_mapping_is_case_tolerant_and_bad_time_stays_queryable():
     assert prepare(dict(raw, severity="novel"), "workflow-bus").severity == "unknown"
 
 
+def test_configured_alias_identity_long_keys_and_string_epoch():
+    schema = {"id": "custom", "name": "reading", "detect": {"field": "sensor", "op": "exists"},
+              "aliases": {"service": "sensor", "time": "ts"}, "time_format": "epoch_ms",
+              "event_id": "{{$service}}|{{$time}}"}
+    raw = {"sensor": 13, "ts": "1792833245000"}
+    event = normalize(raw, SOURCES["generic-webhook"], [schema], received_at=RECEIVED)
+    assert event.service == event.fields["$service"] == "13"
+    assert event.raw["ts"] == raw["ts"] and event.occurred_at.timestamp() == 1792833245
+    assert event.source_event_id == "13|" + event.occurred_at.isoformat()
+    long_id = "ABCDE" * 2000
+    compact = prepare(raw, message_id=long_id).source_event_id
+    assert compact == prepare(raw, message_id=long_id).source_event_id
+    assert compact != prepare(raw, message_id=compact).source_event_id and len(compact) < 100
+
+
 def test_secrets_are_masked_in_both_views_but_conflicting_bodies_still_differ():
     a = prepare({"items": [{"api_key": "first-script-key"}], "email": "demo@example.invalid"})
     b = prepare({"items": [{"api_key": "different-script-key"}], "email": "demo@example.invalid"})

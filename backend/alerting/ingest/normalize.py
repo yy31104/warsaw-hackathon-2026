@@ -95,15 +95,24 @@ def detect_schema(fields: dict, schemas: Sequence[dict]) -> dict | None:
     return next((schema for schema in schemas if _matches(schema["detect"], fields)), None)
 
 
+def storage_key(key: str | None) -> str | None:
+    # PostgreSQL btree entries have a size limit. Opaque long IDs must still be
+    # usable and must not collide with a producer-supplied spelling of our prefix.
+    if not key or not key.strip():
+        return None
+    encoded = key.encode("utf-8", errors="surrogatepass")
+    if len(encoded) > 1024 or key.startswith("sha256-id:") or re.search(r"[\x00\ud800-\udfff]", key):
+        return "sha256-id:" + hashlib.sha256(encoded).hexdigest()
+    return key
+
+
 def identity(message_id: str | None, schema: dict, fields: dict, source: dict, payload_hash: str) -> str | None:
     if message_id and message_id.strip():
-        return message_id
+        return storage_key(message_id)
     template = schema.get("event_id")
     if template and all(lookup(fields, path) not in (None, "") for path in variables(template)):
-        return render(template, fields)
-    if source.get("dedup") == "payload_hash":
-        return payload_hash
-    return None
+        return storage_key(render(template, fields))
+    return payload_hash if source.get("dedup") == "payload_hash" else None
 
 
 def _severity(value, schema: dict) -> Severity:
@@ -131,10 +140,14 @@ def _time(value, fmt: str) -> datetime | None:
 
 # Storage redaction preserves JSON types, timestamps and long non-sensitive values.
 # The LLM redactor truncates free text and is intentionally not used for stored events.
-_PRIVATE_KEY = re.compile(r"(?:password|passwd|secret|token|api[_-]?key|authorization|email|phone|msisdn|iban|card[_-]?(?:number|pan)|account[_-]?number)$", re.I)
+_PRIVATE_KEY = re.compile(
+    r"(?:password|passwd|secret|token|api[_-]?key|authorization|email(?:[_-]?address)?|"
+    r"phone(?:[_-]?number)?|msisdn|iban|(?:^|[_-])pan|card(?:[_-]?(?:number|pan))?|"
+    r"account[_-]?number)$", re.I,
+)
 _EMAIL = re.compile(r"(?<![\w.+-])[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
 _CREDENTIAL = re.compile(r"(?i)(\bbearer\s+|\b(?:api[_-]?key|token|password|secret)\s*[=:]\s*)[^\s,;]+")
-_CONTACT_NUMBER = re.compile(r"(?<![\w-])(?:\+\d(?:[ ()-]?\d){7,14}|\d{13,19})(?![\w-])")
+_CONTACT_NUMBER = re.compile(r"(?<![\w-])\+\d(?:[ ()-]?\d){7,14}(?![\w-])")
 
 
 def _redacted(value):
@@ -150,6 +163,17 @@ def _redacted(value):
     return value
 
 
+def _labels(fields: dict, schema: dict) -> dict:
+    paths = schema.get("aliases", {})
+    labels = {"$schema": render(schema["name"], fields) if schema else None}
+    for key in ("service", "environment", "error_code", "message"):
+        value = lookup(fields, paths[key]) if key in paths else None
+        if key in ("service", "environment"):
+            value = str(value) if isinstance(value, (str, int, float)) else None
+        labels["$" + key] = value
+    return labels
+
+
 def normalize(raw: dict, source: dict, schemas: Sequence[dict], *, received_at: datetime,
               message_id: str | None = None, trace: dict | None = None) -> CanonicalEvent:
     original = flatten(raw)
@@ -163,21 +187,23 @@ def normalize(raw: dict, source: dict, schemas: Sequence[dict], *, received_at: 
     metadata = {"$source": source["id"], "$transport": source["transport"]}
     original.update(metadata)
     schema = detect_schema(original, schemas) or {}
+    aliases = schema.get("aliases", {})
+    severity = _severity(original.get(aliases.get("severity")), schema)
+    occurred_at = _time(original.get(aliases.get("time")), schema.get("time_format", "iso"))
+    metadata.update({"$severity": severity.value, "$time": occurred_at.isoformat() if occurred_at else None})
+    original.update(metadata)
+    original.update(_labels(original, schema))
+    source_event_id = identity(message_id, schema, original, source, digest)
+
     public = _redacted(raw)
     fields = flatten(public)
     fields.update(metadata)
-    aliases = {name: lookup(fields, path) for name, path in schema.get("aliases", {}).items()}
-    severity = _severity(aliases.get("severity"), schema)
-    occurred_at = _time(aliases.get("time"), schema.get("time_format", "iso"))
-    name = render(schema["name"], fields) if schema else None
-    fields.update({f"${key}": aliases.get(key) for key in ("service", "environment", "error_code", "message")})
-    fields.update({"$schema": name, "$severity": severity.value, "$time": occurred_at.isoformat() if occurred_at else None})
+    fields.update(_labels(fields, schema))
     return CanonicalEvent(
         source_id=source["id"], transport=source["transport"], payload_hash=digest,
-        source_event_id=identity(message_id, schema, original, source, digest),
-        schema_id=schema.get("id"), schema_version=schema.get("version", 1) if schema else None, schema_name=name,
-        severity=severity, service=fields["$service"] if isinstance(fields["$service"], str) else None,
-        environment=fields["$environment"] if isinstance(fields["$environment"], str) else None,
+        source_event_id=source_event_id, schema_id=schema.get("id"),
+        schema_version=schema.get("version", 1) if schema else None, schema_name=fields["$schema"],
+        severity=severity, service=fields["$service"], environment=fields["$environment"],
         occurred_at=occurred_at, received_at=received_at, raw=public, fields=fields,
         lane="critical" if severity == Severity.critical else "normal", status="pending" if schema else "needs_review",
         trace={**(trace or {}), "received_at": received_at.isoformat()},
