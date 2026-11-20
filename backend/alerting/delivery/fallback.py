@@ -3,6 +3,7 @@
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
+from alerting.delivery.fair import next_notification
 from alerting.routing.directory import by_id, preferences
 from alerting.rules.storage import emit, get_settings
 
@@ -10,15 +11,7 @@ from alerting.rules.storage import emit, get_settings
 async def fallback_one(db, channels, clock):
     directory = (await get_settings(db)).directory
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-        await cur.execute(
-            """select n.*,a.team_id,a.severity from delivery_breakers b join notifications n using(channel)
-            join alerts a on a.id=n.alert_id where b.opened_at < %s - interval '30 seconds' and n.channel=any(%s)
-            and a.severity='critical' and n.kind in ('initial','update','digest','escalation')
-            and n.state in ('pending','retrying','unknown') order by n.priority,n.created_at
-            limit 1 for update of n skip locked""",
-            (clock.now(), list(channels)),
-        )
-        row = await cur.fetchone()
+        row = await next_notification(cur, channels, clock.now(), fallback=True)
         if not row:
             return False
 
