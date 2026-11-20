@@ -75,6 +75,14 @@ def episode_for(schema, fields):
     return None
 
 
+def resolved_episode_id(state, snapshot, rule_id, key, episode):
+    if snapshot and snapshot.get("status") == "resolved" and snapshot.get("latest_episode") == episode:
+        return snapshot.get("id")
+    if hasattr(state, "get_resolved_episode"):
+        return state.get_resolved_episode(rule_id, key, episode)
+    return None
+
+
 def evaluate(event, ruleset, state, clock):
     if not isinstance(event, CanonicalEvent):
         event = CanonicalEvent.model_validate(event)
@@ -105,6 +113,14 @@ def evaluate(event, ruleset, state, clock):
             )
             if old is not None and hasattr(old, "model_dump"):
                 old = old.model_dump()
+            episode = episode_for(schema, fields)
+            if not resolving and episode is not None:
+                decision["reason"]["episode"] = episode
+                resolved_id = resolved_episode_id(state, old, rule["id"], key, episode)
+                if resolved_id is not None:
+                    decision.update(outcome="LATE_OCCURRENCE", alert_id=resolved_id)
+                    decision["reason"].update(transition=Transition.late_occurrence.value, alert_key=key)
+                    continue
             if old and old.get("status") == "resolved":
                 old = None
             group = rule.get("group", {})
@@ -112,7 +128,6 @@ def evaluate(event, ruleset, state, clock):
             if resolving:
                 if not old:
                     continue
-                episode = episode_for(schema, fields)
                 if schema.get("episode_key") and (
                     episode is None or episode != old.get("latest_episode")
                 ):
@@ -155,7 +170,7 @@ def evaluate(event, ruleset, state, clock):
                     notify,
                 )
             )
-    if not result.alert_ops and not any(d["outcome"] == "STALE_RESOLVE" for d in result.decisions):
+    if not result.alert_ops and all(d["outcome"] == "NO_MATCH" for d in result.decisions):
         if not result.decisions:
             result.decisions.append(
                 dict(rule_id=None, rule_version=None, outcome="NO_MATCH", reason={})
