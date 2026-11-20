@@ -1,7 +1,5 @@
 # tools (owner: DEV2 daizhongtian)
 
-The planned publisher for demos and load tests is `publish.py`.
-
 ## Try the event inbox
 
 Start the repository's PostgreSQL and RabbitMQ with `make infra`. Run `make api` in a separate terminal.
@@ -17,9 +15,30 @@ curl -s http://localhost:8000/v1/events/alertmanager \
 Read the stored original and the normalized fields with `GET /v1/events/{id}`.
 A webhook array uses one stable key per position when the request supplies an idempotency key.
 
-From `backend/`, start the broker consumer with `uv run python -m alerting.ingest.amqp`. Publish
-to a queue in `config/sources.yaml` and preserve the AMQP `message_id` when retrying.
-This command imports the seven pricing log lines once.
+From `backend/`, start the broker consumer with `uv run python -m alerting.ingest.amqp`.
+From the repository root, send the workflow sample twice with the same AMQP message ID.
+
+```sh
+uv run --project backend python tools/publish.py --source workflow-bus --file fixtures/events/workflow_failed.json --message-id demo-workflow-42 --count 2
+```
+
+RabbitMQ confirms both deliveries to `events.workflow`. With a fresh ID, the consumer stores
+one row in `events` and records the retransmission as `DUPLICATE` in `ingest_rejections`.
+Set `RABBITMQ_URL` to use another broker. Omitting `--message-id` gives each copy a new ID.
+Use `--rate` to cap the send rate and `--unique workflowId` to vary that field for each copy.
+
+The same tool can publish over HTTP. With the API running and a fresh key, this sends
+ten individual requests and prints `accepted=1 duplicates=9`.
+
+```sh
+uv run --project backend python tools/publish.py --via http --source generic-webhook --file fixtures/events/workflow_failed.json --message-id demo-http-42 --count 10
+```
+
+Set `ALERTING_API_URL` to override `http://localhost:8000`. The tool uses the configured
+source's API key. Both transports support the same count, rate and unique-field options.
+Event identities are scoped to each source.
+
+From `backend/`, this command imports the seven pricing log lines once.
 
 ```sh
 uv run python -m alerting.ingest.logfile --source pricing-logs ../fixtures/events/pricing-engine.log
