@@ -71,3 +71,11 @@ rules:
     group:
       mode: immediate
       cooldown: 10m
+
+  - id: delivery-canary
+    include_synthetic: true
+    owner: team:canary
+    match: {field: $source, op: eq, value: canary}
+    route: [{to: "user:canary", channels: [sms]}]
+    present: {title: "Canary {{probe_id}}"}
+    group: {by: [$source], mode: immediate, cooldown: 0s}

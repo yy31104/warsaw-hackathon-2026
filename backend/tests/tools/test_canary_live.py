@@ -1,7 +1,6 @@
 """Live smoke. Set CANARY_LIVE_GATEWAY_ROOT to a checkout with mocks/fake_telecom/app.py."""
 import asyncio
 import os
-import shutil
 import socket
 import subprocess
 import sys
@@ -10,7 +9,7 @@ from pathlib import Path
 
 import httpx
 import pytest
-import yaml
+from alerting.config import files
 
 from alerting.canary.monitor import CANARY_NUMBER, OPS_NUMBER
 from tests.processing.conftest import database  # noqa: F401 -- isolated PostgreSQL schema
@@ -48,14 +47,7 @@ async def wait_for(client, url, predicate, processes):
 async def test_worker_outage_reaches_direct_simulated_gateway(database, tmp_path):
     gateway_root = Path(os.environ["CANARY_LIVE_GATEWAY_ROOT"]).resolve()
     assert (gateway_root / "mocks/fake_telecom/app.py").is_file()
-    config = tmp_path / "config"
-    shutil.copytree(ROOT / "config", config)
-    example = yaml.safe_load((ROOT / "backend/alerting/canary/config.example.yaml").read_text())
-    for section, entries in example.items():
-        file = config / ("teams.yaml" if section == "users" else section + ".yaml")
-        body = yaml.safe_load(file.read_text())
-        body[section] = entries + body[section]
-        file.write_text(yaml.safe_dump(body))
+    source, = (s for s in files.sources() if s["id"] == "canary")
 
     with ExitStack() as stack:
         def reserve_port():
@@ -67,10 +59,10 @@ async def test_worker_outage_reaches_direct_simulated_gateway(database, tmp_path
         api_sock, api = reserve_port()
         gateway_sock, gateway = reserve_port()
         env = dict(
-            os.environ, DATABASE_URL=database.conninfo, CONFIG_DIR=str(config), DEMO_MODE="1",
+            os.environ, DATABASE_URL=database.conninfo, CONFIG_DIR=str(files.CONFIG_DIR), DEMO_MODE="1",
             DB_ON_STARTUP="1", ASSIST_ENABLED="0", ALERTING_API_URL=api, FAKE_TELECOM_URL=gateway,
             FAKE_TELECOM_DB=str(tmp_path / "receipts.sqlite3"), CANARY_HOST="127.0.0.1",
-            CANARY_API_KEY=example["sources"][0]["api_key"], DELIVERY_TARGET_S="2",
+            CANARY_API_KEY=source["api_key"], DELIVERY_TARGET_S="2",
         )
 
         def start(name, *args, sock=None):
