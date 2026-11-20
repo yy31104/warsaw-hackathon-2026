@@ -1,14 +1,17 @@
 """HTTP input and inspection of a stored event (CONTRACT §9)."""
+import json
 from hmac import compare_digest
+from typing import Literal
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
+from psycopg.types.json import Jsonb
 
 from alerting.clock import SYSTEM
 from alerting.config import files
 from alerting.contracts import Outcome
 from alerting.db import pool
 from alerting.ingest.inputs import prepare
-from alerting.ingest.normalize import MAX_BYTES, InvalidEvent, decode_json
+from alerting.ingest.normalize import MAX_BYTES, InvalidEvent, decode_json, flatten
 from alerting.ingest.store import RejectedInput, save_batch
 from alerting.schemas.registry import ingest_registry
 from alerting.templates import lookup
@@ -69,6 +72,72 @@ async def ingest(source_id: str, request: Request, x_api_key: str | None = Heade
         "rejected": [{"index": i, "reason": r.reason} for i, r in enumerate(results) if r.outcome == Outcome.REJECTED],
         "event_ids": [r.event_id for r in results if r.event_id is not None],
     }
+
+
+def _filter_value(value: str):
+    try:
+        try:
+            expected = json.loads(value)
+        except json.JSONDecodeError:
+            expected = value
+        # Apply the same structural and NUL limits as a stored value. Check
+        # JSON encoding too, since escaped surrogates and nonfinite numbers
+        # would otherwise fail inside PostgreSQL.
+        flatten({"value": expected})
+        json.dumps(expected, ensure_ascii=False, allow_nan=False).encode("utf-8")
+    except (ValueError, RecursionError) as exc:
+        raise HTTPException(422, "invalid field value") from exc
+    return expected
+
+
+@router.get("/events")
+async def list_events(
+    source: str | None = Query(None, min_length=1, max_length=256),
+    schema: str | None = Query(None, min_length=1, max_length=256, description="Exact schema ID or rendered name"),
+    status: Literal["pending", "processed", "needs_review", "rejected", "quarantined"] | None = None,
+    field: str | None = Query(None, max_length=4096, description="Literal flattened path or alias"),
+    value: str | None = Query(None, max_length=8192, description="JSON value or plain text. Omit for a field existence check."),
+    limit: int = Query(20, ge=1, le=100),
+    cursor: int | None = Query(None, ge=1, le=2**63 - 1, description="Return IDs below this cursor"),
+    offset: int | None = Query(None, ge=0, le=100_000, description="Skip this many matches instead of using a cursor"),
+    db_pool=Depends(pool),
+):
+    """Return stored events by descending ID. Page with a cursor or offset using the same filters."""
+    if cursor is not None and offset is not None:
+        raise HTTPException(422, "use either cursor or offset")
+    if value is not None and field is None:
+        raise HTTPException(422, "value requires field")
+    if any(part is not None and "\0" in part for part in (source, schema, field)):
+        raise HTTPException(422, "filters cannot contain NUL characters")
+
+    predicates = []
+    params = []
+    for predicate, term in (("e.source_id = %s", source), ("e.status = %s", status), ("e.id < %s", cursor)):
+        if term is not None:
+            predicates.append(predicate)
+            params.append(term)
+    if schema is not None:
+        predicates.append("(e.schema_id = %s OR e.schema_name = %s)")
+        params.extend((schema, schema))
+    if field is not None:
+        if value is None:
+            predicates.append("e.fields ? %s")
+            params.append(field)
+        else:
+            expected = _filter_value(value)
+            # Containment uses events_fields_gin. JSONB equality also checks
+            # array order and rejects proper subsets of stored objects.
+            predicates.append("e.fields @> %s AND e.fields -> %s::text = %s")
+            params.extend((Jsonb({field: expected}), field, Jsonb(expected)))
+
+    where = f"WHERE {' AND '.join(predicates)}" if predicates else ""
+    async with db_pool.connection() as conn:
+        rows = await (await conn.execute(f"""
+            SELECT to_jsonb(e) FROM events e {where}
+            ORDER BY e.id DESC LIMIT %s OFFSET %s
+        """, (*params, limit + 1, offset or 0))).fetchall()
+    events = [row[0] for row in rows[:limit]]
+    return {"items": events, "next_cursor": events[-1]["id"] if len(rows) > limit else None}
 
 
 @router.get("/events/{event_id}")
