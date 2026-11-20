@@ -275,6 +275,41 @@ async def test_rows_from_previous_release_are_listed_and_replayed(client, inbox_
     assert (stored["payload_hash"], stored["source_event_id"], stored["severity"]) == ("original-digest", "legacy-key", "critical")
 
 
+@pytest.mark.parametrize("key", [None, "transport-tick"], ids=["schema-id", "idempotency-key"])
+@pytest.mark.parametrize("identity_spec", [
+    {"event_id": "{{sequence}}"},
+    {"episode_key": "tick/{{sequence}}", "event_id": "{{$episode}}"},
+], ids=["sequence", "episode"])
+async def test_retransmission_after_scale_edit_returns_original_event(client, inbox_pool, identity_spec, key):
+    schema = {"id": "tick", "name": "tick", "detect": {"kind": "tick"}, **identity_spec}
+    raw = {"kind": "tick", "sequence": 1200}
+
+    async def publish_scale(scale, base_version):
+        published = await client.post("/v1/schemas", headers=OPS,
+                                      params={"base_version": base_version},
+                                      json={**schema, "transforms": {"sequence": {"scale": scale}}})
+        assert published.status_code == 200, published.text
+        assert published.json()["version"] == base_version + 1
+
+    await publish_scale(1, base_version=0)
+    first = await send(client, raw, key)
+    assert (first["accepted"], first["duplicates"], first["event_ids"]) == (1, 0, [1])
+    await publish_scale(0.01, base_version=1)
+    again = await send(client, raw, key)
+    assert (again["accepted"], again["duplicates"], again["event_ids"]) == (0, 1, [1])
+
+    async with inbox_pool.connection() as conn:
+        assert await (await conn.execute("SELECT count(*) FROM events")).fetchone() == (1,)
+
+    # An independent delivery shows what version 2 actually projects.
+    probe = await send(client, raw, "independent-delivery")
+    event = (await client.get(f"/v1/events/{probe['event_ids'][0]}")).json()
+    assert event["schema_version"] == 2
+    assert event["fields"]["sequence"] == 12 and event["fields"]["sequence.raw"] == 1200
+    if "episode_key" in identity_spec:
+        assert event["fields"]["$episode"] == "tick/1200"
+
+
 async def test_new_version_preserves_file_ownership_and_refuses_stale_edits(client):
     assert (await client.post("/v1/schemas", json=dict(DRAFT, id="workflow"), headers=OPS)).status_code == 409
     created = await client.post("/v1/schemas", json=DRAFT, headers=OPS)

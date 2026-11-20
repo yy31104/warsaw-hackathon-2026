@@ -4,7 +4,7 @@ import json
 import math
 import re
 import shlex
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from datetime import UTC, datetime
 from decimal import Decimal, DecimalException, Underflow, localcontext
 from sys import get_int_max_str_digits
@@ -163,7 +163,9 @@ def _redacted(value):
     return value
 
 
-def _labels(fields: dict, schema: dict) -> dict:
+def _set_labels(fields: dict, schema: dict, severity: Severity, occurred_at: datetime | None) -> None:
+    fields["$severity"] = severity.value
+    fields["$time"] = occurred_at.isoformat() if occurred_at else None
     paths = schema.get("aliases", {})
     labels = {"$schema": render(schema["name"], fields) if schema else None}
     for key in ("service", "environment", "error_code", "message"):
@@ -171,7 +173,7 @@ def _labels(fields: dict, schema: dict) -> dict:
         if key in ("service", "environment"):
             value = str(value) if isinstance(value, (str, int, float)) else None
         labels["$" + key] = value
-    return labels
+    fields.update(labels)
 
 
 def transform_scales(transforms: dict) -> dict[str, Decimal]:
@@ -219,6 +221,30 @@ def _set_episode(fields: dict, schema: dict) -> None:
         fields["$episode"] = render(template, fields)
 
 
+def pre_transform_fields(fields: dict, transforms: Iterable[str] | None = None) -> dict:
+    """Return a shallow copy for key templates. Only configured paths with a .raw companion are restored."""
+    view = fields.copy()
+    for path in transforms or ():
+        raw_path = path + ".raw"
+        if raw_path in fields:
+            view[path] = fields[raw_path]
+    return view
+
+
+def _identity_fields(fields: dict, schema: dict, scales: dict[str, Decimal],
+                     severity: Severity, occurred_at: datetime | None) -> dict:
+    view = pre_transform_fields(fields, scales)
+    # Rebuild derived aliases from raw inputs only where their source was transformed.
+    aliases = schema.get("aliases", {})
+    if (path := aliases.get("severity")) in scales:
+        severity = _severity(view.get(path), schema)
+    if (path := aliases.get("time")) in scales:
+        occurred_at = _time(view.get(path), schema.get("time_format", "iso"))
+    _set_labels(view, schema, severity, occurred_at)
+    _set_episode(view, schema)
+    return view
+
+
 def normalize(raw: dict, source: dict, schemas: Sequence[dict] | SchemaDetector, *, received_at: datetime,
               message_id: str | None = None, trace: dict | None = None) -> CanonicalEvent:
     original = flatten(raw)
@@ -258,11 +284,9 @@ def _project(original, public, source, schemas, digest, received_at, message_id,
     aliases = schema.get("aliases", {})
     severity = _severity(original.get(aliases.get("severity")), schema)
     occurred_at = _time(original.get(aliases.get("time")), schema.get("time_format", "iso"))
-    metadata.update({"$severity": severity.value, "$time": occurred_at.isoformat() if occurred_at else None})
     original.update(metadata)
-    original.update(_labels(original, schema))
-    _set_episode(original, schema)
-    source_event_id = identity(message_id, schema, original, source, digest)
+    private_keys = _identity_fields(original, schema, scales, severity, occurred_at)
+    source_event_id = identity(message_id, schema, private_keys, source, digest)
     trace = dict(trace or {})
     if not schema and not (message_id and message_id.strip()) and source.get("dedup") == "payload_hash":
         trace["identity_method"] = "payload_hash"
@@ -271,12 +295,14 @@ def _project(original, public, source, schemas, digest, received_at, message_id,
     fields.pop("$episode", None)
     _apply_scales(fields, scales)
     fields.update(metadata)
-    fields.update(_labels(fields, schema))
-    _set_episode(fields, schema)
+    public_keys = _identity_fields(fields, schema, scales, severity, occurred_at)
+    _set_labels(fields, schema, severity, occurred_at)
+    if "$episode" in public_keys:
+        fields["$episode"] = public_keys["$episode"]
     template = schema.get("event_id")
     if template and source_event_id and not (message_id and message_id.strip()):
-        private_key = render(template, original)
-        if source_event_id == storage_key(private_key) and private_key != render(template, fields):
+        private_key = render(template, private_keys)
+        if source_event_id == storage_key(private_key) and private_key != render(template, public_keys):
             # A configured ID may reference masked data. Keep the key usable for
             # retransmissions without revealing its underlying value via GET /events.
             source_event_id = "sha256-id:" + hashlib.sha256(private_key.encode()).hexdigest()

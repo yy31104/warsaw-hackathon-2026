@@ -1,3 +1,4 @@
+import hashlib
 import json
 from datetime import UTC, datetime
 from pathlib import Path
@@ -5,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from alerting.config import files
-from alerting.ingest.normalize import InvalidEvent, flatten, normalize, parse_log_line
+from alerting.ingest.normalize import InvalidEvent, flatten, normalize, parse_log_line, pre_transform_fields
 
 
 FIXTURES = Path(__file__).resolve().parents[3] / "fixtures" / "events"
@@ -81,6 +82,54 @@ def test_identity_precedence_and_canonical_hash():
     assert prepare({"x": 1}).source_event_id is None
     event = normalize({"x": 1}, dict(SOURCES["generic-webhook"], dedup="payload_hash"), [], received_at=RECEIVED)
     assert event.source_event_id == event.payload_hash
+
+
+def test_pre_transform_fields_only_restores_configured_paths_with_raw_companions():
+    fields = {"data.sequence": 12, "data.sequence.raw": "001200", "zero": 42, "zero.raw": 0,
+              "other": "keep", "other.raw": "producer supplied", "unscaled": "text"}
+    transforms = {path: {"scale": 0.01} for path in ("data.sequence", "zero", "unscaled", "absent")}
+    view = pre_transform_fields(fields, transforms)
+    assert view == {**fields, "data.sequence": "001200", "zero": 0}
+    assert fields["data.sequence"] == 12 and fields["zero"] == 42
+    assert pre_transform_fields(fields, None) == pre_transform_fields(fields, {}) == fields
+
+
+def test_scaled_aliases_are_stable_in_keys_and_converted_in_display_fields():
+    raw = {"kind": "tick", "sequence": 1200}
+    schema = {"id": "tick", "name": "tick.{{sequence}}", "detect": {"kind": "tick"},
+              "aliases": {"service": "sequence", "severity": "sequence", "time": "sequence"},
+              "severity_map": {"1200": "warning", "12": "critical"}, "time_format": "epoch_s",
+              "episode_key": "{{$service}}|{{$time}}", "event_id": "{{$episode}}|{{$schema}}|{{$severity}}"}
+    for scale, projected, severity in ((1, 1200, "warning"), (0.01, 12, "critical")):
+        draft = {**schema, "transforms": {"sequence": {"scale": scale}}}
+        event = normalize(raw, SOURCES["generic-webhook"], [draft], received_at=RECEIVED)
+        assert event.fields["$episode"] == "1200|1970-01-01T00:20:00+00:00"
+        assert event.source_event_id == event.fields["$episode"] + "|tick.1200|warning"
+        assert (event.service, event.schema_name, event.severity) == (str(projected), f"tick.{projected}", severity)
+        assert event.fields["$time"] == datetime.fromtimestamp(projected, UTC).isoformat()
+
+
+def test_masked_episode_identity_hashes_the_original_key_across_scale_changes():
+    raw = {"kind": "tick", "token": 8731, "sequence": 1200}
+    schema = {"id": "tick", "name": "tick", "detect": {"kind": "tick"},
+              "episode_key": "{{token}}/{{sequence}}", "event_id": "{{$episode}}"}
+    expected = "sha256-id:" + hashlib.sha256(b"8731/1200").hexdigest()
+    for scale in (1, 0.01):
+        draft = {**schema, "transforms": {path: {"scale": scale} for path in ("token", "sequence")}}
+        event = normalize(raw, SOURCES["generic-webhook"], [draft], received_at=RECEIVED)
+        assert event.source_event_id == expected
+        assert event.fields["$episode"] == "<redacted>/1200" and "token.raw" not in event.fields
+
+
+def test_unrelated_transform_preserves_the_existing_public_time_alias_identity():
+    raw = {"kind": "tick", "token": 1200, "value": 80}
+    schema = {"id": "tick", "name": "tick", "detect": {"kind": "tick"}, "event_id": "{{$time}}",
+              "aliases": {"time": "token"}, "time_format": "epoch_s"}
+    timestamp = "1970-01-01T00:20:00+00:00"
+    for transforms in ({}, {"value": {"scale": 0.01}}):
+        event = normalize(raw, SOURCES["generic-webhook"], [{**schema, "transforms": transforms}], received_at=RECEIVED)
+        assert event.source_event_id == timestamp
+        assert event.fields["$time"] == timestamp and event.fields["token"] == "<redacted>"
 
 
 def test_severity_mapping_is_case_tolerant_and_bad_time_stays_queryable():
