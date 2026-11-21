@@ -1,4 +1,4 @@
-import {useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {useLocation} from 'react-router-dom';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {useApp} from '../App';
@@ -59,9 +59,9 @@ function rawLines(value: unknown, path = '', depth = 0, label = '', suffix = '')
   ];
 }
 
-function RawSample({raw, highlight, active, onActive}: {raw: Fields; highlight: Set<string>; active: string | null; onActive: (path: string | null) => void}) {
+function RawSample({raw, highlight, active, onActive, onSelect}: {raw: Fields; highlight: Set<string>; active: string | null; onActive: (path: string | null) => void; onSelect: (path: string) => void}) {
   return <pre className="cf-code" tabIndex={0} aria-label="Raw sample"><code>
-    {rawLines(raw).map((line, index) => <span key={index} tabIndex={line.path ? 0 : undefined} data-active={active === line.path} onMouseEnter={()=>onActive(line.path || null)} onMouseLeave={()=>onActive(null)} onFocus={()=>onActive(line.path || null)} onBlur={()=>onActive(null)}>
+    {rawLines(raw).map((line, index) => <span key={index} tabIndex={line.path ? 0 : undefined} role={line.path ? "button" : undefined} onClick={()=>{if(line.path)onSelect(line.path);}} onKeyDown={event=>{if(line.path && ["Enter"," "].includes(event.key)){event.preventDefault();onSelect(line.path);}}} data-active={active === line.path} onMouseEnter={()=>onActive(line.path || null)} onMouseLeave={()=>onActive(null)} onFocus={()=>onActive(line.path || null)} onBlur={()=>onActive(null)}>
       {highlight.has(line.path) ? <mark>{line.text}</mark> : line.text}{'\n'}
     </span>)}
   </code></pre>;
@@ -86,7 +86,7 @@ function MappingRows({draft, raw, change, flagged, active}: {
       const transform = draft.transforms?.[path];
       const numeric = typeof value === 'number' || typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value));
       const severity = String(value);
-      return <div className="cf-map-row" data-active={active === path} data-flagged={flagged.has(path)} key={path + index}>
+      return <div className="cf-map-row" data-field-path={path} data-active={active === path} data-flagged={flagged.has(path)} key={path + index}>
         <div className="cf-map-path"><code>{path}</code><small>{JSON.stringify(value)}</small></div>
         <span aria-hidden="true">→</span>
         <div className="cf-map-answers">
@@ -193,6 +193,14 @@ function Review({issue, retain}: {issue: Issue; retain: () => void}) {
   const [error, setError] = useState<unknown>(null);
   const [highlight, setHighlight] = useState<string[]>([]);
   const [activeField, setActiveField] = useState<string|null>(null);
+  const [selectedField, setSelectedField] = useState<string|null>(null);
+  const mappingReady = Boolean(draft);
+  useEffect(()=>{
+    if(!mappingReady || !selectedField)return;
+    const row=[...document.querySelectorAll<HTMLElement>('[data-field-path]')].find(item=>item.dataset.fieldPath===selectedField);
+    row?.querySelector<HTMLSelectElement>('select')?.focus({preventScroll:true});
+    row?.scrollIntoView({behavior:'smooth',block:'nearest'});
+  },[mappingReady,selectedField]);
   const [quietFields, setQuietFields] = useState<string[]>([]);
   const quietInput = useRef<HTMLTextAreaElement>(null);
   const sample = useQuery({queryKey: ['event-sample', issue.sample_event_id], queryFn: () =>
@@ -283,8 +291,8 @@ function Review({issue, retain}: {issue: Issue; retain: () => void}) {
     <Failure error={sample.error}/>
     <div className="cf-grid">
       <Card title={issue.source_id} meta={`${issue.event_count} waiting · live`}>
-        {sample.data ? <RawSample raw={sample.data.raw} highlight={flagged} active={activeField} onActive={setActiveField}/> : <p>Loading sample…</p>}
-        {flagged.size > 0 && <small>Highlighted fields need a person.</small>}
+        {sample.data ? <RawSample raw={sample.data.raw} highlight={flagged} active={activeField ?? selectedField} onActive={setActiveField} onSelect={path=>{setSelectedField(path);if(!draft && !busy)void perform(suggest);}}/> : <p>Loading sample…</p>}
+        {flagged.size > 0 && <small>Highlighted fields need your review.</small>}
       </Card>
       <Card title="What it means" meta={suggestion
         ? [suggestion.source === 'llm' ? 'AI suggested' : 'Rules suggested', suggestion.model].filter(Boolean).join(' · ')
@@ -295,7 +303,7 @@ function Review({issue, retain}: {issue: Issue; retain: () => void}) {
             placeholder="Give this format a name people will recognize" onChange={event => {
               setDraft({...draft, name: event.target.value}); invalidateTest();
             }}/></label>
-          <MappingRows raw={sample.data.raw} draft={draft} flagged={flagged} active={activeField} change={next => {setDraft(next); invalidateTest();}}/>
+          <MappingRows raw={sample.data.raw} draft={draft} flagged={flagged} active={activeField ?? selectedField} change={next => {setDraft(next); invalidateTest();}}/>
           <details className="cf-form-actions">
             <summary>Format detection</summary>
             <pre className="cf-code">{JSON.stringify(draft.detect, null, 2)}</pre>
