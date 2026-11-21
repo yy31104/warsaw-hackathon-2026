@@ -435,8 +435,8 @@
   .cf-view-as > span { display: none; }
   .cf-top-controls { gap: 5px; }
   .cf-top-controls select, .cf-assist { padding-inline: 6px; font-size: 11px; }
-  .cf-story-track strong { font-size: 12px; }
-  .cf-story-track small { font-size: 9px; }
+  .cf-story-track strong { font-size: 12.5px; }
+  .cf-story-track small { font-size: 10.5px; line-height: 1.3; }
   .cf-story-node { width: 40px; height: 40px; border-radius: 13px; }
   .cf-story-node .cf-icon { width: 19px; height: 19px; }
   .cf-story-line { top: 19px; }
@@ -607,3 +607,10 @@
 }
 /* Response tiles: the window label sits under the title in every tile, so long titles don't stagger them. */
 .cf-response-tiles .cf-card-head { flex-direction: column; align-items: flex-start; gap: 2px; }
+
+/* Intro: steps not reached yet stay readable, and the whole-product subtitle keeps a comfortable line length. */
+.cf-story-track li { opacity: .45; }
+.cf-intro p.cf-story-sub { max-width: 620px; line-height: 1.55; }
+.cf-story-verb { overflow-wrap: normal; white-space: nowrap; }
+.cf-all-handled small { display: block; margin-top: 2px; color: var(--cf-muted); font-size: 12.5px; }
+.cf-all-handled small a { color: inherit; }
