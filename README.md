@@ -16,6 +16,20 @@ existing events, rules and audit history. To check the upgrade, run
 
 Open the frontend on port 5173 and the simulated phone on port 8100. The frontend uses the real API. The local acceptance report includes the browser demonstration, current test results, measured throughput and outage recovery. [Integration report](loadtest/results/dev2-integration/README.md)
 
+### Send a first alert
+
+From the repository root, send the supplied payments event. The demo clock puts Anna inside her daytime SMS preference in Warsaw.
+
+```sh
+curl --fail-with-body -sS http://127.0.0.1:8000/v1/events/generic-webhook \
+  -H 'Content-Type: application/json' \
+  -H 'X-Api-Key: demo-generic-key' \
+  -H 'X-Demo-Clock: 2026-10-23T11:15:00+02:00' \
+  --data-binary @fixtures/events/alertmanager_high_error_rate.json
+```
+
+Copy the first ID from `event_ids` into `GET /v1/events/<id>/explain`. Once processing finishes, look for the `anna-payments-critical` decision and the notification for `anna` on `sms`. The simulated phone records the delivery. [Example event](fixtures/events/alertmanager_high_error_rate.json)
+
 ## Team: start here
 1. Read [docs/BRIEF.md](docs/BRIEF.md) (what, scope, gates, ownership), then [docs/CONTRACT.md](docs/CONTRACT.md).
 2. Read [AGENTS.md](AGENTS.md), then your handoff:

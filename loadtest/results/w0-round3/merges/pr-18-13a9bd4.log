@@ -1,0 +1,19 @@
+Main commit 13a9bd4534deaeae1800cadff94f5b7c0d58cf84
+Finished 2026-11-21T01:56:41+01:00
+Command: DATABASE_URL=<local synthetic test DB> INGEST_TEST_RABBITMQ_URL=amqp://localhost:5672/ CANARY_LIVE_GATEWAY_ROOT=.. ASSIST_ENABLED=0 make test
+Exit 0
+
+cd backend && uv run pytest -q
+Using CPython 3.12.13 interpreter at: /opt/homebrew/opt/python@3.12/bin/python3.12
+Creating virtual environment at: .venv
+   Building alerting @ file://<w0>/repo/backend
+      Built alerting @ file://<w0>/repo/backend
+Installed 46 packages in 57ms
+........................................................................ [ 15%]
+........................................................................ [ 30%]
+........................................................................ [ 45%]
+........................................................................ [ 60%]
+........................................................................ [ 75%]
+........................................................................ [ 90%]
+..............................................                           [100%]
+478 passed in 105.68s (0:01:45)

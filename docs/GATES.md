@@ -2,6 +2,22 @@
 
 Status: **PASS / FAIL / NOT_RUN** only. Record who ran it, when, and the evidence (command, screenshot, result file). Yi signs off each gate. A FAIL is recorded as FAIL, never changed to NOT_RUN.
 
+<!-- w0-round3-start -->
+## Round 3 post-merge checks
+
+Each row uses the actual GitHub merge commit on main, local PostgreSQL, RabbitMQ and the live simulated gateway.
+
+For #19, the first run used the shared development database. Its team-scoped SSE assertion also received global `config.changed` frames from concurrent activity. The full rerun used a dedicated PostgreSQL database on the same host with the same Git tree. Subsequent W0 runs use that database.
+
+| PR | Main | Status | Output | Evidence |
+| --- | --- | --- | --- | --- |
+| [#18](https://github.com/yy31104/warsaw-hackathon-2026/pull/18) | `13a9bd4` | PASS | 478 passed in 105.68s (0:01:45) | [make test](../loadtest/results/w0-round3/merges/pr-18-13a9bd4.log) |
+| [#19](https://github.com/yy31104/warsaw-hackathon-2026/pull/19) | `adcd73b` | FAIL | 1 failed, 483 passed in 101.16s (0:01:41) | [make test](../loadtest/results/w0-round3/merges/pr-19-adcd73b.log) |
+| [#19](https://github.com/yy31104/warsaw-hackathon-2026/pull/19) | `adcd73b` | PASS | 484 passed in 113.49s (0:01:53) | [make test](../loadtest/results/w0-round3/merges/pr-19-adcd73b-020116.log) |
+| [#20](https://github.com/yy31104/warsaw-hackathon-2026/pull/20) | `de310f6` | PASS | 484 passed in 130.04s (0:02:10) | [make test](../loadtest/results/w0-round3/merges/pr-20-de310f6.log) |
+| [#21](https://github.com/yy31104/warsaw-hackathon-2026/pull/21) | `7196825` | PASS | 487 passed in 99.88s (0:01:39) | [make test](../loadtest/results/w0-round3/merges/pr-21-7196825.log) |
+<!-- w0-round3-end -->
+
 ## G0 — contract (Fri 21:00)
 | Check | Status | Who / when | Evidence |
 |---|---|---|---|
