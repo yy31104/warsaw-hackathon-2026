@@ -151,6 +151,10 @@ Local QA reported **797/798** in a concurrent run. The parser watcher test timed
 Five isolated runs of the exact test passed **5/5** on `09d577ac74bcc04ad899bd36ed754e9415e00c5d`. GitHub CI on the same SHA passed **798/798**. The test verifies that the earlier parser stays active after a rejected edit and a corrected edit is committed. W0 classifies the reported timeout as a test timing flake under concurrent load. [Five isolated runs](../loadtest/results/w0-round3/watcher-09d577a/isolated.log) · [CI excerpt](../loadtest/results/w0-round3/watcher-09d577a/github-ci.log) · [GitHub job](https://github.com/yy31104/warsaw-hackathon-2026/actions/runs/44870059138/job/136742336303)
 <!-- w0-watcher-qa-end -->
 
+## Parser watcher on Windows/WSL2
+
+In a team-reported WSL2 check, the parser-watcher test timed out in **3/3 runs** with default file watching (**FAIL**) and passed in **2/2 runs** with native file events (**PASS**). The live reload check kept the last valid parser configuration after a rejected edit and applied the corrected edit in **about 0.71 s** without restarting the service. [Parser-watcher test](../backend/tests/ingest/test_source_parser_config.py)
+
 <!-- w0-final-acceptance-start -->
 ## Final acceptance
 
