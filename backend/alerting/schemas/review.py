@@ -31,6 +31,8 @@ def preview_event(sample, candidate, draft):
             "$source", "$transport", "$schema", "$severity", "$service", "$environment",
             "$error_code", "$message", "$time", "$episode")},
         "missing_paths": sorted({p for p in draft.get("aliases", {}).values() if lookup(projected.fields, p) is None}),
+        "normalization": projected.trace.get("normalization", {}),
+        "problems": projected.trace.get("problems", []),
     }
 
 
@@ -60,16 +62,15 @@ async def _replay(conn, candidate, spec):
                             raise ReviewError(409, "A proposed event identity uses a masked field. Choose a retained identifier.")
                 updates.append(event.model_dump(mode="json", include={
                     "id", "schema_id", "schema_version", "schema_name", "source_event_id", "severity",
-                    "service", "environment", "occurred_at", "fields", "lane"}))
+                    "service", "environment", "occurred_at", "fields", "lane", "trace"}))
                 touched.add(shape)
         if updates:
-            # The original hash, timestamps, trace, raw JSON and existing transport
-            # identity survive replay. A derived key can replace the opt-in hash heuristic.
+            # Keep original ingestion metadata and refresh only normalization diagnostics.
             await conn.execute("""
                 UPDATE events e SET schema_id=v.schema_id, schema_version=v.schema_version,
                     schema_name=v.schema_name, source_event_id=v.source_event_id,
                     severity=v.severity, service=v.service, environment=v.environment,
-                    occurred_at=v.occurred_at, fields=v.fields, lane=v.lane, status='pending'
+                    occurred_at=v.occurred_at, fields=v.fields, lane=v.lane, trace=v.trace, status='pending'
                 FROM jsonb_populate_recordset(NULL::events,%s) v
                 WHERE e.id=v.id AND e.status='needs_review'
             """, (Jsonb(updates),))
