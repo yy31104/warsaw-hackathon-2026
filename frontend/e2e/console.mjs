@@ -121,7 +121,7 @@ const flow = () => ({
 const referencePath = 'ref_' + tag;
 const priorityPath = 'priority_' + tag;
 const vendor = {vendor_feed: 'clearing-' + tag, [priorityPath]: 'P1', amount_minor: 250_000_000, [referencePath]: 'T-55102'};
-const quiet = {...vendor, [referencePath]: 'T-55103', amount_minor: 10_000_000};
+const schemaName = 'Clearing trade messages';
 const shape = Object.keys(vendor).sort().join(',');
 let incident;
 let proofSource;
@@ -133,8 +133,10 @@ async function openSource(page, fingerprint = '') {
   await visible(page.getByRole('combobox', {name: 'Review issue'}));
   if (fingerprint) await page.getByRole('combobox', {name: 'Review issue'}).selectOption(fingerprint);
   await visible(page.getByLabel('Raw sample'));
+  const suggestion = page.waitForResponse(response => new URL(response.url()).pathname === '/v1/schemas/suggest');
   await button(page, 'Suggest mapping').click();
   await visible(page.getByLabel('Map ' + priorityPath, {exact: true}));
+  return (await (await suggestion).json()).draft.id;
 }
 
 async function completeSource(page) {
@@ -156,6 +158,7 @@ async function completeSource(page) {
 async function takeShot(page, variant, label) {
   const width = page.viewportSize().width;
   await page.evaluate(() => document.fonts.ready);
+  if (width !== 390) await page.evaluate(() => window.scrollTo(0, 0));
   const actual = await page.evaluate(() => ({
     width: document.documentElement.scrollWidth,
     nav: getComputedStyle(document.querySelector('.cf-rail')).position,
@@ -178,7 +181,7 @@ try {
   const baseline = await json('/v1/alerts?team=settlements&status=open');
   assert(baseline.items.length === 0, 'Start with a fresh disposable Compose project for the browser checks.');
   await seedRule({actor: 'lee', spec: {
-    id: settlementId, owner: 'team:settlements', enabled: true, escalate_after: '20m',
+    id: settlementId, name: 'Settlement timeouts', owner: 'team:settlements', enabled: true, escalate_after: '20m',
     match: {workflowName: 'console-' + tag}, route: [{to: 'oncall:settlements', channels: ['phone', 'sms']}],
     present: {title: settlementTitle, fields: ['workflowId', 'error.code']}, group: {by: ['workflowId'], mode: 'immediate', cooldown: '10m'},
   }});
@@ -247,25 +250,67 @@ try {
     measured.approval = {run_id: actual.run_id, state: actual.state, approved_by: actual.approved_by};
   });
 
+  await test('Timeline · one plain row per delivery and raw history in More details', async () => {
+    const timeline = main(sam).locator('.cf-timeline');
+    await visible(timeline.getByText('Opened by rule Settlement timeouts', {exact: true}));
+    const {items} = await json(`/v1/alerts/${incident.id}/notifications`);
+    const call = items.find(item => item.channel === 'phone' && item.recipient === 'sam' && item.state === 'delivered');
+    const latency = call.attempt_log.find(attempt => attempt.outcome === 'delivered').latency_ms;
+    const callText = `Call to Sam · delivered in ${(latency / 1000).toFixed(2)} s`;
+    await visible(timeline.getByText(callText, {exact: true}));
+    await visible(timeline.getByText('SMS to Sam · delivered', {exact: true}));
+    assert.equal(await timeline.getByText(/^Call to Sam/).count(), 1);
+    assert.equal(await timeline.getByText(/^SMS to Sam/).count(), 1);
+    assert.doesNotMatch(await timeline.innerText(), /NEW_ALERT|SUPPRESSED_COOLDOWN|console-settlement|\(attempt \d+/);
+    await main(sam).getByRole('link', {name: 'More details', exact: true}).click();
+    await visible(main(sam).getByText(settlementId + ' → NEW_ALERT', {exact: true}));
+    await visible(main(sam).getByText('phone → sam: delivered (attempt 1)', {exact: true}));
+    measured.timeline = {call, label: callText, sms: 'SMS to Sam · delivered'};
+  });
+
   const ops = observe(await (await context()).newPage());
   await test('C and F · unknown JSON verified and routed with assist off', async () => {
     await seedRule({actor: 'rita', spec: {
       id: sourceRule, owner: 'team:rates', enabled: true,
       match: {all: [{field: 'vendor_feed', op: 'glob', value: 'clearing-' + tag + '*'},
         {field: '$severity', op: 'eq', value: 'warning'}, {field: 'amount_minor', op: 'gt', value: 1_000_000}]},
-      route: [{to: 'user:rita', channels: ['email', 'ui']}], present: {title: 'Clearing event verified', fields: ['amount_minor']},
+      route: [{to: 'user:rita', channels: ['email']}, {to: 'team:rates', channels: ['ui']}],
+      present: {title: 'Clearing event verified', fields: ['amount_minor']},
       group: {by: [referencePath], mode: 'immediate', cooldown: '10m'},
     }});
     const received = await ingest(vendor, 'new-format');
     const unseen = await json(`/v1/events/${received.event_ids[0]}`);
     assert.equal(unseen.status, 'needs_review');
-    await openSource(ops, shape);
-    await ops.getByLabel('Should stay quiet', {exact: true}).fill(JSON.stringify(quiet));
-    await ops.getByLabel('Expected recipients', {exact: true}).fill('rita');
+    const schemaId = await openSource(ops, shape);
+    const positive = ops.getByLabel('Should alert', {exact: true});
+    const quiet = ops.getByLabel('Should stay quiet', {exact: true});
+    const name = ops.getByLabel('Schema name', {exact: true});
+    assert.equal(await quiet.inputValue(), await positive.inputValue());
+    assert.equal(await name.inputValue(), '');
+    assert.equal(await ops.getByLabel('Schema ID', {exact: true}).count(), 0);
+    assert.equal(await button(ops, 'Run test').isEnabled(), false);
+    await name.fill(schemaName);
+    const recipients = ops.getByRole('combobox', {name: 'Expected recipients', exact: true});
+    await recipients.selectOption('rita');
+    await recipients.selectOption('team:rates');
+    await visible(button(ops, 'Remove Rita'));
+    await visible(button(ops, 'Remove Rates team'));
     await button(ops, 'Run test').click();
-    await visible(main(ops).getByText('Fail', {exact: true}));
+    await visible(main(ops).getByText('Fail', {exact: true}).first());
     assert.equal(await button(ops, 'Go live').isEnabled(), false);
     await completeSource(ops);
+    await button(ops, 'Run test').click();
+    const edit = button(ops, 'Edit amount_minor');
+    await visible(edit);
+    const quietBox = main(ops).locator('.cf-sample-box').filter({has: quiet});
+    await visible(quietBox.getByText('Fail', {exact: true}));
+    assert.equal(await button(ops, 'Go live').isEnabled(), false);
+    await edit.click();
+    assert.equal(await quiet.evaluate(input => input.value.slice(input.selectionStart, input.selectionEnd)), '250000000');
+    await takeShot(ops, 'desktop-dark', 'sources-quiet-test');
+    await ops.keyboard.insertText('10000000');
+    assert.deepEqual(JSON.parse(await quiet.inputValue()), {...vendor, amount_minor: 10_000_000});
+    assert.deepEqual(JSON.parse(await positive.inputValue()), vendor);
     await button(ops, 'Run test').click();
     await until('both samples pass', async () => await main(ops).getByText('Pass', {exact: true}).count() === 2);
     await visible(main(ops).locator('.cf-result').getByText('amount_minor', {exact: true}).first());
@@ -274,6 +319,8 @@ try {
     await button(ops, 'Go live').click();
     const response = await publication;
     assert(response.ok(), await response.text());
+    assert.equal(response.request().postDataJSON().name, schemaName);
+    assert.equal(response.request().postDataJSON().id, schemaId);
     const published = await response.json();
     assert(published.reprocessed >= 1);
     await visible(main(ops).getByText(published.reprocessed + ' waiting events re-checked', {exact: true}));
@@ -286,7 +333,8 @@ try {
     const explain = await json(`/v1/events/${next.id}/explain`);
     assert(explain.decisions.some(item => item.rule_id === sourceRule && item.reason.matched));
     assert(explain.notifications.some(item => item.recipient === 'rita' && item.channel === 'email'));
-    measured.source = {unknown_event_id: unseen.id, next_event_id: next.id, schema: next.schema_id, reprocessed: published.reprocessed,
+    measured.source = {unknown_event_id: unseen.id, next_event_id: next.id, schema: next.schema_id,
+      schema_name: schemaName, deciding_field: 'amount_minor', expected_recipients: ['rita', 'team:rates'], reprocessed: published.reprocessed,
       amount: next.fields.amount_minor, delivered_to: 'rita', channel: 'email'};
   });
 
@@ -361,6 +409,51 @@ try {
     await visible(main(sam).getByText('24/24 delivered after recovery', {exact: true}));
   });
 
+  await test('Now · one fallback tile or four live response tiles', async () => {
+    const screen = await context();
+    const page = observe(await screen.newPage());
+    const path = '/v1/stats/response';
+    const received = page.waitForResponse(response => new URL(response.url()).pathname === path);
+    await page.goto(ui);
+    await page.getByRole('button', {name: 'Open console', exact: true}).click();
+    await stable(page);
+    const response = await received;
+    const group = main(page).getByRole('group', {name: 'Response metrics', exact: true});
+    let stats;
+    if (response.status() === 404) {
+      await visible(group.getByText('More metrics after the first incidents', {exact: true}));
+      assert.equal(await group.getByRole('heading', {level: 2}).count(), 1);
+    } else {
+      assert(response.ok(), await response.text());
+      stats = await response.json();
+      await visible(group.getByRole('heading', {name: 'Messages per incident', exact: true}));
+      const keys = ['tta_p50_s', 'mtta_s', 'mttr_s', 'notifications_per_alert'];
+      assert.deepEqual(await group.locator('.cf-big').allTextContents(), keys.map((key, index) =>
+        stats[key] == null ? '—' : stats[key].toLocaleString('en-GB', {maximumFractionDigits: 3}) + (index < 3 ? ' s' : '')));
+      await takeShot(page, 'desktop-dark', 'now-response-live');
+    }
+    measured.response_metrics = {api_status: response.status(), tiles: response.ok() ? 4 : 1, stats};
+    await screen.close();
+  });
+
+  await test('Now · four tiles with an example response and a missing sample', async () => {
+    // A separate browser context supplies only this optional endpoint so the live checks stay unmocked.
+    const screen = await context();
+    const page = await screen.newPage();
+    await page.route(url => url.pathname === '/v1/stats/response', route => route.fulfill({json: {
+      n_alerts: 4, tta_p50_s: 0.31, mtta_s: 2.25, mttr_s: null, notifications_per_alert: 1.75,
+    }}));
+    await page.goto(ui);
+    await page.getByRole('button', {name: 'Open console', exact: true}).click();
+    const group = main(page).getByRole('group', {name: 'Response metrics', exact: true});
+    await visible(group.getByText('No samples', {exact: true}));
+    assert.deepEqual(await group.getByRole('heading', {level: 2}).allTextContents(),
+      ['Time to notice', 'Time to respond', 'Time to fix', 'Messages per incident']);
+    assert.deepEqual(await group.locator('.cf-big').allTextContents(), ['0.31 s', '2.25 s', '—', '1.75']);
+    await takeShot(page, 'desktop-dark', 'now-response-example');
+    await screen.close();
+  });
+
   await test('Intro · auto-enter and session replay', async () => {
     const fullMotion = await context({reducedMotion: 'no-preference'});
     const page = observe(await fullMotion.newPage());
@@ -402,6 +495,9 @@ try {
         await takeShot(page, layout, 'now');
         await page.goto(ui + '/a/' + screenshotIncident.id);
         await visible(page.locator('#runbook').getByText('Retry wf-8813', {exact: true}));
+        await visible(main(page).locator('.cf-timeline').getByText('Opened by rule Settlement timeouts', {exact: true}));
+        await visible(main(page).locator('.cf-timeline').getByText(/^Call to Sam · delivered in /));
+        await visible(main(page).locator('.cf-timeline').getByText('SMS to Sam · delivered', {exact: true}));
         await takeShot(page, layout, 'incident');
         await page.goto(ui + '/sources?fingerprint=' + encodeURIComponent(proofSource));
         await chooseActor(page, 'ops');
@@ -426,7 +522,7 @@ try {
         await screen.close();
       }
     }
-    assert.equal(screenshots.length, 32);
+    assert.equal(screenshots.length, measured.response_metrics.api_status === 404 ? 34 : 35);
   });
 
   await test('Network · genuine API, no fixtures or browser errors', async () => {

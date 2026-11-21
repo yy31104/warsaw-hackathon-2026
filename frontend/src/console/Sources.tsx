@@ -1,10 +1,12 @@
-import {useState} from 'react';
+import {useRef, useState} from 'react';
 import {useLocation} from 'react-router-dom';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {useApp} from '../App';
 import {request} from '../api';
 import {requestProblems, type Problem} from './data';
-import {Card, channelName, Chip, Failure, humanize, LegacyLink, personName, Problems} from './ui';
+import type {Directory} from '../types';
+import {sampleFieldRange} from './schemaSample';
+import {Card, channelName, Chip, Failure, humanize, LegacyLink, personName, Problems, teamName} from './ui';
 
 type Fields = Record<string, unknown>;
 type Issue = {fingerprint: string; source_id: string; sample_event_id: number; event_count: number};
@@ -131,11 +133,42 @@ function MappingRows({draft, raw, change, flagged}: {
   </div>;
 }
 
-function SampleResult({row}: {row?: VerifySample}) {
+function recipientLabel(recipient: string, directory: Directory) {
+  return recipient.startsWith('team:') ? teamName(recipient.slice(5), directory) + ' team' : personName(recipient, directory);
+}
+
+function RecipientPicker({value, directory, change}: {
+  value: string[]; directory: Directory; change: (value: string[]) => void;
+}) {
+  return <>
+    <label className="cf-field">Expected recipients
+      <select value="" onChange={event => {
+        if (event.target.value) change([...value, event.target.value]);
+      }}>
+        <option value="">{value.length ? 'Add another recipient' : 'Choose a person or team'}</option>
+        <optgroup label="People">
+          {directory.users.filter(user => !value.includes(user.id)).map(user =>
+            <option key={user.id} value={user.id}>{recipientLabel(user.id, directory)}</option>)}
+        </optgroup>
+        <optgroup label="Teams">
+          {directory.teams.map(team => 'team:' + team.id).filter(team => !value.includes(team)).map(team =>
+            <option key={team} value={team}>{recipientLabel(team, directory)}</option>)}
+        </optgroup>
+      </select>
+    </label>
+    {value.length > 0 && <div className="cf-chips">{value.map(recipient => {
+      const label = recipientLabel(recipient, directory);
+      return <button type="button" className="cf-btn" key={recipient} aria-label={'Remove ' + label}
+        onClick={() => change(value.filter(item => item !== recipient))}>{label} <span aria-hidden="true">×</span></button>;
+    })}</div>}
+  </>;
+}
+
+function SampleResult({row, directory}: {row?: VerifySample; directory: Directory}) {
   if (!row) return null;
   return <div className="cf-result" role="status">
     <Chip tone={row.passed ? 'green' : 'red'}>{row.passed ? 'Pass' : 'Fail'}</Chip>
-    <strong>{row.actual.recipients.join(', ') || 'Nobody'}</strong>
+    <strong>{row.actual.recipients.map(recipient => recipientLabel(recipient, directory)).join(', ') || 'Nobody'}</strong>
     {row.actual.channels.length > 0 && <small>{row.actual.channels.join(' + ')}</small>}
     {row.deciding_fields.length > 0 && <div className="cf-chips">{row.deciding_fields.map(field => <Chip key={field}><code>{field}</code></Chip>)}</div>}
     <Problems items={row.problems}/>
@@ -150,7 +183,7 @@ function Review({issue, retain}: {issue: Issue; retain: () => void}) {
   const [draft, setDraft] = useState<Draft>();
   const [positive, setPositive] = useState('');
   const [quiet, setQuiet] = useState('');
-  const [recipients, setRecipients] = useState('');
+  const [recipients, setRecipients] = useState<string[]>([]);
   const [channels, setChannels] = useState<string[]>([]);
   const [verification, setVerification] = useState<Verification>();
   const [projection, setProjection] = useState<Projection>();
@@ -158,6 +191,8 @@ function Review({issue, retain}: {issue: Issue; retain: () => void}) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [highlight, setHighlight] = useState<string[]>([]);
+  const [quietFields, setQuietFields] = useState<string[]>([]);
+  const quietInput = useRef<HTMLTextAreaElement>(null);
   const sample = useQuery({queryKey: ['event-sample', issue.sample_event_id], queryFn: () =>
     request<{raw: Fields; transport: string}>(`/events/${issue.sample_event_id}`)});
   const fallback = directory.teams.find(team => team.id === directory.fallback_team);
@@ -168,7 +203,8 @@ function Review({issue, retain}: {issue: Issue; retain: () => void}) {
   const severityPath = draft?.aliases?.severity;
   const severity = sample.data && severityPath && rawFields(sample.data.raw).find(([path]) => path === severityPath)?.[1];
   const needsSeverity = draft && severity != null && !mappedSeverity(draft, String(severity));
-  const ready = verification?.all_pass && projection?.matches && !needsSeverity && !published;
+  const schemaName = draft?.name.trim();
+  const ready = schemaName && verification?.all_pass && projection?.matches && !needsSeverity && !published;
 
   async function perform(task: () => Promise<void>) {
     setBusy(true);
@@ -186,29 +222,38 @@ function Review({issue, retain}: {issue: Issue; retain: () => void}) {
     const result = await request<Suggestion>('/schemas/suggest', actor, {fingerprint: issue.fingerprint});
     retain();
     setSuggestion(result);
-    setDraft(result.draft);
-    setPositive(JSON.stringify(sample.data.raw, null, 2));
+    setDraft({...result.draft, name: ''});
+    const raw = JSON.stringify(sample.data.raw, null, 2);
+    setPositive(raw);
+    setQuiet(raw);
     invalidateTest();
   }
 
   async function verify() {
-    if (!draft || !sample.data) return;
+    if (!draft || !sample.data || !schemaName) return;
     invalidateTest();
-    const expectedRecipients = recipients.split(',').map(value => value.trim()).filter(Boolean);
-    const expect = expectedRecipients.length || channels.length ? {
-      ...(expectedRecipients.length ? {recipients: expectedRecipients} : {}),
+    const expect = recipients.length || channels.length ? {
+      ...(recipients.length ? {recipients} : {}),
       ...(channels.length ? {channels} : {}),
     } : 'notify';
     const transport = {transport: sample.data.transport, source: issue.source_id};
-    const result = await request<Verification>('/schemas/verify', actor, {schema: draft, samples: [
+    const namedDraft = {...draft, name: schemaName};
+    const quietSample = parseSample(quiet);
+    const result = await request<Verification>('/schemas/verify', actor, {schema: namedDraft, samples: [
       {event: parseSample(positive), expect, ...transport},
-      {event: parseSample(quiet), expect: 'quiet', ...transport},
+      {event: quietSample, expect: 'quiet', ...transport},
     ]});
     setVerification(result);
+    const paths = new Set(rawFields(quietSample).map(([path]) => path));
+    setQuietFields([...new Set((result.samples[1]?.deciding_fields ?? []).map(field => {
+      const path = field.startsWith('$') ? draft.aliases?.[field.slice(1)] ?? field : field;
+      const original = path.endsWith('.raw') ? path.slice(0, -4) : path;
+      return draft.transforms?.[original] ? original : path;
+    }).filter(path => paths.has(path)))]);
     setHighlight(result.samples.flatMap(item => [...(item.unit_warnings ?? []), ...(item.problems ?? [])
       .flatMap(problem => problem.path ? [problem.path] : [])]));
     if (result.all_pass) {
-      const reviewed = await request<Projection>(`/schemas/preview?fingerprint=${fingerprint}`, actor, draft);
+      const reviewed = await request<Projection>(`/schemas/preview?fingerprint=${fingerprint}`, actor, namedDraft);
       setProjection(reviewed);
       if (!reviewed.matches) throw new Error('Draft does not match the waiting sample.');
     }
@@ -216,7 +261,8 @@ function Review({issue, retain}: {issue: Issue; retain: () => void}) {
 
   async function publish() {
     if (!draft || !projection || !ready || !mayPublish) return;
-    const confirmed = await request<Published>(`/schemas?fingerprint=${fingerprint}&base_version=${projection.base_version}`, actor, draft);
+    const confirmed = await request<Published>(`/schemas?fingerprint=${fingerprint}&base_version=${projection.base_version}`,
+      actor, {...draft, name: schemaName});
     setPublished(confirmed);
     notice('Schema is live');
     void client.invalidateQueries({queryKey: ['schema-issues']});
@@ -243,14 +289,10 @@ function Review({issue, retain}: {issue: Issue; retain: () => void}) {
         : undefined}>
         {!draft && <button className="cf-btn primary" disabled={!sample.data || busy} onClick={() => void perform(suggest)}>Suggest mapping</button>}
         {draft && sample.data && <fieldset className="cf-fieldset" disabled={busy || Boolean(published)}>
-          <div className="cf-form-row">
-            <label className="cf-field">Schema ID<input value={draft.id} onChange={event => {
-              setDraft({...draft, id: event.target.value}); invalidateTest();
-            }}/></label>
-            <label className="cf-field">Schema name<input value={draft.name} onChange={event => {
+          <label className="cf-field">Schema name<input value={draft.name} required
+            placeholder="Give this format a name people will recognize" onChange={event => {
               setDraft({...draft, name: event.target.value}); invalidateTest();
             }}/></label>
-          </div>
           <MappingRows raw={sample.data.raw} draft={draft} flagged={flagged} change={next => {setDraft(next); invalidateTest();}}/>
           <details className="cf-form-actions">
             <summary>Format detection</summary>
@@ -271,9 +313,9 @@ function Review({issue, retain}: {issue: Issue; retain: () => void}) {
           <textarea rows={5} aria-label="Should alert" spellCheck={false} value={positive} onChange={event => {
             setPositive(event.target.value); invalidateTest();
           }}/></label>
-          <label className="cf-field">Expected recipients<input value={recipients} onChange={event => {
-            setRecipients(event.target.value); invalidateTest();
-          }}/></label>
+          <RecipientPicker value={recipients} directory={directory} change={next => {
+            setRecipients(next); invalidateTest();
+          }}/>
           <div className="cf-checkboxes" role="group" aria-label="Expected channels">
             {['sms', 'email', 'phone', 'ui'].map(channel => <label key={channel}><input type="checkbox" checked={channels.includes(channel)}
               onChange={event => {
@@ -281,19 +323,28 @@ function Review({issue, retain}: {issue: Issue; retain: () => void}) {
                 invalidateTest();
               }}/>{channelName(channel)}</label>)}
           </div>
-          <SampleResult row={verification?.samples[0]}/>
+          <SampleResult row={verification?.samples[0]} directory={directory}/>
         </div>
         <div className="cf-sample-box"><label className="cf-field">Should stay quiet
-          <textarea rows={5} aria-label="Should stay quiet" spellCheck={false} value={quiet} onChange={event => {
+          <textarea ref={quietInput} rows={5} aria-label="Should stay quiet" spellCheck={false} value={quiet} onChange={event => {
             setQuiet(event.target.value); invalidateTest();
           }}/></label>
-          <SampleResult row={verification?.samples[1]}/>
+          {quietFields.length > 0 && <div className="cf-quiet-fields">
+            <small>{verification?.samples[1]?.passed ? 'Fields behind the quiet result' : 'Deciding fields you can edit'}</small>
+            <div className="cf-chips">{quietFields.map(path => <button type="button" className="cf-btn" key={path}
+              onClick={() => {
+                const range = sampleFieldRange(quiet, path);
+                quietInput.current?.focus();
+                if (range) quietInput.current?.setSelectionRange(...range);
+              }}>Edit <code>{path}</code></button>)}</div>
+          </div>}
+          <SampleResult row={verification?.samples[1]} directory={directory}/>
         </div>
       </fieldset>
       <Problems items={verification?.problems}/>
       <div className="cf-actions cf-form-actions">
         <button className={`cf-btn ${ready || published ? '' : 'primary'}`}
-          disabled={busy || !positive.trim() || !quiet.trim() || Boolean(published)} onClick={() => void perform(verify)}>Run test</button>
+          disabled={busy || !schemaName || !positive.trim() || !quiet.trim() || Boolean(published)} onClick={() => void perform(verify)}>Run test</button>
         <button className={`cf-btn ${ready ? 'primary' : ''}`} disabled={!ready || !mayPublish || busy}
           onClick={() => void perform(publish)}>Go live</button>
         {published && <Chip tone="green">{published.reprocessed} waiting events re-checked</Chip>}

@@ -162,6 +162,9 @@
 .cf-all-handled { display: flex; gap: 11px; align-items: center; color: var(--cf-green); border-inline-start: 4px solid currentColor; }
 .cf-all-handled h2 { margin: 0; font-size: 21px; }
 .cf-benchmark-compact { width: min(100%, 355px); }
+.cf-response-fallback { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.cf-response-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 175px), 1fr)); gap: 12px; }
+.cf-response-tiles .cf-card-head { flex-wrap: wrap; }
 .cf-funnel-shape { height: clamp(54px, 10vw, 128px); background: linear-gradient(90deg, var(--cf-chart), var(--cf-chart-deep)); clip-path: var(--funnel-mask); }
 .cf-funnel-labels { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; text-align: center; margin-top: 6px !important; }
 .console :is(.cf-funnel-labels, .cf-pipeline, .cf-comparison) > div { display: block; border: 0; min-width: 0; }
@@ -229,6 +232,8 @@
 .cf-map-answers details .cf-btn { margin-top: 4px; }
 .console summary { color: var(--cf-muted); cursor: pointer; font-size: 12px; }
 .cf-sample-box { display: grid; gap: 8px; padding: 13px; border: 1px solid var(--cf-line); border-radius: 10px; min-width: 0; }
+.cf-quiet-fields { background: var(--cf-amber-soft); border-radius: 8px; padding: 8px; }
+.cf-quiet-fields .cf-btn { margin-top: 5px; }
 .cf-checkboxes { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
 .cf-checkboxes label, .cf-inline { display: inline-flex; align-items: center; gap: 4px; color: var(--cf-muted); font-size: 12px; }
 .console input:is([type="range"], [type="checkbox"]) { accent-color: var(--cf-accent); }

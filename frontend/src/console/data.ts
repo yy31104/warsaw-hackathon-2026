@@ -84,6 +84,30 @@ export function useFunnel() {
   });
 }
 
+type ResponseMetric = 'tta_p50_s' | 'mtta_s' | 'mttr_s' | 'notifications_per_alert';
+
+type ResponseStats = Record<ResponseMetric, number | null> & {
+  n_alerts: number;
+  sample_counts?: Partial<Record<ResponseMetric, number>>;
+};
+
+export function useResponseStats(team: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['console-response', team],
+    queryFn: async () => {
+      try {
+        return await request<ResponseStats>(`/stats/response?window=24h&team=${encodeURIComponent(team)}`);
+      } catch (error) {
+        if (error instanceof RequestError && error.status === 404) return null;
+        throw error;
+      }
+    },
+    enabled,
+    retry: false,
+    refetchInterval: query => query.state.data === null ? false : 10000,
+  });
+}
+
 export type Problem = {code?: string; message: string; path?: string; fix_example?: unknown; suggestions?: string[]};
 
 export function requestProblems(error: unknown): Problem[] {

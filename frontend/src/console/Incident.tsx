@@ -8,6 +8,23 @@ import {canReview, detailQuery, representativeExplainPath, type IncidentDetail} 
 import {Card, Chip, EscalationRing, Failure, humanize, Icon, LegacyLink,
   personName, teamName, countLabel, timeLabel, useClock} from './ui';
 import {IncidentChips} from './Now';
+import {timelineRows, type TimelineRule} from './timeline';
+
+function Timeline({incident}: {incident: IncidentDetail}) {
+  const {directory} = useApp();
+  const notifications = useQuery({queryKey: ['detail', 'notifications', incident.id],
+    queryFn: () => api.notifications(incident.id)});
+  const rules = useQuery({queryKey: ['rules'],
+    queryFn: async () => (await request<{items: TimelineRule[]}>('/rules')).items});
+  const rows = timelineRows(incident.timeline, notifications.data ?? [], rules.data ?? [], directory);
+  return <Card title="Timeline" meta="Warsaw">
+    {rows.length === 0 && <p>No activity yet.</p>}
+    <ol className="cf-timeline">{rows.map((entry, index) => <li key={index}>
+      <Icon name={entry.kind === 'notification' ? 'phone' : entry.kind === 'audit' ? 'check' : 'now'}/>
+      <span>{entry.text}</span><time dateTime={entry.ts}>{timeLabel(entry.ts)}</time>
+    </li>)}</ol>
+  </Card>;
+}
 
 type Explain = {decisions: {rule_id: string; alert_id: number | null;
   reason?: {matched?: boolean; trace?: {field: string; actual: unknown; matched: boolean}[]}}[]};
@@ -196,13 +213,7 @@ export function Incident() {
           </Chip>)}</div>
         </Card>}
       </div>
-      <Card title="Timeline" meta="Warsaw">
-        {incident.timeline.length === 0 && <p>No activity yet.</p>}
-        <ol className="cf-timeline">{[...incident.timeline].reverse().map((entry, index) => <li key={index}>
-          <Icon name={entry.kind === 'notification' ? 'phone' : entry.kind === 'audit' ? 'check' : 'now'}/>
-          <span>{entry.text}</span><time dateTime={entry.ts}>{timeLabel(entry.ts)}</time>
-        </li>)}</ol>
-      </Card>
+      <Timeline incident={incident}/>
     </div>
     <div className="cf-actions">
       <LegacyLink to={`/a/${incident.id}/details`}>More details</LegacyLink>

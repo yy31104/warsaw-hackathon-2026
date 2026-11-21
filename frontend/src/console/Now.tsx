@@ -5,7 +5,7 @@ import {useApp} from '../App';
 import {alertListQuery, api} from '../api';
 import type {Alert} from '../model';
 import {benchmark} from './benchmark';
-import {canReview, detailQuery, orderOpenAlerts, useConsoleQueue, useFunnel, type Funnel} from './data';
+import {canReview, detailQuery, orderOpenAlerts, useConsoleQueue, useFunnel, useResponseStats, type Funnel} from './data';
 import {ageLabel, Avatar, BenchmarkSource, Card, Chip, countLabel, EscalationRing, Failure, humanize, Icon, LegacyLink,
   personName, statusLabel, statusTone, teamName, timeLabel} from './ui';
 
@@ -37,6 +37,38 @@ function FunnelCard({funnel}: {funnel: Funnel}) {
       {index === 2 && <small>active now</small>}
     </div>)}</dl>
   </Card>;
+}
+
+function ResponseTiles({team, enabled}: {team: string; enabled: boolean}) {
+  const {data: stats} = useResponseStats(team, enabled);
+  if (!stats) return <div className="cf-response-fallback" role="group" aria-label="Response metrics">
+    <Card title="Time to notice" meta={<BenchmarkSource file="one-normal/summary.json">{benchmark.label} · N={benchmark.one.n}</BenchmarkSource>}
+      className="cf-benchmark-compact">
+      <div className="cf-big">{(benchmark.one.p50_ms / 1000).toFixed(3)} <small>s</small></div>
+      <span className="cf-meta">p50 · telecom receipts</span>
+    </Card>
+    <small>More metrics after the first incidents</small>
+  </div>;
+
+  const metrics = [
+    {key: 'tta_p50_s', label: 'Time to notice', detail: 'Median', unit: 's'},
+    {key: 'mtta_s', label: 'Time to respond', detail: 'Average · acknowledged', unit: 's'},
+    {key: 'mttr_s', label: 'Time to fix', detail: 'Average · resolved', unit: 's'},
+    {key: 'notifications_per_alert', label: 'Messages per incident', detail: '', unit: ''},
+  ] as const;
+  return <div className="cf-response-tiles" role="group" aria-label="Response metrics">
+    {metrics.map(({key, label, detail, unit}) => {
+      const value = stats[key];
+      const count = stats.sample_counts?.[key] ?? (key === 'notifications_per_alert' ? stats.n_alerts : undefined);
+      const caption = [value == null ? 'No samples' : detail, count == null ? '' : `N=${countLabel(count)}`]
+        .filter(Boolean).join(' · ');
+      return <Card title={label} key={key} meta="live · 24 h">
+        <div className="cf-big">{value == null ? '—' : <>{value.toLocaleString('en-GB', {maximumFractionDigits: 3})}
+          {unit && <small> {unit}</small>}</>}</div>
+        <span className="cf-meta">{caption}</span>
+      </Card>;
+    })}
+  </div>;
 }
 
 export function Now() {
@@ -80,10 +112,7 @@ export function Now() {
     </Card> : open.isSuccess ? <Card className="cf-all-handled">
       <Icon name="check"/><h2>All handled</h2>
     </Card> : <Card><p>{feedEnabled ? 'Loading incidents…' : 'Choose a team member.'}</p></Card>}
-    <Card title="Time to notice" meta={<BenchmarkSource file="one-normal/summary.json">{benchmark.label} · N={benchmark.one.n}</BenchmarkSource>}
-      className="cf-benchmark-compact">
-      <div className="cf-big">{(benchmark.one.p50_ms / 1000).toFixed(3)} <small>s</small></div><span className="cf-meta">p50 · telecom receipts</span>
-    </Card>
+    <ResponseTiles team={team} enabled={feedEnabled}/>
     {funnel.data && <FunnelCard funnel={funnel.data}/>}
     <div className="cf-grid cf-grid-wide">
       <Card className="cf-incident-list">
