@@ -41,9 +41,12 @@ async def start(id: int, body: StepRequest, x_user: str = Header(...), db=Depend
         )
         previous = await cur.fetchone()
         if previous:
+            message = (
+                "Reconcile the unknown action before retrying"
+                if previous["state"] == "unknown" else "Check the prior result and confirm a retry"
+            )
             raise HTTPException(
-                409,
-                {"message": "Check the prior result and confirm a retry", "run_id": previous["id"]},
+                409, {"message": message, "run_id": previous["id"]},
             )
         row = await request_run(cur, alert, steps[body.step_index], x_user, settings)
     if row["state"] == "requested":
@@ -74,14 +77,19 @@ class RetryRequest(BaseModel):
 
 @router.post("/action-runs/{id}/check-result")
 async def check_result(id: int, x_user: str = Header(...), db=Depends(get_db)):
-    return await verify_run(db, id, x_user, retry=False)
+    return await verify_run(db, id, x_user, operation="check")
+
+
+@router.post("/action-runs/{id}/reconcile")
+async def reconcile(id: int, x_user: str = Header(...), db=Depends(get_db)):
+    return await verify_run(db, id, x_user, operation="reconcile")
 
 
 @router.post("/action-runs/{id}/retry")
 async def retry(id: int, body: RetryRequest, x_user: str = Header(...), db=Depends(get_db)):
     if not body.confirm:
         raise HTTPException(409, "An operator must explicitly confirm the retry")
-    return await verify_run(db, id, x_user, retry=True)
+    return await verify_run(db, id, x_user, operation="retry")
 
 
 @router.post("/alerts/{id}/resolve-with-note")

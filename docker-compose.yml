@@ -95,6 +95,8 @@ services:
     build:
       context: .
       dockerfile: mocks/mock_ops/Dockerfile
+    environment:
+      DEMO_MODE: ${DEMO_MODE:-1}
     ports: ["127.0.0.1:${MOCK_OPS_PORT:-8200}:8200"]
     volumes: [mock-ops-data:/data]
     networks:
