@@ -11,7 +11,8 @@ from .test_worker import Settings, process_batch, seed
 
 
 @pytest.mark.parametrize("outcome", ["delivered", "unknown"])
-async def test_sigterm_drains_inflight_and_leaves_backlog_for_restart(database, outcome):
+@pytest.mark.parametrize("batch_size", [1, 4])
+async def test_sigterm_drains_inflight_and_leaves_backlog_for_restart(database, outcome, batch_size):
     count = 8
     settings = Settings.load()
     settings.ruleset.rules[0][0]["group"]["by"] = ["workflowId"]
@@ -44,6 +45,8 @@ async def test_sigterm_drains_inflight_and_leaves_backlog_for_restart(database, 
     env = {
         **os.environ,
         "DATABASE_URL": database.conninfo,
+        "DELIVERY_BATCH": str(batch_size),
+        "DELIVERY_CONCURRENCY": "1",
         "FAKE_TELECOM_URL": f"http://127.0.0.1:{server.sockets[0].getsockname()[1]}",
     }
 
@@ -73,10 +76,15 @@ async def test_sigterm_drains_inflight_and_leaves_backlog_for_restart(database, 
 
             after_signal = await rows()
             assert len(after_signal) == count
-            assert len(received_ids) == 1
+            assert len(received_ids) == batch_size
             first_id = received_ids[0]
             assert (first_id, outcome, 1, None, None) in after_signal
-            assert all(row[1:] == ("pending", 0, None, None) for row in after_signal if row[0] != first_id)
+            for id_, state, attempts, locked_by, locked_until in after_signal:
+                if id_ == first_id:
+                    continue
+                expected = ("delivered", 1) if id_ in received_ids else ("pending", 0)
+                assert (state, attempts) == expected
+                assert locked_by is None and locked_until is None
 
             replacement = await spawn()
             children.append(replacement)

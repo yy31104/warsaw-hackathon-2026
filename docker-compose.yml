@@ -154,6 +154,10 @@ services:
   delivery-worker:
     <<: *backend
     command: ["python", "-m", "alerting.delivery.worker"]
+    environment:
+      <<: *backend-environment
+      DELIVERY_BATCH: ${DELIVERY_BATCH:-25}
+      DELIVERY_CONCURRENCY: ${DELIVERY_CONCURRENCY:-16}
     depends_on:
       <<: *database-ready
       fake-telecom:
