@@ -9,9 +9,21 @@
 | W2 delivery batching · end-to-end notification latency | pre-registered | Target normal p99 <5 s and critical p99 <1 s on Apple M4 Pro, at 700 normal events/s plus 2 critical/s, 1,000 normal keys, 4 normal rule workers, 1 critical rule worker, and 1 delivery worker. Use two intake consumers, a 60 s offer and a 20 s post-offer observation window. Require receipt coverage to be reported separately for each lane. |
 | Alert path · LLM calls | pre-registered | Trace the production paths from ingest through rule evaluation and delivery. Target zero reachable LLM calls on those paths and zero provider calls attributable to their event or notification traces in the paired test below. Verify the provider call logger with a separate synthetic assist request before the timed window. Missing provider telemetry makes the result inconclusive. |
 | Alert path · assist on/off latency | pre-registered | On the Apple M4 Pro, offer exactly 700 events/s (698 normal + 2 critical), 1,000 normal keys, two intakes, four normal rule workers, one critical and one delivery worker. Use ten paired trials with alternating order, identical schedules within each pair, fresh volumes, 60 s offers and 20 s drains. Target no significant practical change in receiver p99 for either lane when assist is enabled. For each lane, the 90% confidence interval for the paired geometric mean of on/off p99 ratios must fit within 0.90–1.10. Use trial pairs as the units and paired log ratios for the interval. Require complete expected receipts in both arms to claim equivalence. |
+| Decision stability | pre-registered | Held-out: proposed asks fewer questions than the ask-every-unknown baseline, routing is correct on 4/4 cases, and critical misses are zero. Report questions, routing correctness, critical misses, INCOMPLETE counts and runtime p50/p95 separately for development and held-out cases. |
 
 **Accounting target for every traffic experiment.** Report offered, generator-not-submitted, publish errors, broker-confirmed (accepted by the broker), durably ingested, and accepted events pending at the end of the stated window. Split pending events between the broker and the rule inbox. For notifications, report intended logical slots, delivered unique receiver receipts, pending or unverified slots, and duplicates. State each denominator and cutoff, including when a count is zero.
 
 ## W2 delivery batching result
 
 **Normal receiver p99 <5 s · FAIL.** On the pre-registered Apple M4 Pro workload and the same workload hash, normal receiver p99 was 27.424 s before batching (2,000 received / 2,000 expected) and 5.738 s after batching (2,000 / 2,000). Critical receiver p99 was 0.547 s before (240 / 240) and 0.356 s after (240 / 240), meeting the <1 s target. [Paired end-to-end trials](SCALING.md#delivery-batching--end-to-end)
+
+## Decision stability result
+
+| Split | Method | Mean questions per case | Routing correct | Critical misses | INCOMPLETE | Runtime p50 / p95 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Development (8) | Ask all | 2.25 | 8/8 | 0/2 | 0 | 0.453 / 1.918 ms |
+| Development (8) | Adaptive minimax | 1.25 | 7/8 | 0/2 | 1 | 0.776 / 1.544 ms |
+| Held-out (4) | Ask all | 2.75 | 4/4 | 0/2 | 0 | 0.486 / 0.760 ms |
+| Held-out (4) | Adaptive minimax | 1.00 | 4/4 | 0/2 | 0 | 1.383 / 1.713 ms |
+
+**Held-out targets · PASS.** The Apple M4 Pro run used 12 synthetic cases and 14 samples, with one timed run per method and case. The development case with 81 interpretations returned `INCOMPLETE` at the 64-combination cap. It counts against correctness and is charged the full number of questions. [Case results and method](../loadtest/results/stability-cb87120d1055/summary.md) · [Raw measurements](../loadtest/results/stability-cb87120d1055/report.json)
