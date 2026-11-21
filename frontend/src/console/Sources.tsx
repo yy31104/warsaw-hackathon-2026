@@ -376,7 +376,7 @@ export function Sources() {
       </option>)}
     </select></label>}
     {issue ? <Review key={issue.fingerprint} issue={issue} retain={() => setRetained(issue)}/>
-      : data.isSuccess ? <Card title="No formats waiting"><p>No events waiting for review.</p></Card> : <p>Loading sources…</p>}
+      : data.isSuccess ? <Card title="Nothing to review"><p>When an event arrives in a format we don’t recognise, it waits here.</p></Card> : <p>Loading sources…</p>}
     <LegacyLink to="/onboarding">Advanced mapping</LegacyLink>
   </div>;
 }

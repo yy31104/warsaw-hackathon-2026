@@ -42,19 +42,19 @@ function FunnelCard({funnel}: {funnel: Funnel}) {
 function ResponseTiles({team, enabled}: {team: string; enabled: boolean}) {
   const {data: stats} = useResponseStats(team, enabled);
   if (!stats) return <div className="cf-response-fallback" role="group" aria-label="Response metrics">
-    <Card title="Time to notice" meta={<BenchmarkSource file="one-normal/summary.json">{benchmark.label} · N={benchmark.one.n}</BenchmarkSource>}
+    <Card title="Time to first notification" meta={<BenchmarkSource file="one-normal/summary.json">{benchmark.label} · N={benchmark.one.n}</BenchmarkSource>}
       className="cf-benchmark-compact">
       <div className="cf-big">{(benchmark.one.p50_ms / 1000).toFixed(3)} <small>s</small></div>
-      <span className="cf-meta">p50 · telecom receipts</span>
+      <span className="cf-meta">p50 · demo gateway receipts</span>
     </Card>
-    <small>More metrics after the first incidents</small>
+    <small>More metrics appear after the first incidents.</small>
   </div>;
 
   const metrics = [
-    {key: 'tta_p50_s', label: 'Time to notice', detail: 'Median', unit: 's'},
-    {key: 'mtta_s', label: 'Time to respond', detail: 'Average · acknowledged', unit: 's'},
-    {key: 'mttr_s', label: 'Time to fix', detail: 'Average · resolved', unit: 's'},
-    {key: 'notifications_per_alert', label: 'Messages per incident', detail: '', unit: ''},
+    {key: 'tta_p50_s', label: 'Time to first notification', detail: 'Median', unit: 's'},
+    {key: 'mtta_s', label: 'Time to acknowledge', detail: 'Average', unit: 's'},
+    {key: 'mttr_s', label: 'Time to resolve', detail: 'Average', unit: 's'},
+    {key: 'notifications_per_alert', label: 'Notifications per incident', detail: '', unit: ''},
   ] as const;
   return <div className="cf-response-tiles" role="group" aria-label="Response metrics">
     {metrics.map(({key, label, detail, unit}) => {
@@ -113,8 +113,8 @@ export function Now() {
         </div>
       </div>
     </Card> : open.isSuccess ? <Card className="cf-all-handled">
-      <Icon name="check"/><h2>All handled</h2>
-    </Card> : <Card><p>{feedEnabled ? 'Loading incidents…' : 'Choose a team member.'}</p></Card>}
+      <Icon name="check"/><h2>{team ? `Nothing open for ${teamName(team, directory)}` : 'Nothing needs attention'}</h2>
+    </Card> : <Card><p>{feedEnabled ? 'Loading incidents…' : 'Choose who you’re viewing as to see their team’s incidents.'}</p></Card>}
     <ResponseTiles team={team} enabled={feedEnabled}/>
     {funnel.data && <FunnelCard funnel={funnel.data}/>}
     <div className="cf-grid cf-grid-wide">
@@ -139,7 +139,7 @@ export function Now() {
       </Card>
       <div className="cf-stack">
         <Card title="Waiting for approval" meta={pending.isSuccess ? `${pending.data.pending_approval_count} · live` : undefined}>
-          {pending.data?.pending_approval_count === 0 && <p><Icon name="check"/> Nothing waiting</p>}
+          {pending.data?.pending_approval_count === 0 && <p><Icon name="check"/> No approvals waiting</p>}
           {actions.map(({alert, action}) => <div className="cf-side-row" key={action.run_id}>
             <Icon name="shield"/><div><strong>{humanize(action.action)}</strong>
               <small>{personName(action.requested_by, directory)} · {timeLabel(action.created_at)}</small>

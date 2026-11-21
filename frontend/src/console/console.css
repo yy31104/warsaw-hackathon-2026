@@ -605,3 +605,5 @@
 @media (max-width: 740px) {
   .console .cf-top { padding-inline: 12px; }
 }
+/* Response tiles: the window label sits under the title in every tile, so long titles don't stagger them. */
+.cf-response-tiles .cf-card-head { flex-direction: column; align-items: flex-start; gap: 2px; }
