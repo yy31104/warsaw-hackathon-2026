@@ -51,6 +51,22 @@ The active receiver span divides the inter-receipt count by elapsed time from th
 
 Pre-registered targets on the after trial. Normal p99 <5 s **FAIL**. Critical p99 <1 s **PASS**. Complete unique receiver coverage **PASS**. [After · #36](../loadtest/results/w2-delivery-e2e-cc5bd7c/after/m11-11210326-bb859-r700-k1000-w4/summary.json)
 
+#### Delivery worker DB pool wait · paired end-to-end diagnostic
+
+A separate run pair used the same two source commits, schedule hash, hardware, offer and drain as the end-to-end trial above. A temporary measurement hook in each delivery worker timed every async checkout and its waiting-queue calls. The table covers checkouts and waits started during the 60 s offer. Checkout time includes the pool API overhead. Queue wait measures the waits for an available connection. No quantile is reported for an empty wait sample. [Pool samples and both windows](../loadtest/results/w2-delivery-pool-diagnostic-cc5bd7c/pool-summary.json) · [Probe](../loadtest/results/w2-delivery-pool-diagnostic-cc5bd7c/pool_probe.py)
+
+| 60 s delivery-worker pool metric | Before · main | After · #36 |
+| --- | ---: | ---: |
+| Successful checkouts | 9,432 | 3,685 |
+| Queued waits | 0 | 34 |
+| Queue wait total (ms) | 0.000 | 270.282 |
+| Queue wait mean / p95 per queued wait (ms) | — / — | 7.949 / 16.986 |
+| Checkout mean / p95 (ms) | 0.009 / 0.016 | 0.085 / 0.022 |
+| Delivery pending · early / middle / late median | 1,109.5 / 2 / 0.0 | 2 / 1.0 / 0 |
+| Receiver receipts verified / expected | 2,240 / 2,240 | 2,240 / 2,240 |
+
+The pool waits are small relative to the remaining normal latency. In the uninstrumented after trial, the 20 slowest verified normal receipts spent a median of 5.727 s from offer to first delivery claim and 19.8 ms from claim to receipt. This trace points to the work before the claim, which includes intake, rule processing and time in the delivery queue. [After raw receiver and claim ledger](../loadtest/results/w2-delivery-e2e-cc5bd7c/after/m11-11210326-bb859-r700-k1000-w4/observations.json.gz)
+
 ### Delivery batching · micro-benchmark
 
 The W2 micro-benchmark timed a pre-populated outbox on the same Mac with a 5 ms in-process SMS provider. Its mixed workload was one team and 2,000 due notifications. This measures the delivery worker and the database, with every notification available at the start. See the separate end-to-end trial above for the queue, rules and receiver path. [W2 method and raw results](https://github.com/yy31104/warsaw-hackathon-2026/pull/36)
