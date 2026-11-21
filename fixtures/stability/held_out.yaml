@@ -1,0 +1,82 @@
+# Synthetic final split. Each oracle value selects one of the declared options.
+# Expected routes are exact immediate [recipient, channel] pairs per sample.
+- id: final-monitor-ownership
+  schema: alertmanager
+  source: rack-monitor
+  description: The workload label identifies the paged service. The collector has its own service label.
+  hypotheses:
+    - {id: grade, kind: severity, path: labels.severity, label: TIER_A, values: [warning, critical]}
+    - {id: owner, kind: alias, path: service, values: [labels.service, labels.owner_service]}
+    - {id: summary, kind: alias, path: message, values: [annotations.summary, annotations.detail]}
+  oracle: {grade: critical, owner: labels.owner_service, summary: annotations.detail}
+  samples:
+    - event:
+        alertname: QueueReserveLow
+        labels: {service: monitor-edge, owner_service: payments-api, severity: TIER_A, region: north}
+        annotations: {summary: Queue reserve low, detail: Three reserve slots left}
+        startsAt: '2026-11-20T09:15:00Z'
+        status: firing
+      expected: {rules: [anna-payments-critical], routes: [[anna, sms]], critical: true}
+
+- id: final-two-rejected-blocks
+  schema: business-envelope
+  source: trade-audit
+  description: Both rejected blocks report minor units. Only the larger position crosses the rates limit.
+  hypotheses:
+    - {id: amount, kind: scale, path: payload.notional, values: [1, 0.01, 0.001]}
+    - {id: reason, kind: alias, path: error_code, values: [payload.reason, meta.reasonCode]}
+  oracle: {amount: 0.01, reason: meta.reasonCode}
+  samples:
+    - event:
+        meta: {schema: trade.rejected.block, producer: audit-bridge, reasonCode: R7, ts: 1795161600000}
+        payload: {desk: rates, notional: 45000000, tradeId: BLOCK-A, currency: EUR, reason: venue limit}
+      expected: {rules: [], routes: [], critical: false}
+    - event:
+        meta: {schema: trade.rejected.block, producer: audit-bridge, reasonCode: R8, ts: 1795161660000}
+        payload: {desk: rates, notional: 1600000000, tradeId: BLOCK-B, currency: EUR, reason: volume limit}
+      expected: {rules: [rates-big-rejects], routes: [[rita, email], ['team:rates', ui]], critical: false}
+
+- id: final-staging-dry-run
+  schema: workflow
+  source: rehearsal-runner
+  description: A settlement failure from staging is outside the production page policy.
+  hypotheses:
+    - {id: grade, kind: severity, path: severity, label: N2, values: [critical, warning]}
+    - {id: owner, kind: alias, path: service, values: [component, workflowName]}
+    - {id: timezone, kind: timezone, path: timestamp, values: [Europe/Warsaw, UTC]}
+  oracle: {grade: warning, owner: workflowName, timezone: Europe/Warsaw}
+  samples:
+    - event:
+        type: WORKFLOW_FAILED
+        workflowId: REHEARSAL-32
+        workflowName: order-settlement
+        component: settlement-test
+        step: preflight
+        environment: staging
+        severity: N2
+        timestamp: '2026-11-20T09:30:00'
+        error: {code: TEST_STOP, message: Rehearsal stopped}
+      expected: {rules: [], routes: [], critical: false}
+
+- id: final-settlement-page
+  schema: workflow
+  source: ledger-runner
+  description: A producer-defined P0 stopped production clearing. The settlement on-call owns the page.
+  hypotheses:
+    - {id: grade, kind: severity, path: severity, label: P0, values: [error, critical]}
+    - {id: timeout, kind: scale, path: latency, values: [1, 0.001]}
+    - {id: summary, kind: alias, path: message, values: [error.message, synopsis]}
+  oracle: {grade: critical, timeout: 0.001, summary: error.message}
+  samples:
+    - event:
+        type: WORKFLOW_FAILED
+        workflowId: CLEAR-90
+        workflowName: order-settlement
+        step: send-confirmation
+        environment: prod
+        severity: P0
+        timestamp: '2026-11-20T10:20:00Z'
+        latency: 2400
+        synopsis: Clearing stopped
+        error: {code: NO_CONFIRM, message: No confirmation received}
+      expected: {rules: [settlements-wf-failed], routes: [[sam, phone], [sam, sms], ['team:settlements', ui]], critical: true}

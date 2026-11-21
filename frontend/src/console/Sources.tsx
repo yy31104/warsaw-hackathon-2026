@@ -3,6 +3,7 @@ import {useLocation} from 'react-router-dom';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {useApp} from '../App';
 import {request} from '../api';
+import {StabilityPanel} from '../StabilityPanel';
 import {requestProblems, type Problem} from './data';
 import {Card, channelName, Chip, Failure, humanize, LegacyLink, personName, Problems} from './ui';
 
@@ -265,6 +266,7 @@ function Review({issue, retain}: {issue: Issue; retain: () => void}) {
         </fieldset>}
       </Card>
     </div>
+    {draft && sample.data && !published && <StabilityPanel key={JSON.stringify([draft, positive, quiet, actor])} draft={draft} positive={positive} quiet={quiet} source={issue.source_id} transport={sample.data.transport} actor={actor} suggestion={suggestion}/>}
     {draft && <Card title="Test before going live" meta="Dry run">
       <fieldset className="cf-fieldset cf-grid" disabled={busy || Boolean(published)}>
         <div className="cf-sample-box"><label className="cf-field">Should alert

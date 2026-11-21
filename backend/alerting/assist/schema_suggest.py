@@ -77,10 +77,10 @@ def _time_shape(value):
     return False
 
 
-def _name_matches(descriptions):
+def _alias_scores(descriptions):
     matches = {}
     for alias, vocabulary in NAMES.items():
-        scores = []
+        scores = {}
         for row in descriptions:
             path = row["path"]
             parts = path.removesuffix(".#text").split(".")
@@ -100,11 +100,24 @@ def _name_matches(descriptions):
                 elif rank is None and words & {"time", "timestamp", "epoch", "unix", "at", "ts"}:
                     rank = len(vocabulary)
             if rank is not None:
-                scores.append(((rank, len(parts)), path))
-        scores.sort()
-        if scores and (len(scores) == 1 or scores[0][0] != scores[1][0]):
-            matches[alias] = scores[0][1]
+                score = (rank, len(parts))
+                if path not in scores or score < scores[path]:
+                    scores[path] = score
+        if scores:
+            matches[alias] = sorted((score, path) for path, score in scores.items())
     return matches
+
+
+def _name_matches(descriptions):
+    return {alias: scores[0][1] for alias, scores in _alias_scores(descriptions).items()
+            if len(scores) == 1 or scores[0][0] != scores[1][0]}
+
+
+def ranked_alias_paths(field_maps):
+    """Expose the same redacted name/shape ranking, retaining ties for human review."""
+    descriptions = [row for fields in field_maps
+                    for row in _descriptions({path: value for path, value in fields.items() if not path.startswith("$")})]
+    return {alias: [path for _, path in scores[:2]] for alias, scores in _alias_scores(descriptions).items()}
 
 
 def _model_sample(descriptions):

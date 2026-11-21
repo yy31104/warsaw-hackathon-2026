@@ -1,19 +1,25 @@
 """Human review of unknown input formats. Responses can also be inspected in /docs."""
+from time import monotonic
 from typing import Literal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from psycopg.rows import dict_row
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from starlette.concurrency import run_in_threadpool
 
-from alerting.assist.schema_suggest import suggest
+from alerting.assist.schema_suggest import NAMES, suggest
 from alerting.clock import FixedClock, SYSTEM
 from alerting.config.loader import read_snapshot
-from alerting.contracts import Channel, Transport
+from alerting.contracts import Channel, Severity, Transport
 from alerting.db import pool
 from alerting.ingest.normalize import InvalidEvent, normalize
 from alerting.rules.engine import Ruleset
+from alerting.rules.dsl import number
 from alerting.rules.safety import verify
+from alerting.rules.stability import TIME_LIMIT_SECONDS, stability
 from alerting.schemas.issues import index_legacy
+from alerting.schemas.hypotheses import generate_hypotheses
 from alerting.schemas.mapping import SchemaDraft
 from alerting.schemas.registry import ReviewError, lock_registry, schemas, with_draft
 from alerting.schemas.review import preview_event, publish, sample_event
@@ -122,6 +128,63 @@ class VerificationInput(BaseModel):
     samples: list[VerificationSample] = Field(min_length=1)
 
 
+class StabilitySample(VerificationSample):
+    expect: Literal["notify", "quiet"] | RoutingExpectation | None = None
+
+
+class Candidate(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True, allow_inf_nan=False)
+    value: str | int | float
+    source: Literal["declared", "heuristic", "llm_suggestion"] = "declared"
+    label: str | None = None
+
+
+class Hypothesis(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    id: str | None = Field(default=None, min_length=1)
+    kind: Literal["scale", "severity", "timezone", "alias"]
+    path: str = Field(min_length=1)
+    label: str | None = None
+    candidates: list[Candidate] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_options(self):
+        values = [choice.value for choice in self.candidates]
+        if self.kind == "scale":
+            values = [number(value) for value in values]
+            if None in values:
+                raise ValueError("scale candidates must be finite numbers")
+        elif self.kind == "severity":
+            if any(value not in Severity for value in values):
+                raise ValueError("severity candidates must be canonical severity names")
+        elif self.kind == "alias":
+            if self.path not in NAMES or any(not isinstance(value, str) or not value.strip() for value in values):
+                raise ValueError("alias hypotheses need a canonical alias name and nonempty field paths")
+        elif self.kind == "timezone":
+            try:
+                for value in values:
+                    ZoneInfo(value)
+            except (ValueError, TypeError, ZoneInfoNotFoundError) as exc:
+                raise ValueError("timezone candidates must name valid IANA time zones") from exc
+        if len(set(values)) != len(values):
+            raise ValueError("hypothesis candidates must have distinct values")
+        return self
+
+
+class StabilityInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    draft: dict
+    samples: list[StabilitySample] = Field(min_length=1)
+    hypotheses: list[Hypothesis] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def unique_axes(self):
+        axes = [(h.kind, h.path, h.label if h.kind == "severity" else None) for h in self.hypotheses]
+        if len(axes) != len(set(axes)):
+            raise ValueError("each interpretation axis must be supplied once")
+        return self
+
+
 def _validate_draft(draft: dict, active: dict) -> dict:
     base = draft.get("base", draft.get("id"))
     inherited = active.get(base) if isinstance(base, str) else None
@@ -162,6 +225,33 @@ async def verify_schema(request: VerificationInput, db_pool=Depends(pool)):
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
     return report
+
+
+def _stability_report(request, snapshot, clock):
+    deadline = monotonic() + TIME_LIMIT_SECONDS
+    draft = _validate_draft(request.draft, {schema["id"]: schema for schema in snapshot.schemas})
+    transports = {source["id"]: source["transport"] for source in snapshot.sources}
+    samples = [sample.model_dump(mode="json", exclude_none=True) for sample in request.samples]
+    for sample in samples:
+        if sample.get("source") in transports:
+            sample.setdefault("transport", transports[sample["source"]])
+    declared = [item.model_dump(mode="json", exclude_none=True) for item in request.hypotheses]
+    hypotheses = generate_hypotheses(draft, samples, snapshot, declared, clock=clock)
+    return stability(samples, draft, hypotheses, snapshot, clock=clock, deadline=deadline)
+
+
+@router.post("/schemas/stability")
+async def schema_stability(request: StabilityInput, db_pool=Depends(pool)):
+    """Compare draft interpretations against a single committed configuration, without publishing."""
+    async with db_pool.connection() as conn, conn.transaction():
+        await conn.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY")
+        snapshot = await read_snapshot(conn)
+    try:
+        return await run_in_threadpool(_stability_report, request, snapshot, FixedClock(SYSTEM.now()))
+    except ValidationError as exc:
+        raise HTTPException(422, exc.errors(include_url=False, include_context=False, include_input=False)) from exc
+    except (ValueError, ArithmeticError, RecursionError) as exc:
+        raise HTTPException(422, str(exc)) from exc
 
 
 @router.post("/schemas")
