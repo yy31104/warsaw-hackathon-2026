@@ -126,7 +126,11 @@ async def detail(id: int, db=Depends(get_db)):
         row = await alert_with_next_escalation(cur, id, settings)
         if row is None:
             raise HTTPException(404, "Alert not found")
-        alert = {**public_alert(row), "next_escalation": row["next_escalation"]}
+        alert = {
+            **public_alert(row),
+            "representative_event_id": row["representative_event_id"],
+            "next_escalation": row["next_escalation"],
+        }
         pending = await pending_for_alert(cur, id)
         if pending:
             team = by_id(settings.directory["teams"]).get(alert["team_id"], {})
