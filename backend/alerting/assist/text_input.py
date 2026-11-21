@@ -26,15 +26,16 @@ _cache: OrderedDict[tuple, BaseModel] = OrderedDict()
 
 async def text_hints(model, *, system, text):
     if not llm.enabled():
-        return None
+        return None, None
+    provider, model_name = llm.selection()
     safe_bytes = llm.redact(text).encode("utf-8")[:llm.MAX_INPUT_CHARS]
-    key = (model, llm.MODEL, system, sha256(safe_bytes).digest())
+    key = (model, provider, model_name, system, sha256(safe_bytes).digest())
     if key in _cache:
         _cache.move_to_end(key)
-        return _cache[key]
+        return _cache[key], model_name
     result = await llm.structured(model, system=system, user=safe_bytes.decode("utf-8", errors="ignore"))
     if result is not None:
         _cache[key] = result
         if len(_cache) > 128:
             _cache.popitem(last=False)
-    return result
+    return result, model_name

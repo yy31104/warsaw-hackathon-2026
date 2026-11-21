@@ -5,7 +5,7 @@ x-backend: &backend
   image: ${COMPOSE_PROJECT_NAME:-alertfunnel}-backend:local
   pull_policy: never
   restart: unless-stopped
-  environment:
+  environment: &backend-environment
     DATABASE_URL: postgresql://alerting:alerting@postgres:5432/alerting
     RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
     CONFIG_DIR: /app/config
@@ -17,9 +17,6 @@ x-backend: &backend
     DEMO_MODE: ${DEMO_MODE:-1}
     INBOUND_SECRET: ${INBOUND_SECRET:-alertfunnel-local-demo}
     DELIVERY_TARGET_S: ${DELIVERY_TARGET_S:-30}
-    ASSIST_ENABLED: ${ASSIST_ENABLED:-0}
-    ASSIST_MODEL: ${ASSIST_MODEL:-claude-opus-5-5}
-    ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
   volumes:
     - ./config:/app/config:ro
   depends_on: &database-ready
@@ -106,6 +103,13 @@ services:
 
   api:
     <<: *backend
+    environment:
+      <<: *backend-environment
+      ASSIST_ENABLED: ${ASSIST_ENABLED:-0}
+      ASSIST_PROVIDER: ${ASSIST_PROVIDER:-}
+      ASSIST_MODEL: ${ASSIST_MODEL:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     pull_policy: build
     build:
       context: .

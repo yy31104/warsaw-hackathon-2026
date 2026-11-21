@@ -26,7 +26,7 @@ Open the frontend on port 5173 and the simulated phone on port 8100. The fronten
 3. `git switch <your branch>`. Never push to `main`; open a PR.
 4. Run the base:
    ```bash
-   cp .env.example .env          # add ANTHROPIC_API_KEY locally if you work on an assist feature
+   cp .env.example .env          # optional assist uses ASSIST_PROVIDER, ASSIST_MODEL and the selected provider's API key
    make infra                    # postgres + rabbitmq + mailpit (docker)
    cd backend && uv sync && cd ..
    make test                     # scaffold tests must stay green
