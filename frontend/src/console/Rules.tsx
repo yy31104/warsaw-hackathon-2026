@@ -4,6 +4,7 @@ import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {useApp} from '../App';
 import {request} from '../api';
 import type {ImpactPreviewResult} from '../ImpactPreview';
+import {OptimizerPanel} from '../OptimizerPanel';
 import {ownsRule} from '../permissions';
 import {applyRulePathSuggestion, requestProblems, type EditableRule, type Problem} from './data';
 import {Card, channelName, Chip, Failure, LegacyLink, personName, Problems, teamName} from './ui';
@@ -257,6 +258,12 @@ export function ConsoleRules() {
                 onClick={() => void perform(() => publish(draft))}>Publish{base ? ` v${base.version + 1}` : ''}</button>
             </div>
           </Card>
+          {base && <OptimizerPanel key={`${actor}:${base.id}:${base.version}`} actor={actor} ruleId={base.id} draft={draft}
+            disabled={busy} onUse={locked || !rules.data?.some(item => item.id === base.id && item.version === base.version)
+              ? undefined : next => {
+                open({...next, id: base.id, owner: base.owner, origin: base.origin, version: base.version}, base);
+                notice('Option loaded into the rule editor');
+              }}/>}
         </div>
       </div>
     </>}

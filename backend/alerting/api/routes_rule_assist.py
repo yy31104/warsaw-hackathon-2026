@@ -15,12 +15,15 @@ from alerting.assist.rule_draft import draft_rule
 from alerting.assist.text_input import TextInput
 from alerting.clock import FixedClock, SYSTEM
 from alerting.config import files
+from alerting.config.access import actor_teams, can_manage, require_actor
+from alerting.config.store import ConfigError
+from alerting.config.validation import RuleDraft
 from alerting.contracts import CanonicalEvent, Channel, Severity, Transition
 from alerting.db import pool
 from alerting.ingest.normalize import detect_schema, flatten, normalize
 from alerting.routing import plan
 from alerting.rules.dsl import compile as compile_match
-from alerting.rules.engine import Ruleset, evaluate
+from alerting.rules.engine import Ruleset, duration, evaluate
 from alerting.rules.safety import check
 from alerting.rules.suggestions import sample_filters, unknown_fields
 from alerting.schemas.registry import schemas as active_schemas
@@ -33,6 +36,12 @@ router = APIRouter(tags=["rules"])
 class PreviewRequest(BaseModel):
     draft: dict
     last_n: int = Field(default=200, ge=1, le=2000)
+
+
+class OptimizeRequest(BaseModel):
+    window: str = Field(default="24h", pattern=r"^[1-9][0-9]{0,3}[smhd]$")
+    proposal_id: int | None = Field(default=None, gt=0)
+    draft: dict | None = None
 
 
 class TestRequest(BaseModel):
@@ -222,3 +231,99 @@ async def preview_rule(rule_id: str, body: PreviewRequest, db=Depends(pool)):
                                        config.directory, config.runbooks)
     except (ValueError, KeyError, TypeError, ArithmeticError, RecursionError) as exc:
         raise HTTPException(422, str(exc)) from exc
+
+
+async def _optimization_base(cursor, config, current, body, actor):
+    proposal_draft = {}
+    if body.proposal_id is not None:
+        if not actor:
+            raise HTTPException(401, "Set X-User to preview this proposal")
+        try:
+            require_actor(actor, config.directory)
+        except ConfigError as exc:
+            raise HTTPException(exc.status, str(exc)) from exc
+        await cursor.execute("""
+            SELECT proposed_by, team_id, base_version, draft FROM rule_proposals
+            WHERE id=%s AND rule_id=%s
+        """, (body.proposal_id, current["id"]))
+        proposal = await cursor.fetchone()
+        if not proposal or not (
+            proposal["proposed_by"] == actor
+            or proposal["team_id"] in actor_teams(actor, config.directory)
+            or (proposal["team_id"] is None and can_manage(actor, current.get("owner"), config.directory))
+        ):
+            raise HTTPException(404, "Proposal not found for this rule")
+        if proposal["base_version"] != current.get("version", 1):
+            raise HTTPException(409, "Proposal is based on an older rule version")
+        proposal_draft = proposal["draft"]
+    base = {**current, **proposal_draft, **(body.draft or {})}
+    if base["id"] != current["id"]:
+        raise HTTPException(422, "Draft ID must match the rule in the request URL")
+    if body.draft is not None or proposal_draft:
+        try:
+            # Validate an overlay as an editor draft, preserving the active rule identity.
+            validated = RuleDraft.model_validate({
+                **base, "version": current.get("version", 1), "origin": current.get("origin"),
+            })
+        except (ValueError, TypeError, ArithmeticError, RecursionError) as exc:
+            raise HTTPException(422, f"Invalid optimization draft: {exc}") from exc
+        base = {**validated.spec(), "version": current.get("version", 1), "origin": current.get("origin")}
+        if "origin" not in current:
+            base.pop("origin")
+    return base
+
+
+async def _acted_on(cursor, rule_id, event_ids):
+    await cursor.execute("""
+        SELECT a.id AS alert_id, linked.event_id
+        FROM alerts a
+        JOIN LATERAL (
+            SELECT a.representative_event_id AS event_id
+            WHERE a.representative_event_id=ANY(%(events)s)
+            UNION
+            SELECT event_id FROM alert_occurrences WHERE alert_id=a.id AND event_id=ANY(%(events)s)
+            UNION
+            SELECT event_id FROM decisions WHERE alert_id=a.id AND event_id=ANY(%(events)s)
+        ) linked ON true
+        WHERE a.rule_id=%(rule_id)s AND a.severity='critical'
+          AND EXISTS (
+              SELECT 1 FROM audit_log l WHERE l.target_kind='alert' AND l.target_id=a.id::text
+                AND l.action='action.execute'
+          )
+        ORDER BY a.id, linked.event_id
+    """, {"rule_id": rule_id, "events": event_ids})
+    return await cursor.fetchall()
+
+
+@router.post("/rules/{rule_id}/optimize/preview")
+async def optimize_rule(
+    rule_id: str, body: OptimizeRequest, x_user: str | None = Header(None), db=Depends(pool)
+):
+    from alerting.simulate.optimizer import optimize_history
+
+    sample_limit = 2000
+    async with _read_only(db) as conn, conn.cursor(row_factory=dict_row) as cursor:
+        config = await _config(conn)
+        current = _rule_from(config, rule_id)
+        if current is None:
+            raise HTTPException(404, "Rule not found")
+        base = await _optimization_base(cursor, config, current, body, x_user)
+        await cursor.execute("""
+            SELECT id, source_id, transport, payload_hash, schema_id, severity, received_at, fields, trace, status
+            FROM events WHERE status IN ('pending', 'processed') AND received_at BETWEEN now()-%s AND now()
+            ORDER BY received_at DESC, id DESC LIMIT %s
+        """, (duration(body.window), sample_limit + 1))
+        rows = await cursor.fetchall()
+        events = [CanonicalEvent.model_validate({**row, "raw": {}}) for row in rows[:sample_limit]]
+        acted_on = await _acted_on(cursor, rule_id, [event.id for event in events]) if events else []
+    try:
+        result = await run_in_threadpool(
+            optimize_history, events, current, base, config.schemas, config.directory,
+            config.runbooks, acted_on, edited=body.draft is not None,
+        )
+    except (ValueError, KeyError, TypeError, ArithmeticError, RecursionError) as exc:
+        raise HTTPException(422, str(exc)) from exc
+    return {
+        **result, "config_revision": getattr(config, "revision", None), "window": body.window,
+        "history_truncated": len(rows) > sample_limit,
+    }
