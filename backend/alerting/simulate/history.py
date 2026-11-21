@@ -133,7 +133,8 @@ class Replay:
                 if not matches:
                     continue
                 self.matched_events += 1
-                key, _, due = heartbeat_deadline(rule["expect"], event.fields, at)
+                schema = self.ruleset.schemas.get(event.schema_id, {})
+                key, _, due = heartbeat_deadline(rule["expect"], schema, event.fields, at)
                 previous = watches.get(key)
                 # A beat exactly on its own deadline renews that watch first.
                 if previous and previous[0] < at:

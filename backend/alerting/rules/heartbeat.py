@@ -11,14 +11,14 @@ from alerting.rules.storage import alert_changed, audit, delivery_plan, enqueue
 from alerting.templates import lookup, render
 
 
-def heartbeat_deadline(expect, fields, seen):
+def heartbeat_deadline(expect, schema, fields, seen):
     paths = expect["key"]
     if not isinstance(paths, list) or not all(isinstance(p, str) and p for p in paths):
         raise ValueError("expect.key must be a list of field paths")
     interval = duration(expect["every"])
     if interval.total_seconds() <= 0:
         raise ValueError("expect.every must be positive")
-    key, values = grouping({"group": {"by": paths}}, {}, fields) if paths else ("", {})
+    key, values = grouping({"group": {"by": paths}}, schema, fields) if paths else ("", {})
     return key, values, seen + interval
 
 
@@ -35,7 +35,8 @@ async def record_heartbeats(cur, settings, event, clock):
             if not ok:
                 continue
             matched = True
-            key, values, due = heartbeat_deadline(rule["expect"], event.fields, seen)
+            schema = settings.ruleset.schemas.get(event.schema_id, {})
+            key, values, due = heartbeat_deadline(rule["expect"], schema, event.fields, seen)
             version = rule.get("version", 1)
             await cur.execute(
                 """insert into heartbeat_watches as w
