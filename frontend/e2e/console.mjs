@@ -214,13 +214,17 @@ try {
     assert.equal(await lede.locator('time').getAttribute('datetime'), escalation.at);
     await ingest(flow(), 'settlement-repeat');
     await visible(sam.locator('.cf-hero').getByText('×2', {exact: true}));
-    await until('Sam SMS and call', async () => {
+    const sent = await until('Sam SMS and call', async () => {
       const {items} = await json(`/v1/alerts/${incident.id}/notifications`);
-      return ['sms', 'phone'].every(channel => items.some(item => item.recipient === 'sam' && item.channel === channel && item.state === 'delivered'));
+      const deliveries = items.filter(item => item.recipient === 'sam'
+        && ['sms', 'phone'].includes(item.channel) && item.state === 'delivered');
+      return ['sms', 'phone'].every(channel => deliveries.some(item => item.channel === channel)) ? deliveries : null;
     });
     const tele = await json('/messages?to=' + encodeURIComponent('+15550100002'), {origin: telecom});
-    const receipts = tele.items.filter(item => /\/a\/(\d+)(?:\s|$)/.exec(item.text)?.[1] === String(incident.id));
+    const notificationIds = new Set(sent.map(item => String(item.id)));
+    const receipts = tele.items.filter(item => notificationIds.has(String(item.idempotency_key)));
     assert.deepEqual(receipts.map(item => item.channel).sort(), ['phone', 'sms']);
+    assert.ok(receipts.every(item => /\/a\/(\d+)(?:\s|$)/.exec(item.text)?.[1] === String(incident.id)));
     await sam.locator('.cf-hero').getByRole('button', {name: 'Acknowledge'}).click();
     await visible(main(sam).getByText('Escalation stopped', {exact: true}));
     await visible(main(sam).getByText('Escalation stopped. Nobody else will be woken up.', {exact: true}));
@@ -315,7 +319,7 @@ try {
     assert.equal(await button(ops, 'Go live').isEnabled(), false);
     await edit.click();
     assert.equal(await quiet.evaluate(input => input.value.slice(input.selectionStart, input.selectionEnd)), '250000000');
-    await takeShot(ops, 'desktop-dark', 'sources-quiet-test');
+    await takeShot(ops, 'desktop-light', 'sources-quiet-test');
     await ops.keyboard.insertText('10000000');
     assert.deepEqual(JSON.parse(await quiet.inputValue()), {...vendor, amount_minor: 10_000_000});
     assert.deepEqual(JSON.parse(await positive.inputValue()), vendor);
@@ -438,7 +442,7 @@ try {
       const keys = ['tta_p50_s', 'mtta_s', 'mttr_s', 'notifications_per_alert'];
       assert.deepEqual(await group.locator('.cf-big').allTextContents(), keys.map((key, index) =>
         stats[key] == null ? '—' : stats[key].toLocaleString('en-GB', {maximumFractionDigits: 3}) + (index < 3 ? ' s' : '')));
-      await takeShot(page, 'desktop-dark', 'now-response-live');
+      await takeShot(page, 'desktop-light', 'now-response-live');
     }
     measured.response_metrics = {api_status: response.status(), tiles: response.ok() ? 4 : 1, stats};
     await screen.close();
@@ -458,7 +462,7 @@ try {
     assert.deepEqual(await group.getByRole('heading', {level: 2}).allTextContents(),
       ['Time to notice', 'Time to respond', 'Time to fix', 'Messages per incident']);
     assert.deepEqual(await group.locator('.cf-big').allTextContents(), ['0.31 s', '2.25 s', '—', '1.75']);
-    await takeShot(page, 'desktop-dark', 'now-response-example');
+    await takeShot(page, 'desktop-light', 'now-response-example');
     await screen.close();
   });
 
