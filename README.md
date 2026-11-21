@@ -139,6 +139,12 @@ Every number below comes from a script in this repository and links to its raw o
 | Critical lane under a normal backlog of 56,000 events | Critical p99 **0.443 s**, 240/240 | PASS |
 | Backend · frontend · golden · browser tests | 798/798 · 19/19 · 32/32 · 13/13 | PASS |
 
+<p align="center">
+  <img src="loadtest/results/saturation-ae69a28/throughput.png" alt="Sustained processed events per second against offered load, for 1, 2 and 4 rule workers, with one hot key and with 1,000 keys" width="860" />
+  <br />
+  <sub>Saturation matrix on an Intel Core Ultra 9 275HX, 60 s per run. With one hot key, processing keeps pace up to 2,800 events/s. Across 1,000 keys, each extra rule worker raises sustained processing until PostgreSQL CPU becomes the limit. Points below the dashed line mean a backlog is building. <a href="loadtest/results/saturation-ae69a28/REPORT.md">Report</a></sub>
+</p>
+
 The normal-lane tail sits before the first delivery attempt. A matched trial showed that larger delivery batches do not fix it; the per-message cost is the next thing to profile. [Scorecard](docs/SCORECARD.md) · [Scaling notes and capacity planning](docs/SCALING.md)
 
 <!-- w0-input-variations-start -->
@@ -197,6 +203,7 @@ The rules we did not break:
 
 - **Simulated:** the phone and SMS gateway (`mocks/fake_telecom`), email (Mailpit), operational actions (`mocks/mock_ops`) and sign-in. **Viewing as** is a demo switch, not authentication.
 - **Not supported yet:** Excel files, CSV without a header row, non-JSON messages on RabbitMQ, events in Markdown.
+- **Single instances:** the tested setup runs one RabbitMQ broker and one PostgreSQL instance, so each is a single point of failure. [What another replica can do](docs/SCALING.md#what-another-replica-can-do)
 - **Open targets:** normal p99 under 5 s (FAIL above), and the paired assist-on/off latency test (NOT_RUN).
 - **For production:** real sign-in and permissions, an "assigned to me" view, and profiling of the per-message delivery cost.
 
@@ -227,4 +234,4 @@ docs/            brief, API contract, gates, scorecard, scaling notes
 
 ## Team
 
-Built by Yi Yang ([@yy31104](https://github.com/yy31104), tech lead and backend), Zhongtian Dai ([@daizhongtian](https://github.com/daizhongtian), data, platform and console), zhaoqinghe ([@Petitaire](https://github.com/Petitaire), frontend) and Marlon Mejia ([@MarlonMejia15](https://github.com/MarlonMejia15), review and presentation), with AI coding agents. Every claim was checked against tests or measurements before it went in.
+Built by Yi Yang ([@yy31104](https://github.com/yy31104), tech lead and backend), Zhongtian Dai ([@daizhongtian](https://github.com/daizhongtian), data, platform and console), Qinghe Zhao ([@Petitaire](https://github.com/Petitaire), frontend) and Marlon Mejia ([@MarlonMejia15](https://github.com/MarlonMejia15), review and presentation), with AI coding agents. Every claim was checked against tests or measurements before it went in.
