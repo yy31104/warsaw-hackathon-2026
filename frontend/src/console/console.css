@@ -612,3 +612,5 @@
 .cf-story-track li { opacity: .45; }
 .cf-intro p.cf-story-sub { max-width: 620px; line-height: 1.55; }
 .cf-story-verb { overflow-wrap: normal; white-space: nowrap; }
+.cf-all-handled small { display: block; margin-top: 2px; color: var(--cf-muted); font-size: 12.5px; }
+.cf-all-handled small a { color: inherit; }

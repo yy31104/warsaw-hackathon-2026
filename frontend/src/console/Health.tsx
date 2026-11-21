@@ -90,7 +90,7 @@ export function Health() {
       </div>)}</dl>}
       <div className="cf-chips">
         {state.data?.status === 'ok' && <Chip tone="green"><Icon name="check"/>API healthy</Chip>}
-        {data && <Chip tone={data.at_risk ? 'red' : 'green'}>{data.at_risk ? 'Delivery at risk' : 'Delivery within target'}</Chip>}
+        {data && <Chip tone={data.at_risk ? 'red' : 'green'}>{data.at_risk ? 'Delivery queue delayed' : 'Delivery queue on time'}</Chip>}
         {data && <Chip>Oldest pending · {Math.round(data.oldest_pending_s)} s</Chip>}
         {stored && processed && <Chip>{countLabel(Number(processed))}/{countLabel(Number(stored))} processed · total</Chip>}
       </div>
