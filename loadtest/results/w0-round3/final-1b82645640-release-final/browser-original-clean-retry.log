@@ -1,0 +1,28 @@
+
+> alert-funnel-ui@0.1.0 test:console
+> node e2e/console.mjs
+
+PASS A · live critical incident and acknowledge · 1.29s
+PASS B · Lee approves persisted retry in a separate context · 0.54s
+PASS Timeline · one plain row per delivery and raw history in More details · 0.05s
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+'light' !== 'dark'
+
+    at takeShot (file://<w0>/final-release/main/frontend/e2e/console.mjs:169:10)
+    at async file://<w0>/final-release/main/frontend/e2e/console.mjs:318:5
+    at async test (file://<w0>/final-release/main/frontend/e2e/console.mjs:53:5)
+    at async file://<w0>/final-release/main/frontend/e2e/console.mjs:280:3 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 'light',
+  expected: 'dark',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.0.0

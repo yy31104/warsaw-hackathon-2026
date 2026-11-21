@@ -1,0 +1,9 @@
+control 202 processed NEW_ALERT [('anna', 'sms')]
+renamed_field 202 processed UNROUTED []
+upper_case_severity 202 processed NEW_ALERT [('anna', 'sms')]
+epoch_seconds 202 processed NEW_ALERT [('anna', 'sms')]
+extra_nesting 202 needs_review NEEDS_REVIEW []
+csv_dotted_headers 202 needs_review NEEDS_REVIEW []
+xml 202 processed NO_MATCH []
+no_timezone 202 processed NEW_ALERT [('anna', 'sms')]
+Saved <w0>/final-copy/m16.json

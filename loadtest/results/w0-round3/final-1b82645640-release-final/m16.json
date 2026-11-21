@@ -1,0 +1,1905 @@
+{
+  "fixture": "fixtures/events/alertmanager_high_error_rate.json",
+  "reference_rule": "anna-payments-critical",
+  "started_utc": "2026-11-21T05:53:01.728574+00:00",
+  "git_head": "dd9d4834216f63ded7dabd130ea6b58ea62c1d3f",
+  "method": "One input change per trial. Reset only the disposable W0 stack. Fixed 11:15 Europe/Warsaw clock. Recipient/channel pairs are read from per-event explain.",
+  "records": [
+    {
+      "case": "control",
+      "content_type": "application/json",
+      "input": {
+        "alertname": "HighErrorRate",
+        "labels": {
+          "service": "payments-api",
+          "region": "eu-west",
+          "severity": "critical"
+        },
+        "annotations": {
+          "summary": "Error rate 12% over the last 5 minutes"
+        },
+        "startsAt": "2026-10-23T09:13:00Z",
+        "status": "firing"
+      },
+      "http": 202,
+      "ack": {
+        "accepted": 1,
+        "duplicates": 0,
+        "conflicts": 0,
+        "rejected": [],
+        "event_ids": [
+          1
+        ]
+      },
+      "stored_status": "processed",
+      "schema": "alertmanager",
+      "severity": "critical",
+      "time": "2026-10-23T09:13:00+00:00",
+      "service": "payments-api",
+      "trace": {
+        "demo_clock": "2026-10-23T11:15:00+02:00",
+        "received_at": "2026-11-21T05:53:01.818142+00:00",
+        "processed_at": "2026-11-21T05:53:01.976727+00:00",
+        "normalization": {
+          "time": "auto-detected"
+        }
+      },
+      "outcome": "NEW_ALERT",
+      "recipients": [
+        [
+          "anna",
+          "sms"
+        ]
+      ],
+      "notifications": [
+        {
+          "id": "59ad32bb-9f62-417d-8765-d4fd64b0b662",
+          "alert_id": 1,
+          "kind": "initial",
+          "channel": "sms",
+          "recipient": "anna",
+          "state": "pending"
+        }
+      ],
+      "decisions": [
+        {
+          "rule_id": "settlements-wf-failed",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": "pricing-warn-logs",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": "rates-big-rejects",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": "anna-payments-critical",
+          "outcome": "NEW_ALERT",
+          "alert_id": 1
+        }
+      ],
+      "verify": {
+        "http": 200,
+        "body": {
+          "samples": [
+            {
+              "actual": {
+                "recipients": [
+                  "anna"
+                ],
+                "channels": [
+                  "email"
+                ]
+              },
+              "expected": "notify",
+              "passed": true,
+              "deciding_fields": [
+                "$service",
+                "$severity"
+              ],
+              "fields": {
+                "alertname": "HighErrorRate",
+                "labels": {
+                  "service": "payments-api",
+                  "region": "eu-west",
+                  "severity": "critical"
+                },
+                "labels.service": "payments-api",
+                "labels.region": "eu-west",
+                "labels.severity": "critical",
+                "annotations": {
+                  "summary": "Error rate 12% over the last 5 minutes"
+                },
+                "annotations.summary": "Error rate 12% over the last 5 minutes",
+                "startsAt": "2026-10-23T09:13:00Z",
+                "status": "firing",
+                "$source": "generic-webhook",
+                "$transport": "http",
+                "$severity": "critical",
+                "$time": "2026-10-23T09:13:00+00:00",
+                "$schema": "alertmanager",
+                "$service": "payments-api",
+                "$environment": null,
+                "$error_code": "HighErrorRate",
+                "$message": "Error rate 12% over the last 5 minutes",
+                "$episode": "2026-10-23T09:13:00Z"
+              },
+              "unit_warnings": [],
+              "normalization": {
+                "time": "auto-detected"
+              },
+              "problems": []
+            }
+          ],
+          "all_pass": true
+        }
+      }
+    },
+    {
+      "case": "renamed_field",
+      "content_type": "application/json",
+      "input": {
+        "alertname": "HighErrorRate",
+        "labels": {
+          "region": "eu-west",
+          "severity": "critical",
+          "serviceName": "payments-api"
+        },
+        "annotations": {
+          "summary": "Error rate 12% over the last 5 minutes"
+        },
+        "startsAt": "2026-10-23T09:13:00Z",
+        "status": "firing"
+      },
+      "http": 202,
+      "ack": {
+        "accepted": 1,
+        "duplicates": 0,
+        "conflicts": 0,
+        "rejected": [],
+        "event_ids": [
+          1
+        ]
+      },
+      "stored_status": "processed",
+      "schema": "alertmanager",
+      "severity": "critical",
+      "time": "2026-10-23T09:13:00+00:00",
+      "service": null,
+      "trace": {
+        "demo_clock": "2026-10-23T11:15:00+02:00",
+        "received_at": "2026-11-21T05:53:02.118508+00:00",
+        "processed_at": "2026-11-21T05:53:02.133423+00:00",
+        "normalization": {
+          "time": "auto-detected"
+        }
+      },
+      "outcome": "UNROUTED",
+      "recipients": [],
+      "notifications": [],
+      "decisions": [
+        {
+          "rule_id": "settlements-wf-failed",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": "pricing-warn-logs",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": "rates-big-rejects",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": "anna-payments-critical",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": null,
+          "outcome": "UNROUTED",
+          "alert_id": null
+        }
+      ],
+      "verify": {
+        "http": 200,
+        "body": {
+          "samples": [
+            {
+              "actual": {
+                "recipients": [],
+                "channels": []
+              },
+              "expected": "notify",
+              "passed": false,
+              "deciding_fields": [
+                "$schema",
+                "$service",
+                "$source",
+                "environment",
+                "instance",
+                "payload.desk",
+                "payload.notional",
+                "workflowName"
+              ],
+              "fields": {
+                "alertname": "HighErrorRate",
+                "labels": {
+                  "region": "eu-west",
+                  "severity": "critical",
+                  "serviceName": "payments-api"
+                },
+                "labels.region": "eu-west",
+                "labels.severity": "critical",
+                "labels.serviceName": "payments-api",
+                "annotations": {
+                  "summary": "Error rate 12% over the last 5 minutes"
+                },
+                "annotations.summary": "Error rate 12% over the last 5 minutes",
+                "startsAt": "2026-10-23T09:13:00Z",
+                "status": "firing",
+                "$source": "generic-webhook",
+                "$transport": "http",
+                "$severity": "critical",
+                "$time": "2026-10-23T09:13:00+00:00",
+                "$schema": "alertmanager",
+                "$service": null,
+                "$environment": null,
+                "$error_code": "HighErrorRate",
+                "$message": "Error rate 12% over the last 5 minutes",
+                "$episode": "2026-10-23T09:13:00Z"
+              },
+              "unit_warnings": [],
+              "normalization": {
+                "time": "auto-detected"
+              },
+              "problems": []
+            }
+          ],
+          "all_pass": false
+        }
+      }
+    },
+    {
+      "case": "upper_case_severity",
+      "content_type": "application/json",
+      "input": {
+        "alertname": "HighErrorRate",
+        "labels": {
+          "service": "payments-api",
+          "region": "eu-west",
+          "severity": "CRITICAL"
+        },
+        "annotations": {
+          "summary": "Error rate 12% over the last 5 minutes"
+        },
+        "startsAt": "2026-10-23T09:13:00Z",
+        "status": "firing"
+      },
+      "http": 202,
+      "ack": {
+        "accepted": 1,
+        "duplicates": 0,
+        "conflicts": 0,
+        "rejected": [],
+        "event_ids": [
+          1
+        ]
+      },
+      "stored_status": "processed",
+      "schema": "alertmanager",
+      "severity": "critical",
+      "time": "2026-10-23T09:13:00+00:00",
+      "service": "payments-api",
+      "trace": {
+        "demo_clock": "2026-10-23T11:15:00+02:00",
+        "received_at": "2026-11-21T05:53:02.307459+00:00",
+        "processed_at": "2026-11-21T05:53:02.464501+00:00",
+        "normalization": {
+          "time": "auto-detected"
+        }
+      },
+      "outcome": "NEW_ALERT",
+      "recipients": [
+        [
+          "anna",
+          "sms"
+        ]
+      ],
+      "notifications": [
+        {
+          "id": "44ed7455-b3e8-4305-8740-c834e3a71ae6",
+          "alert_id": 1,
+          "kind": "initial",
+          "channel": "sms",
+          "recipient": "anna",
+          "state": "pending"
+        }
+      ],
+      "decisions": [
+        {
+          "rule_id": "settlements-wf-failed",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": "pricing-warn-logs",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": "rates-big-rejects",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": "anna-payments-critical",
+          "outcome": "NEW_ALERT",
+          "alert_id": 1
+        }
+      ],
+      "verify": {
+        "http": 200,
+        "body": {
+          "samples": [
+            {
+              "actual": {
+                "recipients": [
+                  "anna"
+                ],
+                "channels": [
+                  "email"
+                ]
+              },
+              "expected": "notify",
+              "passed": true,
+              "deciding_fields": [
+                "$service",
+                "$severity"
+              ],
+              "fields": {
+                "alertname": "HighErrorRate",
+                "labels": {
+                  "service": "payments-api",
+                  "region": "eu-west",
+                  "severity": "CRITICAL"
+                },
+                "labels.service": "payments-api",
+                "labels.region": "eu-west",
+                "labels.severity": "CRITICAL",
+                "annotations": {
+                  "summary": "Error rate 12% over the last 5 minutes"
+                },
+                "annotations.summary": "Error rate 12% over the last 5 minutes",
+                "startsAt": "2026-10-23T09:13:00Z",
+                "status": "firing",
+                "$source": "generic-webhook",
+                "$transport": "http",
+                "$severity": "critical",
+                "$time": "2026-10-23T09:13:00+00:00",
+                "$schema": "alertmanager",
+                "$service": "payments-api",
+                "$environment": null,
+                "$error_code": "HighErrorRate",
+                "$message": "Error rate 12% over the last 5 minutes",
+                "$episode": "2026-10-23T09:13:00Z"
+              },
+              "unit_warnings": [],
+              "normalization": {
+                "time": "auto-detected"
+              },
+              "problems": []
+            }
+          ],
+          "all_pass": true
+        }
+      }
+    },
+    {
+      "case": "epoch_seconds",
+      "content_type": "application/json",
+      "input": {
+        "alertname": "HighErrorRate",
+        "labels": {
+          "service": "payments-api",
+          "region": "eu-west",
+          "severity": "critical"
+        },
+        "annotations": {
+          "summary": "Error rate 12% over the last 5 minutes"
+        },
+        "startsAt": 1792746780,
+        "status": "firing"
+      },
+      "http": 202,
+      "ack": {
+        "accepted": 1,
+        "duplicates": 0,
+        "conflicts": 0,
+        "rejected": [],
+        "event_ids": [
+          1
+        ]
+      },
+      "stored_status": "processed",
+      "schema": "alertmanager",
+      "severity": "critical",
+      "time": "2026-10-23T09:13:00+00:00",
+      "service": "payments-api",
+      "trace": {
+        "demo_clock": "2026-10-23T11:15:00+02:00",
+        "received_at": "2026-11-21T05:53:02.583322+00:00",
+        "processed_at": "2026-11-21T05:53:02.627411+00:00",
+        "normalization": {
+          "time": "auto-detected"
+        }
+      },
+      "outcome": "NEW_ALERT",
+      "recipients": [
+        [
+          "anna",
+          "sms"
+        ]
+      ],
+      "notifications": [
+        {
+          "id": "0c4df3e6-9b44-4f1e-9c4f-e6d67fa12ddb",
+          "alert_id": 1,
+          "kind": "initial",
+          "channel": "sms",
+          "recipient": "anna",
+          "state": "pending"
+        }
+      ],
+      "decisions": [
+        {
+          "rule_id": "settlements-wf-failed",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": "pricing-warn-logs",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": "rates-big-rejects",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": "anna-payments-critical",
+          "outcome": "NEW_ALERT",
+          "alert_id": 1
+        }
+      ],
+      "verify": {
+        "http": 200,
+        "body": {
+          "samples": [
+            {
+              "actual": {
+                "recipients": [
+                  "anna"
+                ],
+                "channels": [
+                  "email"
+                ]
+              },
+              "expected": "notify",
+              "passed": true,
+              "deciding_fields": [
+                "$service",
+                "$severity"
+              ],
+              "fields": {
+                "alertname": "HighErrorRate",
+                "labels": {
+                  "service": "payments-api",
+                  "region": "eu-west",
+                  "severity": "critical"
+                },
+                "labels.service": "payments-api",
+                "labels.region": "eu-west",
+                "labels.severity": "critical",
+                "annotations": {
+                  "summary": "Error rate 12% over the last 5 minutes"
+                },
+                "annotations.summary": "Error rate 12% over the last 5 minutes",
+                "startsAt": 1792746780,
+                "status": "firing",
+                "$source": "generic-webhook",
+                "$transport": "http",
+                "$severity": "critical",
+                "$time": "2026-10-23T09:13:00+00:00",
+                "$schema": "alertmanager",
+                "$service": "payments-api",
+                "$environment": null,
+                "$error_code": "HighErrorRate",
+                "$message": "Error rate 12% over the last 5 minutes",
+                "$episode": "1792746780"
+              },
+              "unit_warnings": [],
+              "normalization": {
+                "time": "auto-detected"
+              },
+              "problems": []
+            }
+          ],
+          "all_pass": true
+        }
+      }
+    },
+    {
+      "case": "extra_nesting",
+      "content_type": "application/json",
+      "input": {
+        "event": {
+          "alertname": "HighErrorRate",
+          "labels": {
+            "service": "payments-api",
+            "region": "eu-west",
+            "severity": "critical"
+          },
+          "annotations": {
+            "summary": "Error rate 12% over the last 5 minutes"
+          },
+          "startsAt": "2026-10-23T09:13:00Z",
+          "status": "firing"
+        }
+      },
+      "http": 202,
+      "ack": {
+        "accepted": 1,
+        "duplicates": 0,
+        "conflicts": 0,
+        "rejected": [],
+        "event_ids": [
+          1
+        ]
+      },
+      "stored_status": "needs_review",
+      "schema": null,
+      "severity": "unknown",
+      "time": null,
+      "service": null,
+      "trace": {
+        "demo_clock": "2026-10-23T11:15:00+02:00",
+        "received_at": "2026-11-21T05:53:02.757445+00:00"
+      },
+      "outcome": "NEEDS_REVIEW",
+      "recipients": [],
+      "notifications": [],
+      "decisions": [],
+      "verify": {
+        "http": 200,
+        "body": {
+          "samples": [
+            {
+              "actual": {
+                "recipients": [],
+                "channels": []
+              },
+              "expected": "notify",
+              "passed": false,
+              "deciding_fields": [
+                "alertname",
+                "labels"
+              ],
+              "fields": {
+                "event": {
+                  "alertname": "HighErrorRate",
+                  "labels": {
+                    "service": "payments-api",
+                    "region": "eu-west",
+                    "severity": "critical"
+                  },
+                  "annotations": {
+                    "summary": "Error rate 12% over the last 5 minutes"
+                  },
+                  "startsAt": "2026-10-23T09:13:00Z",
+                  "status": "firing"
+                },
+                "event.alertname": "HighErrorRate",
+                "event.labels": {
+                  "service": "payments-api",
+                  "region": "eu-west",
+                  "severity": "critical"
+                },
+                "event.labels.service": "payments-api",
+                "event.labels.region": "eu-west",
+                "event.labels.severity": "critical",
+                "event.annotations": {
+                  "summary": "Error rate 12% over the last 5 minutes"
+                },
+                "event.annotations.summary": "Error rate 12% over the last 5 minutes",
+                "event.startsAt": "2026-10-23T09:13:00Z",
+                "event.status": "firing",
+                "$source": "generic-webhook",
+                "$transport": "http",
+                "$severity": "unknown",
+                "$time": null,
+                "$schema": null,
+                "$service": null,
+                "$environment": null,
+                "$error_code": null,
+                "$message": null
+              },
+              "unit_warnings": [],
+              "normalization": {},
+              "problems": []
+            }
+          ],
+          "all_pass": false
+        }
+      }
+    },
+    {
+      "case": "csv_dotted_headers",
+      "content_type": "text/csv",
+      "input": "alertname,labels.service,labels.region,labels.severity,annotations.summary,startsAt,status\nHighErrorRate,payments-api,eu-west,critical,Error rate 12% over the last 5 minutes,2026-10-23T09:13:00Z,firing\n",
+      "http": 202,
+      "ack": {
+        "accepted": 1,
+        "duplicates": 0,
+        "conflicts": 0,
+        "rejected": [],
+        "event_ids": [
+          1
+        ]
+      },
+      "stored_status": "needs_review",
+      "schema": null,
+      "severity": "unknown",
+      "time": null,
+      "service": null,
+      "trace": {
+        "demo_clock": "2026-10-23T11:15:00+02:00",
+        "received_at": "2026-11-21T05:53:02.830483+00:00"
+      },
+      "outcome": "NEEDS_REVIEW",
+      "recipients": [],
+      "notifications": [],
+      "decisions": []
+    },
+    {
+      "case": "xml",
+      "content_type": "application/xml",
+      "input": "<alert><alertname>HighErrorRate</alertname><labels><service>payments-api</service><region>eu-west</region><severity>critical</severity></labels><annotations><summary>Error rate 12% over the last 5 minutes</summary></annotations><startsAt>2026-10-23T09:13:00Z</startsAt><status>firing</status></alert>",
+      "http": 202,
+      "ack": {
+        "accepted": 1,
+        "duplicates": 0,
+        "conflicts": 0,
+        "rejected": [],
+        "event_ids": [
+          1
+        ]
+      },
+      "stored_status": "processed",
+      "schema": "alertmanager",
+      "severity": "unknown",
+      "time": null,
+      "service": null,
+      "trace": {
+        "problems": [
+          {
+            "code": "unmapped_severity",
+            "path": "labels.severity",
+            "message": "The severity value has no confirmed mapping.",
+            "fix_example": "Set \"severity_map\": {\"SEV1\": \"critical\"} after confirming the producer meaning."
+          }
+        ],
+        "demo_clock": "2026-10-23T11:15:00+02:00",
+        "received_at": "2026-11-21T05:53:02.900609+00:00",
+        "processed_at": "2026-11-21T05:53:02.914724+00:00"
+      },
+      "outcome": "NO_MATCH",
+      "recipients": [],
+      "notifications": [],
+      "decisions": [
+        {
+          "rule_id": "settlements-wf-failed",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": "pricing-warn-logs",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": "rates-big-rejects",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": "anna-payments-critical",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        }
+      ]
+    },
+    {
+      "case": "no_timezone",
+      "content_type": "application/json",
+      "input": {
+        "alertname": "HighErrorRate",
+        "labels": {
+          "service": "payments-api",
+          "region": "eu-west",
+          "severity": "critical"
+        },
+        "annotations": {
+          "summary": "Error rate 12% over the last 5 minutes"
+        },
+        "startsAt": "2026-10-23T09:13:00",
+        "status": "firing"
+      },
+      "http": 202,
+      "ack": {
+        "accepted": 1,
+        "duplicates": 0,
+        "conflicts": 0,
+        "rejected": [],
+        "event_ids": [
+          1
+        ]
+      },
+      "stored_status": "processed",
+      "schema": "alertmanager",
+      "severity": "critical",
+      "time": "2026-10-23T09:13:00+00:00",
+      "service": "payments-api",
+      "trace": {
+        "problems": [
+          {
+            "code": "no_timezone",
+            "path": "startsAt",
+            "message": "The timestamp has no timezone and was read as UTC.",
+            "fix_example": "2026-10-23T09:00:00Z"
+          }
+        ],
+        "demo_clock": "2026-10-23T11:15:00+02:00",
+        "received_at": "2026-11-21T05:53:03.085695+00:00",
+        "processed_at": "2026-11-21T05:53:03.244342+00:00",
+        "normalization": {
+          "time": "auto-detected"
+        }
+      },
+      "outcome": "NEW_ALERT",
+      "recipients": [
+        [
+          "anna",
+          "sms"
+        ]
+      ],
+      "notifications": [
+        {
+          "id": "99a84c11-e95d-4ae8-8b46-6634f03551d1",
+          "alert_id": 1,
+          "kind": "initial",
+          "channel": "sms",
+          "recipient": "anna",
+          "state": "pending"
+        }
+      ],
+      "decisions": [
+        {
+          "rule_id": "settlements-wf-failed",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": "pricing-warn-logs",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": "rates-big-rejects",
+          "outcome": "NO_MATCH",
+          "alert_id": null
+        },
+        {
+          "rule_id": "anna-payments-critical",
+          "outcome": "NEW_ALERT",
+          "alert_id": 1
+        }
+      ],
+      "verify": {
+        "http": 200,
+        "body": {
+          "samples": [
+            {
+              "actual": {
+                "recipients": [
+                  "anna"
+                ],
+                "channels": [
+                  "email"
+                ]
+              },
+              "expected": "notify",
+              "passed": true,
+              "deciding_fields": [
+                "$service",
+                "$severity"
+              ],
+              "fields": {
+                "alertname": "HighErrorRate",
+                "labels": {
+                  "service": "payments-api",
+                  "region": "eu-west",
+                  "severity": "critical"
+                },
+                "labels.service": "payments-api",
+                "labels.region": "eu-west",
+                "labels.severity": "critical",
+                "annotations": {
+                  "summary": "Error rate 12% over the last 5 minutes"
+                },
+                "annotations.summary": "Error rate 12% over the last 5 minutes",
+                "startsAt": "2026-10-23T09:13:00",
+                "status": "firing",
+                "$source": "generic-webhook",
+                "$transport": "http",
+                "$severity": "critical",
+                "$time": "2026-10-23T09:13:00+00:00",
+                "$schema": "alertmanager",
+                "$service": "payments-api",
+                "$environment": null,
+                "$error_code": "HighErrorRate",
+                "$message": "Error rate 12% over the last 5 minutes",
+                "$episode": "2026-10-23T09:13:00"
+              },
+              "unit_warnings": [],
+              "normalization": {
+                "time": "auto-detected"
+              },
+              "problems": [
+                {
+                  "code": "no_timezone",
+                  "path": "startsAt",
+                  "message": "The timestamp has no timezone and was read as UTC.",
+                  "fix_example": "2026-10-23T09:00:00Z"
+                }
+              ]
+            }
+          ],
+          "all_pass": true
+        }
+      }
+    },
+    {
+      "case": "typo_rule_field",
+      "input": {
+        "enabled": true,
+        "group": {
+          "mode": "immediate",
+          "cooldown": "10m"
+        },
+        "match": {
+          "all": [
+            {
+              "op": "eq",
+              "field": "$severty",
+              "value": "critical"
+            },
+            {
+              "op": "eq",
+              "field": "$service",
+              "value": "payments-api"
+            }
+          ]
+        },
+        "owner": "user:anna",
+        "route": [
+          {
+            "to": "user:anna",
+            "channels": "preferences"
+          }
+        ],
+        "description": "Anything critical from payments-api -> SMS between 08:00 and 20:00, otherwise email.",
+        "id": "w0-m16-typo"
+      },
+      "control_input": {
+        "enabled": true,
+        "group": {
+          "mode": "immediate",
+          "cooldown": "10m"
+        },
+        "match": {
+          "all": [
+            {
+              "op": "eq",
+              "field": "$severity",
+              "value": "critical"
+            },
+            {
+              "op": "eq",
+              "field": "$service",
+              "value": "payments-api"
+            }
+          ]
+        },
+        "owner": "user:anna",
+        "route": [
+          {
+            "to": "user:anna",
+            "channels": "preferences"
+          }
+        ],
+        "description": "Anything critical from payments-api -> SMS between 08:00 and 20:00, otherwise email.",
+        "id": "w0-m16-typo"
+      },
+      "check": [
+        200,
+        {
+          "scenarios_checked": [
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "critical"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T07:59:00+01:00",
+              "missing_contact": null
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "critical"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T07:59:00+01:00",
+              "missing_contact": "anna"
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "critical"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T08:00:00+01:00",
+              "missing_contact": null
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "critical"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T08:00:00+01:00",
+              "missing_contact": "anna"
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "critical"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T19:59:00+01:00",
+              "missing_contact": null
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "critical"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T19:59:00+01:00",
+              "missing_contact": "anna"
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "critical"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T20:00:00+01:00",
+              "missing_contact": null
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "critical"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T20:00:00+01:00",
+              "missing_contact": "anna"
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "critical"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T23:10:00+01:00",
+              "missing_contact": null
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "critical"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T23:10:00+01:00",
+              "missing_contact": "anna"
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "error"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T07:59:00+01:00",
+              "missing_contact": null
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "error"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T07:59:00+01:00",
+              "missing_contact": "anna"
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "error"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T08:00:00+01:00",
+              "missing_contact": null
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "error"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T08:00:00+01:00",
+              "missing_contact": "anna"
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "error"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T19:59:00+01:00",
+              "missing_contact": null
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "error"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T19:59:00+01:00",
+              "missing_contact": "anna"
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "error"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T20:00:00+01:00",
+              "missing_contact": null
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "error"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T20:00:00+01:00",
+              "missing_contact": "anna"
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "error"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T23:10:00+01:00",
+              "missing_contact": null
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "error"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T23:10:00+01:00",
+              "missing_contact": "anna"
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "warning"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T07:59:00+01:00",
+              "missing_contact": null
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "warning"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T07:59:00+01:00",
+              "missing_contact": "anna"
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "warning"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T08:00:00+01:00",
+              "missing_contact": null
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "warning"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T08:00:00+01:00",
+              "missing_contact": "anna"
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "warning"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T19:59:00+01:00",
+              "missing_contact": null
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "warning"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T19:59:00+01:00",
+              "missing_contact": "anna"
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "warning"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T20:00:00+01:00",
+              "missing_contact": null
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "warning"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T20:00:00+01:00",
+              "missing_contact": "anna"
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "warning"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T23:10:00+01:00",
+              "missing_contact": null
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "payments-api",
+                "$severity": "warning"
+              },
+              "matched": true,
+              "timezone": "Europe/Warsaw",
+              "local_time": "2026-01-15T23:10:00+01:00",
+              "missing_contact": "anna"
+            },
+            {
+              "fields": {
+                "$severty": "other",
+                "$service": "payments-api",
+                "$severity": "critical"
+              },
+              "matched": false
+            },
+            {
+              "fields": {
+                "$severty": "other",
+                "$service": "payments-api",
+                "$severity": "error"
+              },
+              "matched": false
+            },
+            {
+              "fields": {
+                "$severty": "other",
+                "$service": "payments-api",
+                "$severity": "warning"
+              },
+              "matched": false
+            },
+            {
+              "fields": {
+                "$severty": null,
+                "$service": "payments-api",
+                "$severity": "critical"
+              },
+              "matched": false
+            },
+            {
+              "fields": {
+                "$severty": null,
+                "$service": "payments-api",
+                "$severity": "error"
+              },
+              "matched": false
+            },
+            {
+              "fields": {
+                "$severty": null,
+                "$service": "payments-api",
+                "$severity": "warning"
+              },
+              "matched": false
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "other",
+                "$severity": "critical"
+              },
+              "matched": false
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "other",
+                "$severity": "error"
+              },
+              "matched": false
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": "other",
+                "$severity": "warning"
+              },
+              "matched": false
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": null,
+                "$severity": "critical"
+              },
+              "matched": false
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": null,
+                "$severity": "error"
+              },
+              "matched": false
+            },
+            {
+              "fields": {
+                "$severty": "critical",
+                "$service": null,
+                "$severity": "warning"
+              },
+              "matched": false
+            }
+          ],
+          "violations": [],
+          "warnings": [
+            {
+              "problem": "never fires",
+              "samples_checked": 0
+            },
+            {
+              "code": "unknown_field",
+              "path": "$severty",
+              "suggestions": [
+                "$severity",
+                "severity"
+              ],
+              "message": "Field '$severty' was not found in recent events or configured aliases for this rule."
+            }
+          ],
+          "problems": [
+            {
+              "code": "unknown_field",
+              "path": "$severty",
+              "suggestions": [
+                "$severity",
+                "severity"
+              ],
+              "message": "Field '$severty' was not found in recent events or configured aliases for this rule."
+            }
+          ]
+        }
+      ],
+      "control_draft_test": [
+        200,
+        {
+          "matched": true,
+          "trace": [
+            {
+              "field": "$severity",
+              "op": "eq",
+              "value": "critical",
+              "actual": "critical",
+              "matched": true
+            },
+            {
+              "field": "$service",
+              "op": "eq",
+              "value": "payments-api",
+              "actual": "payments-api",
+              "matched": true
+            }
+          ],
+          "decisions": [
+            {
+              "rule_id": "w0-m16-typo",
+              "rule_version": 1,
+              "outcome": "NEW_ALERT",
+              "reason": {
+                "trace": [
+                  {
+                    "field": "$severity",
+                    "op": "eq",
+                    "value": "critical",
+                    "actual": "critical",
+                    "matched": true
+                  },
+                  {
+                    "field": "$service",
+                    "op": "eq",
+                    "value": "payments-api",
+                    "actual": "payments-api",
+                    "matched": true
+                  }
+                ],
+                "matched": true,
+                "episode": "2026-10-23T09:13:00Z",
+                "transition": "created",
+                "alert_key": "HighErrorRate|payments-api|eu-west"
+              }
+            }
+          ],
+          "recipients": [
+            "anna"
+          ],
+          "channels": [
+            "email"
+          ]
+        }
+      ],
+      "typo_draft_test": [
+        200,
+        {
+          "matched": false,
+          "trace": [
+            {
+              "field": "$severty",
+              "op": "eq",
+              "value": "critical",
+              "actual": null,
+              "matched": false
+            },
+            {
+              "field": "$service",
+              "op": "eq",
+              "value": "payments-api",
+              "actual": "payments-api",
+              "matched": true
+            }
+          ],
+          "decisions": [
+            {
+              "rule_id": "w0-m16-typo",
+              "rule_version": 1,
+              "outcome": "NO_MATCH",
+              "reason": {
+                "trace": [
+                  {
+                    "field": "$severty",
+                    "op": "eq",
+                    "value": "critical",
+                    "actual": null,
+                    "matched": false
+                  },
+                  {
+                    "field": "$service",
+                    "op": "eq",
+                    "value": "payments-api",
+                    "actual": "payments-api",
+                    "matched": true
+                  }
+                ],
+                "matched": false
+              }
+            },
+            {
+              "rule_id": null,
+              "rule_version": null,
+              "outcome": "UNROUTED",
+              "reason": {
+                "cause": "NO_MATCH"
+              }
+            }
+          ],
+          "recipients": [],
+          "channels": []
+        }
+      ],
+      "control_create": [
+        201,
+        {
+          "enabled": true,
+          "id": "w0-m16-typo",
+          "owner": "user:anna",
+          "description": "Anything critical from payments-api -> SMS between 08:00 and 20:00, otherwise email.",
+          "match": {
+            "all": [
+              {
+                "op": "eq",
+                "field": "$severity",
+                "value": "critical"
+              },
+              {
+                "op": "eq",
+                "field": "$service",
+                "value": "payments-api"
+              }
+            ]
+          },
+          "route": [
+            {
+              "to": "user:anna",
+              "channels": "preferences"
+            }
+          ],
+          "group": {
+            "mode": "immediate",
+            "cooldown": "10m"
+          },
+          "version": 1,
+          "origin": "ui",
+          "plain_english": "Anything critical from payments-api -> SMS between 08:00 and 20:00, otherwise email.",
+          "warnings": [],
+          "problems": []
+        }
+      ],
+      "control_event": {
+        "case": "typo-control",
+        "content_type": "application/json",
+        "input": {
+          "alertname": "HighErrorRate",
+          "labels": {
+            "service": "payments-api",
+            "region": "eu-west",
+            "severity": "critical"
+          },
+          "annotations": {
+            "summary": "Error rate 12% over the last 5 minutes"
+          },
+          "startsAt": "2026-10-23T09:13:00Z",
+          "status": "firing"
+        },
+        "http": 202,
+        "ack": {
+          "accepted": 1,
+          "duplicates": 0,
+          "conflicts": 0,
+          "rejected": [],
+          "event_ids": [
+            1
+          ]
+        },
+        "stored_status": "processed",
+        "schema": "alertmanager",
+        "severity": "critical",
+        "time": "2026-10-23T09:13:00+00:00",
+        "service": "payments-api",
+        "trace": {
+          "demo_clock": "2026-10-23T11:15:00+02:00",
+          "received_at": "2026-11-21T05:53:03.561601+00:00",
+          "processed_at": "2026-11-21T05:53:03.717425+00:00",
+          "normalization": {
+            "time": "auto-detected"
+          }
+        },
+        "outcome": "NEW_ALERT",
+        "recipients": [
+          [
+            "anna",
+            "sms"
+          ]
+        ],
+        "notifications": [
+          {
+            "id": "7d5b0cf0-6638-4d9b-97f0-ff747a0dddad",
+            "alert_id": 1,
+            "kind": "initial",
+            "channel": "sms",
+            "recipient": "anna",
+            "state": "pending"
+          },
+          {
+            "id": "9fc7bd94-85cc-4bf5-9dec-98e94d7d2d2d",
+            "alert_id": 2,
+            "kind": "initial",
+            "channel": "sms",
+            "recipient": "anna",
+            "state": "pending"
+          }
+        ],
+        "decisions": [
+          {
+            "rule_id": "settlements-wf-failed",
+            "outcome": "NO_MATCH",
+            "alert_id": null
+          },
+          {
+            "rule_id": "pricing-warn-logs",
+            "outcome": "NO_MATCH",
+            "alert_id": null
+          },
+          {
+            "rule_id": "rates-big-rejects",
+            "outcome": "NO_MATCH",
+            "alert_id": null
+          },
+          {
+            "rule_id": "anna-payments-critical",
+            "outcome": "NEW_ALERT",
+            "alert_id": 1
+          },
+          {
+            "rule_id": "w0-m16-typo",
+            "outcome": "NEW_ALERT",
+            "alert_id": 2
+          }
+        ],
+        "verify": {
+          "http": 200,
+          "body": {
+            "samples": [
+              {
+                "actual": {
+                  "recipients": [
+                    "anna"
+                  ],
+                  "channels": [
+                    "email"
+                  ]
+                },
+                "expected": "notify",
+                "passed": true,
+                "deciding_fields": [
+                  "$service",
+                  "$severity"
+                ],
+                "fields": {
+                  "alertname": "HighErrorRate",
+                  "labels": {
+                    "service": "payments-api",
+                    "region": "eu-west",
+                    "severity": "critical"
+                  },
+                  "labels.service": "payments-api",
+                  "labels.region": "eu-west",
+                  "labels.severity": "critical",
+                  "annotations": {
+                    "summary": "Error rate 12% over the last 5 minutes"
+                  },
+                  "annotations.summary": "Error rate 12% over the last 5 minutes",
+                  "startsAt": "2026-10-23T09:13:00Z",
+                  "status": "firing",
+                  "$source": "generic-webhook",
+                  "$transport": "http",
+                  "$severity": "critical",
+                  "$time": "2026-10-23T09:13:00+00:00",
+                  "$schema": "alertmanager",
+                  "$service": "payments-api",
+                  "$environment": null,
+                  "$error_code": "HighErrorRate",
+                  "$message": "Error rate 12% over the last 5 minutes",
+                  "$episode": "2026-10-23T09:13:00Z"
+                },
+                "unit_warnings": [],
+                "normalization": {
+                  "time": "auto-detected"
+                },
+                "problems": []
+              }
+            ],
+            "all_pass": true
+          }
+        }
+      },
+      "publish": [
+        200,
+        {
+          "enabled": true,
+          "id": "w0-m16-typo",
+          "owner": "user:anna",
+          "description": "Anything critical from payments-api -> SMS between 08:00 and 20:00, otherwise email.",
+          "match": {
+            "all": [
+              {
+                "op": "eq",
+                "field": "$severty",
+                "value": "critical"
+              },
+              {
+                "op": "eq",
+                "field": "$service",
+                "value": "payments-api"
+              }
+            ]
+          },
+          "route": [
+            {
+              "to": "user:anna",
+              "channels": "preferences"
+            }
+          ],
+          "group": {
+            "mode": "immediate",
+            "cooldown": "10m"
+          },
+          "version": 2,
+          "origin": "ui",
+          "plain_english": "Anything critical from payments-api -> SMS between 08:00 and 20:00, otherwise email.",
+          "warnings": [
+            {
+              "code": "unknown_field",
+              "path": "$severty",
+              "suggestions": [
+                "$severity",
+                "severity"
+              ],
+              "message": "Field '$severty' was not found in recent events or configured aliases for this rule."
+            }
+          ],
+          "problems": [
+            {
+              "code": "unknown_field",
+              "path": "$severty",
+              "suggestions": [
+                "$severity",
+                "severity"
+              ],
+              "message": "Field '$severty' was not found in recent events or configured aliases for this rule."
+            }
+          ]
+        }
+      ],
+      "event": {
+        "case": "typo-fresh",
+        "content_type": "application/json",
+        "input": {
+          "alertname": "HighErrorRate",
+          "labels": {
+            "service": "payments-api",
+            "region": "eu-west",
+            "severity": "critical"
+          },
+          "annotations": {
+            "summary": "Error rate 12% over the last 5 minutes"
+          },
+          "startsAt": "2026-10-23T09:13:00Z",
+          "status": "firing"
+        },
+        "http": 202,
+        "ack": {
+          "accepted": 1,
+          "duplicates": 0,
+          "conflicts": 0,
+          "rejected": [],
+          "event_ids": [
+            1
+          ]
+        },
+        "stored_status": "processed",
+        "schema": "alertmanager",
+        "severity": "critical",
+        "time": "2026-10-23T09:13:00+00:00",
+        "service": "payments-api",
+        "trace": {
+          "demo_clock": "2026-10-23T11:15:00+02:00",
+          "received_at": "2026-11-21T05:53:03.874353+00:00",
+          "processed_at": "2026-11-21T05:53:04.030377+00:00",
+          "normalization": {
+            "time": "auto-detected"
+          }
+        },
+        "outcome": "NEW_ALERT",
+        "recipients": [
+          [
+            "anna",
+            "sms"
+          ]
+        ],
+        "notifications": [
+          {
+            "id": "7aea1d74-589b-409a-8a55-d508d2a38052",
+            "alert_id": 1,
+            "kind": "initial",
+            "channel": "sms",
+            "recipient": "anna",
+            "state": "pending"
+          }
+        ],
+        "decisions": [
+          {
+            "rule_id": "settlements-wf-failed",
+            "outcome": "NO_MATCH",
+            "alert_id": null
+          },
+          {
+            "rule_id": "pricing-warn-logs",
+            "outcome": "NO_MATCH",
+            "alert_id": null
+          },
+          {
+            "rule_id": "rates-big-rejects",
+            "outcome": "NO_MATCH",
+            "alert_id": null
+          },
+          {
+            "rule_id": "anna-payments-critical",
+            "outcome": "NEW_ALERT",
+            "alert_id": 1
+          },
+          {
+            "rule_id": "w0-m16-typo",
+            "outcome": "NO_MATCH",
+            "alert_id": null
+          }
+        ],
+        "verify": {
+          "http": 200,
+          "body": {
+            "samples": [
+              {
+                "actual": {
+                  "recipients": [
+                    "anna"
+                  ],
+                  "channels": [
+                    "email"
+                  ]
+                },
+                "expected": "notify",
+                "passed": true,
+                "deciding_fields": [
+                  "$service",
+                  "$severity"
+                ],
+                "fields": {
+                  "alertname": "HighErrorRate",
+                  "labels": {
+                    "service": "payments-api",
+                    "region": "eu-west",
+                    "severity": "critical"
+                  },
+                  "labels.service": "payments-api",
+                  "labels.region": "eu-west",
+                  "labels.severity": "critical",
+                  "annotations": {
+                    "summary": "Error rate 12% over the last 5 minutes"
+                  },
+                  "annotations.summary": "Error rate 12% over the last 5 minutes",
+                  "startsAt": "2026-10-23T09:13:00Z",
+                  "status": "firing",
+                  "$source": "generic-webhook",
+                  "$transport": "http",
+                  "$severity": "critical",
+                  "$time": "2026-10-23T09:13:00+00:00",
+                  "$schema": "alertmanager",
+                  "$service": "payments-api",
+                  "$environment": null,
+                  "$error_code": "HighErrorRate",
+                  "$message": "Error rate 12% over the last 5 minutes",
+                  "$episode": "2026-10-23T09:13:00Z"
+                },
+                "unit_warnings": [],
+                "normalization": {
+                  "time": "auto-detected"
+                },
+                "problems": []
+              }
+            ],
+            "all_pass": true
+          }
+        }
+      }
+    }
+  ],
+  "finished_utc": "2026-11-21T05:53:04.103886+00:00"
+}

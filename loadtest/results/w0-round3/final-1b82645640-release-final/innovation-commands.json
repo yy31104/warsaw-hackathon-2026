@@ -1,0 +1,111 @@
+{
+  "commit": "1b82645640736f48f31da6f41945cfae8cd93b0b",
+  "steps": {
+    "stability-eval.log": {
+      "command": [
+        "uv",
+        "run",
+        "--frozen",
+        "--project",
+        "backend",
+        "python",
+        "tools/eval_stability.py",
+        "--output-dir",
+        "<w0>/release-final/stability-eval"
+      ],
+      "exit": 0,
+      "input": null
+    },
+    "stability-live.json": {
+      "command": [
+        "docker",
+        "compose",
+        "-p",
+        "w0f-release-final",
+        "exec",
+        "-T",
+        "-e",
+        "W0_INNOVATION_SEED=stability",
+        "api",
+        "python",
+        "-"
+      ],
+      "exit": 0,
+      "input": "seed_w0_innovation.py"
+    },
+    "optimizer-demo.log": {
+      "command": [
+        "uv",
+        "run",
+        "--frozen",
+        "--project",
+        "backend",
+        "python",
+        "tools/demo_policy_optimizer.py"
+      ],
+      "exit": 0,
+      "input": null
+    },
+    "optimizer-live.json": {
+      "command": [
+        "docker",
+        "compose",
+        "-p",
+        "w0f-release-final",
+        "exec",
+        "-T",
+        "-e",
+        "W0_INNOVATION_SEED=optimizer",
+        "api",
+        "python",
+        "-"
+      ],
+      "exit": 0,
+      "input": "seed_w0_innovation.py"
+    },
+    "unknown-verify.json": {
+      "command": [
+        "docker",
+        "compose",
+        "-p",
+        "w0f-release-final",
+        "exec",
+        "-T",
+        "-e",
+        "W0_UNKNOWN_MODE=verify",
+        "api",
+        "python",
+        "-"
+      ],
+      "exit": 0,
+      "input": "seed_w0_unknown.py"
+    },
+    "unknown-browser-seed.json": {
+      "command": [
+        "docker",
+        "compose",
+        "-p",
+        "w0f-release-final",
+        "exec",
+        "-T",
+        "-e",
+        "W0_UNKNOWN_MODE=seed",
+        "api",
+        "python",
+        "-"
+      ],
+      "exit": 0,
+      "input": "seed_w0_unknown.py"
+    },
+    "innovation-browser.log": {
+      "command": [
+        "node",
+        "<w0>/innovation_browser.cjs",
+        "<w0>/release-final",
+        "--release"
+      ],
+      "exit": 0,
+      "input": null
+    }
+  }
+}

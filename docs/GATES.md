@@ -150,3 +150,47 @@ Local QA reported **797/798** in a concurrent run. The parser watcher test timed
 
 Five isolated runs of the exact test passed **5/5** on `09d577ac74bcc04ad899bd36ed754e9415e00c5d`. GitHub CI on the same SHA passed **798/798**. The test verifies that the earlier parser stays active after a rejected edit and a corrected edit is committed. W0 classifies the reported timeout as a test timing flake under concurrent load. [Five isolated runs](../loadtest/results/w0-round3/watcher-09d577a/isolated.log) · [CI excerpt](../loadtest/results/w0-round3/watcher-09d577a/github-ci.log) · [GitHub job](https://github.com/yy31104/warsaw-hackathon-2026/actions/runs/44870059138/job/136742336303)
 <!-- w0-watcher-qa-end -->
+
+<!-- w0-final-acceptance-start -->
+## Final acceptance
+
+Fresh isolated Compose project on integrated main `1b82645640736f48f31da6f41945cfae8cd93b0b`. Started 2026-11-21T05:56:00.413640+00:00. Finished 2026-11-21T05:57:50.164596+00:00. Times are UTC. Backend, golden and input-variation evidence was measured on `dd9d4834216f63ded7dabd130ea6b58ea62c1d3f`. The following changes were limited to frontend presentation and browser assertions. The command receipt lists every changed path.
+
+[Exact commands, exit codes and durations](../loadtest/results/w0-round3/final-1b82645640-release-final/suite.json) · [Innovation and release browser commands](../loadtest/results/w0-round3/final-1b82645640-release-final/innovation-commands.json)
+
+| Gate | Status | Observation | Evidence |
+| --- | --- | --- | --- |
+| Fresh clone through first API-visible alert | PASS | Clone to first alert 24.906 s. Compose start to first alert 17.045 s. README sample from clone 25.079 s. Docker layers were cached; project volumes started empty. | [Evidence](../loadtest/results/w0-round3/final-1b82645640-release-final/first-alert.json) |
+| Backend · make test | PASS | 798 passed in 151.00s (0:02:30) | [Evidence](../loadtest/results/w0-round3/final-1b82645640-release-final/backend-tests.log) |
+| Frontend · npm test | PASS | 19 passed (19) | [Evidence](../loadtest/results/w0-round3/final-1b82645640-release-final/frontend-tests.log) |
+| Frontend · lint | PASS | npm run lint | [Evidence](../loadtest/results/w0-round3/final-1b82645640-release-final/frontend-lint.log) |
+| Frontend · production build | PASS | npm run build | [Evidence](../loadtest/results/w0-round3/final-1b82645640-release-final/frontend-build.log) |
+| Golden cases | PASS | 32 PASS, 0 FAIL, 0 NOT_RUN | [Evidence](../loadtest/results/w0-round3/final-1b82645640-release-final/golden.log) |
+| Browser walkthrough | PASS | A · live critical incident and acknowledge PASS, B · Lee approves persisted retry in a separate context PASS, Timeline · one plain row per delivery and raw history in More details PASS, C and F · unknown JSON verified and routed with assist off PASS, D · rule typo suggestion and versioned publish PASS, E · structured runbook validation blocks publish until fixed PASS, On call · preference sliders persist PASS, Health · live counters and dated benchmark provenance PASS, Now · one fallback tile or four live response tiles PASS, Now · four tiles with an example response and a missing sample PASS, Intro · auto-enter and session replay PASS, Screenshots · four layouts across eight views PASS, Network · genuine API, no fixtures or browser errors PASS | [Evidence](../loadtest/results/w0-round3/final-1b82645640-release-final/browser/result.json) |
+| Browser walkthrough · first attempt | FAIL | The shared simulator retained golden receipts after the app reset reused alert IDs. | [Evidence](../loadtest/results/w0-round3/final-1b82645640-release-final/browser-first-attempt.log) |
+| Browser walkthrough · clean retry before harness fix | FAIL | The original test expected dark screenshots in default light sessions. PR #46 corrected the test. The browser check above uses the amended SHA. | [Evidence](../loadtest/results/w0-round3/final-1b82645640-release-final/browser-original-clean-retry.log) |
+| Browser walkthrough · interim screenshot timeout | FAIL | The screenshot sweep on the prior frontend SHA aborted after a request timeout. The final SHA was tested separately. | [Evidence](../loadtest/results/w0-round3/final-1b82645640-release-final/browser-interim-timeout.log) |
+| Release browser checklist | PASS | 8/8 checks passed on `1b82645` before the final clean-stack run. | [Evidence](../loadtest/results/w0-round3/final-1b82645640-release-final/innovation-browser/result.json) |
+| Golden expectations integrity | PASS | Git blob `e8ac783e4f1efae0a9d845d0e60dead75a7acb00` | [Evidence](../loadtest/results/w0-round3/final-1b82645640-release-final/suite.json) |
+| M16 measurements | PASS | 8 deviations plus the control. The table records behavior independently from harness success. | [Evidence](../loadtest/results/w0-round3/final-1b82645640-release-final/m16.json) |
+
+### README input variations
+
+| Change | HTTP | Stored / decision | Observed route |
+| --- | --- | --- | --- |
+| README baseline | 202 | processed / NEW_ALERT | anna / sms |
+| Renamed service field | 202 | processed / UNROUTED | None observed |
+| Upper-case severity | 202 | processed / NEW_ALERT | anna / sms |
+| Epoch seconds | 202 | processed / NEW_ALERT | anna / sms |
+| Extra nesting | 202 | needs_review / NEEDS_REVIEW | None observed |
+| CSV with dotted headers | 202 | needs_review / NEEDS_REVIEW | None observed |
+| Nested XML | 202 | processed / NO_MATCH | None observed |
+| Timestamp without timezone | 202 | processed / NEW_ALERT | anna / sms |
+| Typo in a rule field | 202 | Draft check HTTP 200, publish HTTP 200; cloned rule decision before/after the typo NEW_ALERT / NO_MATCH. The existing Anna rule remains active. | anna / sms |
+
+[Requests, responses, rule checks and decisions](../loadtest/results/w0-round3/final-1b82645640-release-final/m16.json)
+### Release decision
+
+**GO.** The final acceptance gates passed and W0 found no open P0 blocker. The normal delivery p99 target remains a scorecard FAIL and does not gate this release. [Scorecard](SCORECARD.md)
+
+<!-- w0-final-acceptance-end -->

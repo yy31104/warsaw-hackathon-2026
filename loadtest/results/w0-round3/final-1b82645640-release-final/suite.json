@@ -1,0 +1,249 @@
+{
+  "commit": "1b82645640736f48f31da6f41945cfae8cd93b0b",
+  "started_utc": "2026-11-21T05:56:00.413640+00:00",
+  "backend_and_golden_evidence_sha": "dd9d4834216f63ded7dabd130ea6b58ea62c1d3f",
+  "frontend_only_changes": [
+    "frontend/e2e/console.mjs",
+    "frontend/src/console/Incident.tsx",
+    "frontend/src/console/Incidents.tsx",
+    "frontend/src/console/Intro.tsx",
+    "frontend/src/console/Now.tsx",
+    "frontend/src/console/OnCall.tsx",
+    "frontend/src/console/Rules.tsx",
+    "frontend/src/console/Runbooks.tsx",
+    "frontend/src/console/Shell.tsx",
+    "frontend/src/console/Sources.tsx",
+    "frontend/src/console/Tour.tsx",
+    "frontend/src/console/console.css",
+    "frontend/src/console/ui.tsx"
+  ],
+  "golden_expectations_git_blob": "e8ac783e4f1efae0a9d845d0e60dead75a7acb00",
+  "steps": {
+    "pristine-expectations": {
+      "command": [
+        "git",
+        "diff",
+        "--exit-code",
+        "HEAD",
+        "--",
+        "fixtures/golden/expectations.yaml"
+      ],
+      "cwd": "main",
+      "exit": 0,
+      "elapsed_s": 0.011,
+      "executed_at_sha": "dd9d4834216f63ded7dabd130ea6b58ea62c1d3f",
+      "observation": "Verified identical backend, Compose configuration and golden inputs after frontend-only changes"
+    },
+    "uv-sync": {
+      "command": [
+        "uv",
+        "sync",
+        "--frozen"
+      ],
+      "cwd": "main/backend",
+      "exit": 0,
+      "elapsed_s": 0.553,
+      "executed_at_sha": "dd9d4834216f63ded7dabd130ea6b58ea62c1d3f",
+      "observation": "Verified identical backend, Compose configuration and golden inputs after frontend-only changes"
+    },
+    "backend-db": {
+      "command": [
+        "docker",
+        "compose",
+        "-p",
+        "w0f-final-copy",
+        "exec",
+        "-T",
+        "postgres",
+        "createdb",
+        "-U",
+        "alerting",
+        "w0_acceptance"
+      ],
+      "cwd": "main",
+      "exit": 0,
+      "elapsed_s": 0.128,
+      "executed_at_sha": "dd9d4834216f63ded7dabd130ea6b58ea62c1d3f",
+      "observation": "Verified identical backend, Compose configuration and golden inputs after frontend-only changes"
+    },
+    "backend-migrations": {
+      "command": [
+        "<w0>/final-copy/main/backend/.venv/bin/python",
+        "-c",
+        "from pathlib import Path\nimport os, psycopg\nwith psycopg.connect(os.environ['DATABASE_URL']) as c:\n for p in sorted(Path('db/migrations').glob('*.sql')): c.execute(p.read_text())"
+      ],
+      "cwd": "main",
+      "exit": 0,
+      "elapsed_s": 1.866,
+      "executed_at_sha": "dd9d4834216f63ded7dabd130ea6b58ea62c1d3f",
+      "observation": "Verified identical backend, Compose configuration and golden inputs after frontend-only changes"
+    },
+    "backend-tests": {
+      "command": [
+        "make",
+        "test"
+      ],
+      "cwd": "main",
+      "exit": 0,
+      "elapsed_s": 152.312,
+      "executed_at_sha": "dd9d4834216f63ded7dabd130ea6b58ea62c1d3f",
+      "observation": "Verified identical backend, Compose configuration and golden inputs after frontend-only changes"
+    },
+    "golden": {
+      "command": [
+        "<w0>/final-copy/main/backend/.venv/bin/python",
+        "loadtest/golden_runner.py",
+        "--broker",
+        "--log-input",
+        "<w0>/final-copy/logs-input/pricing-engine.log",
+        "--timeout",
+        "30",
+        "--no-write"
+      ],
+      "cwd": "main",
+      "exit": 0,
+      "elapsed_s": 346.482,
+      "executed_at_sha": "dd9d4834216f63ded7dabd130ea6b58ea62c1d3f",
+      "observation": "Verified identical backend, Compose configuration and golden inputs after frontend-only changes"
+    },
+    "matrix-clean": {
+      "command": [
+        "docker",
+        "compose",
+        "-p",
+        "w0f-final-copy",
+        "down",
+        "--volumes"
+      ],
+      "cwd": "main",
+      "exit": 0,
+      "elapsed_s": 3.345,
+      "executed_at_sha": "dd9d4834216f63ded7dabd130ea6b58ea62c1d3f",
+      "observation": "Verified identical backend, Compose configuration and golden inputs after frontend-only changes"
+    },
+    "matrix-up": {
+      "command": [
+        "docker",
+        "compose",
+        "-p",
+        "w0f-final-copy",
+        "up",
+        "-d",
+        "--wait"
+      ],
+      "cwd": "main",
+      "exit": 0,
+      "elapsed_s": 13.95,
+      "executed_at_sha": "dd9d4834216f63ded7dabd130ea6b58ea62c1d3f",
+      "observation": "Verified identical backend, Compose configuration and golden inputs after frontend-only changes"
+    },
+    "matrix": {
+      "command": [
+        "/opt/homebrew/opt/python@3.12/bin/python3.12",
+        "<w0>/m16.py",
+        "--run",
+        "<w0>/final-copy"
+      ],
+      "cwd": "main",
+      "exit": 0,
+      "elapsed_s": 2.503,
+      "executed_at_sha": "dd9d4834216f63ded7dabd130ea6b58ea62c1d3f",
+      "observation": "Verified identical backend, Compose configuration and golden inputs after frontend-only changes"
+    },
+    "unchanged-expectations": {
+      "command": [
+        "git",
+        "diff",
+        "--exit-code",
+        "HEAD",
+        "--",
+        "fixtures/golden/expectations.yaml"
+      ],
+      "cwd": "main",
+      "exit": 0,
+      "elapsed_s": 0.021,
+      "executed_at_sha": "dd9d4834216f63ded7dabd130ea6b58ea62c1d3f",
+      "observation": "Verified identical backend, Compose configuration and golden inputs after frontend-only changes"
+    },
+    "frontend-lint": {
+      "command": [
+        "npm",
+        "run",
+        "lint"
+      ],
+      "cwd": "main/frontend",
+      "executed_at_sha": "1b82645640736f48f31da6f41945cfae8cd93b0b",
+      "exit": 0,
+      "elapsed_s": 1.07
+    },
+    "frontend-tests": {
+      "command": [
+        "npm",
+        "test"
+      ],
+      "cwd": "main/frontend",
+      "executed_at_sha": "1b82645640736f48f31da6f41945cfae8cd93b0b",
+      "exit": 0,
+      "elapsed_s": 1.631
+    },
+    "frontend-build": {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "cwd": "main/frontend",
+      "executed_at_sha": "1b82645640736f48f31da6f41945cfae8cd93b0b",
+      "exit": 0,
+      "elapsed_s": 3.65
+    },
+    "browser-original-clean-retry": {
+      "command": [
+        "npm",
+        "run",
+        "test:console"
+      ],
+      "exit": 1,
+      "seconds": 3.325,
+      "commit": "09d577ac74bcc04ad899bd36ed754e9415e00c5d",
+      "observation": "The original test expected dark screenshots in default light sessions."
+    },
+    "browser-interim-timeout": {
+      "command": [
+        "npm",
+        "run",
+        "test:console"
+      ],
+      "exit": 1,
+      "seconds": 41.186,
+      "commit": "dd9d4834216f63ded7dabd130ea6b58ea62c1d3f",
+      "observation": "API request timed out in the screenshot sweep. Isolated PostgreSQL logs recorded statement timeouts in this interval."
+    },
+    "browser-first-attempt": {
+      "command": [
+        "npm",
+        "run",
+        "test:console"
+      ],
+      "cwd": "main/frontend",
+      "exit": 1,
+      "elapsed_s": 2.52,
+      "commit": "09d577ac74bcc04ad899bd36ed754e9415e00c5d",
+      "observation": "Golden reset reused alert IDs while the fake telecom retained its prior synthetic receipts. Scenario A compared links by alert ID against that shared receipt store."
+    },
+    "browser": {
+      "command": [
+        "npm",
+        "run",
+        "test:console"
+      ],
+      "cwd": "main/frontend",
+      "exit": 0,
+      "elapsed_s": 19.772,
+      "observation": "Same frozen SHA, independent fresh Compose project and receipt store",
+      "environment": "browser-clean-receipt.json"
+    }
+  },
+  "finished_utc": "2026-11-21T05:57:50.164596+00:00",
+  "first_pass_finished_utc": "2026-11-21T05:56:42.248433+00:00"
+}

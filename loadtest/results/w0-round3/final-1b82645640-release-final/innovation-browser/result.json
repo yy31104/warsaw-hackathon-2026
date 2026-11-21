@@ -1,0 +1,86 @@
+{
+  "commit": "1b82645640736f48f31da6f41945cfae8cd93b0b",
+  "cases": {
+    "decision-stability": {
+      "status": "PASS",
+      "event_id": 9,
+      "status_from_api": "VARIANT",
+      "critical_possible": true,
+      "evaluated": 4,
+      "total": 4,
+      "quiet_branch_selected": true,
+      "critical_warning_remained": true,
+      "event_status": "needs_review"
+    },
+    "policy-optimizer": {
+      "status": "PASS",
+      "rule_id": "optimizer-demo-warning",
+      "baseline_night": 18,
+      "candidate_night": 4,
+      "protected_violations": 0,
+      "protected_cases": 14,
+      "synthetic_seed_events": 18
+    },
+    "unknown-outcome": {
+      "status": "PASS",
+      "alert_id": 6,
+      "run_id": 2,
+      "status_from_api": "succeeded"
+    },
+    "proposal-optimizer": {
+      "status": "PASS",
+      "proposal_id": 1,
+      "evaluated_candidates": 5,
+      "persisted_status": "open"
+    },
+    "now-ack": {
+      "status": "PASS",
+      "alert_id": 5,
+      "actor": "sam",
+      "stored_status": "acknowledged"
+    },
+    "on-call-preference": {
+      "status": "PASS",
+      "prior_rows": 2,
+      "saved_rows": 3,
+      "added_severity": "warning",
+      "after_reload": true
+    },
+    "guided-intro-and-tour": {
+      "status": "PASS",
+      "intro_manual_navigation": "/rules",
+      "tour_stops": 6,
+      "tour_closed": true
+    },
+    "themes-and-phone": {
+      "status": "PASS",
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "mobile_width": 375,
+      "mobile_pages": {
+        "/": {
+          "viewport": 375,
+          "document": 375
+        },
+        "/incidents": {
+          "viewport": 375,
+          "document": 375
+        },
+        "/sources": {
+          "viewport": 375,
+          "document": 375
+        },
+        "/rules": {
+          "viewport": 375,
+          "document": 375
+        },
+        "/oncall": {
+          "viewport": 375,
+          "document": 375
+        }
+      }
+    }
+  }
+}

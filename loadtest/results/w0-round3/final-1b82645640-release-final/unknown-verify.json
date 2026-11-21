@@ -1,0 +1,17 @@
+{
+  "workflow": "W0-UNKNOWN-f760fb0c",
+  "alert": 5,
+  "incident_path": "/a/5#runbook",
+  "run_id": 1,
+  "action_key": "action-1",
+  "visible_before": "unknown",
+  "confirmed_retry_http": 409,
+  "actual_receiver_state": "succeeded",
+  "receiver_attempt_count": 1,
+  "mode": "verify",
+  "elapsed_until_unknown_seconds": 3.063,
+  "reconciled_as": "lee",
+  "state_after": "succeeded",
+  "receipt_unchanged": true,
+  "status": "PASS"
+}
