@@ -3,7 +3,7 @@ import re
 from collections import Counter
 from collections.abc import Iterator
 
-from alerting.assist.parser_validation import MAX_PATTERN
+from alerting.ingest.regex_safety import MAX_PATTERN
 
 _KEY = r"\w[\w.-]*"
 _TIMESTAMP = r"\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}\S*"

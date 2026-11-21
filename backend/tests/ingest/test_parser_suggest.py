@@ -13,6 +13,7 @@ from alerting.ingest.normalize import parse_log_line
 
 
 ENDPOINT = "/v1/sources/tray-reader/parser/suggest"
+
 PRICING_DRAFT = {
     "pattern": r"^(?P<stamp>\S+)\s+(?P<level>[A-Z]+)\s+(?P<reader>\S+)\s+(?P<pairs>.*)$",
     "field_names": ["stamp", "level", "reader", "pairs"],
@@ -168,4 +169,12 @@ async def test_only_registered_log_sources_can_request_a_suggestion(parser_clien
 async def test_rejects_sample_counts_outside_the_public_range(parser_client, provider, count):
     response = await parser_client.post(ENDPOINT, json={"lines": [PRICING_LINES[0]] * count})
     assert response.status_code == 422, response.text
+    provider.assert_not_awaited()
+
+
+async def test_oversized_physical_sample_is_rejected_before_model_call(parser_client, provider):
+    # Include the line terminator in the byte budget, just as in live logfile ingest.
+    result = await parser_client.post(ENDPOINT, json={"lines": ["x" * 16384 + "\n"]})
+    assert result.status_code == 422
+    assert "line too long for the configured parser" in result.text
     provider.assert_not_awaited()

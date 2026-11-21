@@ -11,6 +11,8 @@ from typing import Any
 
 import yaml
 
+from alerting.ingest.regex_safety import validate_source_patterns
+
 CONFIG_DIR = Path(os.getenv("CONFIG_DIR", Path(__file__).resolve().parents[3] / "config"))
 
 
@@ -20,7 +22,7 @@ def _load(name: str) -> dict[str, Any]:
 
 
 def sources() -> list[dict[str, Any]]:
-    return _load("sources.yaml").get("sources", [])
+    return validate_source_patterns(_load("sources.yaml").get("sources", []))
 
 
 def schemas() -> list[dict[str, Any]]:

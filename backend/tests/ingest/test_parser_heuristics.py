@@ -76,10 +76,11 @@ def test_plain_delimiters_preserve_values_and_require_the_same_column_count(deli
 
 
 def test_width_uses_the_available_pattern_budget():
-    line = ",".join(f"v{i}" for i in range(20))
+    line = ",".join(f"v{i}" for i in range(12))
     parser = next(iter(heuristic_candidates([line])))
-    assert len(parser["pattern"]) <= 512
-    assert parse_log_line(line, parser)["field_20"] == "v19"
+    assert len(parser["pattern"]) <= 300
+    assert parse_log_line(line, parser)["field_12"] == "v11"
+    assert list(heuristic_candidates([line + ",extra"])) == []
     assert list(heuristic_candidates([",".join(["v"] * 70)])) == []
 
 

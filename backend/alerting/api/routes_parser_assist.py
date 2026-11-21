@@ -9,6 +9,7 @@ from alerting.assist.parser_suggest import ParserDraft, check_drafts, model_draf
 from alerting.config import loader
 from alerting.db import pool
 from alerting.ingest.normalize import MAX_BYTES
+from alerting.ingest.regex_safety import check_line_size
 
 router = APIRouter(tags=["sources"])
 
@@ -23,6 +24,7 @@ class ParserSamples(BaseModel):
         for line in lines:
             if len(line.encode("utf-8")) > MAX_BYTES:
                 raise ValueError("each sample line must be at most 256 KiB")
+            check_line_size(line)
             record = line.removesuffix("\n").removesuffix("\r")
             if "\n" in record or "\r" in record or "\0" in record:
                 raise ValueError("provide one physical log line per array entry")

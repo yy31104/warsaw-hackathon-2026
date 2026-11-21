@@ -2,105 +2,16 @@
 import multiprocessing
 import re
 from contextlib import ExitStack
-from re import _compiler, _parser
 from threading import BoundedSemaphore
 from time import monotonic
 
 from alerting.ingest.normalize import InvalidEvent, parse_log_line
+from alerting.ingest.regex_safety import MAX_PATTERN, check_line_size, is_safe_pattern
 
-MAX_PATTERN = 512
-_MAX_EXPLICIT_REPEAT = 512
 _LINE_SECONDS = 0.05
 _STARTUP_SECONDS = 5
 _ADMISSION_SECONDS = 0.5
 _SLOTS = BoundedSemaphore(2)
-_SINGLE = {_parser.LITERAL, _parser.NOT_LITERAL, _parser.IN, _parser.ANY}
-_REPEAT = {_parser.MAX_REPEAT, _parser.MIN_REPEAT, _parser.POSSESSIVE_REPEAT}
-_START_ANCHORS = {_parser.AT_BEGINNING, _parser.AT_BEGINNING_STRING}
-_END_ANCHORS = {_parser.AT_END, _parser.AT_END_STRING}
-# With ASCII literals/ranges, Unicode categories can only distinguish four
-# additional kinds of character: space, decimal, other word, and non-word.
-_ALPHABET = frozenset(map(chr, range(128))) | frozenset("　٣é☃")
-
-
-def _alphabet(state, atom):
-    op, arg = atom
-    members = arg if op is _parser.IN else [atom]
-    for kind, value in members:
-        if kind in {_parser.LITERAL, _parser.NOT_LITERAL} and value > 127:
-            return _ALPHABET
-        if kind is _parser.RANGE and value[1] > 127:
-            return _ALPHABET
-    matcher = _compiler.compile(_parser.SubPattern(state, [atom]), state.flags)
-    return {char for char in _ALPHABET if matcher.fullmatch(char)}
-
-
-def _pieces(tokens):
-    for op, arg in tokens:
-        if op is _parser.SUBPATTERN:
-            _, add_flags, del_flags, body = arg
-            if add_flags or del_flags:
-                raise ValueError
-            yield from _pieces(body)
-        elif op in _SINGLE:
-            yield (op, arg), 1, 1, False
-        elif op in _REPEAT:
-            lo, hi, body = arg
-            if lo > _MAX_EXPLICIT_REPEAT or (hi != _parser.MAXREPEAT and hi > _MAX_EXPLICIT_REPEAT):
-                raise ValueError
-            inner = list(_pieces(body))
-            if len(inner) != 1 or len(body) != 1:
-                raise ValueError
-            atom, inner_min, inner_max, _ = inner[0]
-            if body.getwidth() == (1, 1):
-                yield atom, lo, hi, op is _parser.POSSESSIVE_REPEAT
-            elif (lo, hi) == (0, 1) and inner_min > 0 and inner_max > 1:
-                # An optional capture of one nonempty character run, e.g. (\w+)?.
-                yield atom, 0, inner_max, False
-            else:
-                raise ValueError
-        elif op is _parser.BRANCH:
-            # Literal alternatives with distinct initials have a single possible branch.
-            branches = arg[1]
-            if not all(b and all(k is _parser.LITERAL for k, _ in b) for b in branches):
-                raise ValueError
-            initials = [b[0] for b in branches]
-            if len(set(initials)) != len(initials):
-                raise ValueError
-            yield (_parser.IN, initials), 1, 1, False
-        else:
-            raise ValueError
-
-
-def _safe_pattern(pattern):
-    parsed = _parser.parse(pattern, 0)
-    if parsed.state.flags & re.IGNORECASE:
-        return False
-    tokens = list(parsed)
-    if tokens and tokens[0][0] is _parser.AT and tokens[0][1] in _START_ANCHORS:
-        tokens.pop(0)
-    if tokens and tokens[-1][0] is _parser.AT and tokens[-1][1] in _END_ANCHORS:
-        tokens.pop()
-    try:
-        pieces = list(_pieces(tokens))
-    except ValueError:
-        return False
-    # A variable-width run needs a delimiter it cannot consume. A terminal
-    # wildcard can consume the rest of any physical log line. Possessive
-    # repetitions already commit to one boundary.
-    for i, (atom, lo, hi, possessive) in enumerate(pieces[:-1]):
-        if lo == hi or possessive:
-            continue
-        consumed = _alphabet(parsed.state, atom)
-        for j in range(i + 1, len(pieces)):
-            following, minimum, maximum, _ = pieces[j]
-            if j == len(pieces) - 1 and following[0] is _parser.ANY and maximum == _parser.MAXREPEAT:
-                break
-            if consumed & _alphabet(parsed.state, following):
-                return False
-            if minimum:
-                break
-    return True
 
 
 def _worker(connection, pattern, kv_group):
@@ -131,20 +42,21 @@ def validate_candidate(pattern: str, field_names: list[str], kv_group: str | Non
     rows = [None] * len(lines)
     if not lines:
         return rows, "Provide at least one sample line."
-    if len(pattern) > MAX_PATTERN:
-        return rows, f"The parser pattern exceeds {MAX_PATTERN} characters."
+    valid, reason = is_safe_pattern(pattern)
+    if not valid:
+        return rows, reason
     try:
-        compiled = re.compile(pattern)
-        names = compiled.groupindex.keys()
-        if (not names or compiled.groups != len(names)
-                or names != set(field_names) or len(names) != len(field_names)):
-            return rows, "Declare each named capture exactly once in field_names."
-        if kv_group is not None and kv_group not in names:
-            return rows, "kv_group must name a declared capture."
-        if not _safe_pattern(pattern):
-            return rows, "Use simple character classes and unambiguous separators in the parser."
-    except (ValueError, re.error, OverflowError, RecursionError):
-        return rows, "The parser pattern could not be compiled as a Python regular expression."
+        for line in lines:
+            check_line_size(line)
+    except (InvalidEvent, UnicodeError) as exc:
+        return rows, str(exc)
+    compiled = re.compile(pattern)
+    names = compiled.groupindex.keys()
+    if (not names or compiled.groups != len(names)
+            or names != set(field_names) or len(names) != len(field_names)):
+        return rows, "Declare each named capture exactly once in field_names."
+    if kv_group is not None and kv_group not in names:
+        return rows, "kv_group must name a declared capture."
 
     empty_capture = False
     with ExitStack() as cleanup:

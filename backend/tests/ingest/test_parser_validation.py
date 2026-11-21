@@ -50,7 +50,6 @@ def test_invalid_syntax_or_declarations_fail_closed(pattern, names, kv_group):
 @pytest.mark.parametrize(("pattern", "missing"), [
     (r"item:(?P<value>\w*)", "item:"),
     (r"item:(?P<value>x)?", "item:"),
-    (r"item:(?P<value>\w+)?", "item:"),
 ])
 def test_an_empty_or_absent_capture_rejects_even_at_eighty_percent(pattern, missing):
     rows, reason = validation.validate_candidate(pattern, ["value"], None, ["item:x"] * 4 + [missing])
@@ -60,6 +59,7 @@ def test_an_empty_or_absent_capture_rejects_even_at_eighty_percent(pattern, miss
 
 @pytest.mark.parametrize("pattern", [
     r"(?P<sensor>\w+):(?P=sensor)",
+    r"(?P<sensor>\w+)?",
     r"(?P<sensor>\w+)\b.*",
     r"(?P<sensor>\s+).*\b$",
     r"(?P<sensor>(?:north|west)+)",
@@ -77,11 +77,14 @@ def test_unsupported_complexity_is_rejected_before_starting_a_worker(pattern, mo
     assert reason
 
 
-def test_preview_can_return_a_field_larger_than_the_ipc_buffer():
-    sample = "m" * (256 * 1024)
+def test_preview_can_return_the_full_permitted_utf8_field():
+    sample = "é" * (8 * 1024)
     rows, reason = validation.validate_candidate(r"\A(?P<note>.+)\Z", ["note"], None, [sample])
     assert reason is None
     assert rows == [{"note": sample}]
+    rows, reason = validation.validate_candidate(r"\A(?P<note>.+)\Z", ["note"], None, [sample + "x"])
+    assert rows == [None]
+    assert reason
 
 
 def test_busy_validator_has_a_bounded_admission_wait(monkeypatch):

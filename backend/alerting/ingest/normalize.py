@@ -11,6 +11,7 @@ from sys import get_int_max_str_digits
 from typing import Any
 
 from alerting.contracts import CanonicalEvent, Severity
+from alerting.ingest.regex_safety import safe_fullmatch
 from alerting.rules.dsl import compile as compile_match, number
 from alerting.templates import lookup, render, variables
 
@@ -41,7 +42,7 @@ def decode_json(body: bytes) -> Any:
 def parse_log_line(line: str, parser: dict) -> dict:
     if len(line.encode("utf-8")) > MAX_BYTES:
         raise InvalidEvent("log line exceeds 256 KiB")
-    match = re.fullmatch(parser["pattern"], line.rstrip("\r\n"))
+    match = safe_fullmatch(parser["pattern"], line)
     if not match:
         raise InvalidEvent("log line does not match the configured parser")
     fields = match.groupdict()
