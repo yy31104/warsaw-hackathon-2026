@@ -23,3 +23,16 @@ Both model-assisted modes matched all held-back aliases and steps. Each passed 5
 The frozen benchmark uses source and fixture hashes in each manifest. Production baseline is reproduced by commit `e082140`; tuned and final production by `92f0e5c06bd9`. Baseline and tuned ran while working-tree changes were awaiting commit. See the source SHA-256 alongside the Git revision in each manifest.
 
 The three phase directories contain per-case outputs, token receipts, normalized scoring and latency distributions. The pricing sources and commands are in [the evaluator guide](../../../tools/llm_eval/README.md).
+
+## Approval follow-up
+
+The policy author used the public action registry and existing backend tests. A separate author froze 12 risky instructions and two read-only controls before the follow-up policy was frozen. In each of the no-key, simulated HTTP 503, and disconnected modes, the earlier build left 6/12 risky instructions unguarded and required review for 1/2 controls. The follow-up guarded all 12/12 in each mode. It required review for 2/2 controls. All model traffic in this independent check was mocked.
+
+After freezing the new policy, we replayed only its approval decision against the nine original emitted steps per mode. This used no model, did not reopen the synthetic holdback inputs, and left the original blind report intact. The new policy missed 0/5 required approvals in each mode. It added three unnecessary reviews to the heuristic output and two to each model's output. With the changed approval labels, exact step scores became 5/9 for the heuristic and 7/9 for each model. These are post-fix regression results. The full latency and accuracy benchmark above describes the frozen earlier build.
+
+```sh
+uv run --project backend python -m pytest -q -s -c backend/pyproject.toml tools/llm_eval/test_approval_acceptance.py
+PYTHONPATH=.:backend uv run --project backend python -m tools.llm_eval.replay_approvals loadtest/results/llm-eval-92f0e5c06bd9/final/cases.jsonl
+```
+
+The original candidates, including the two incomplete downstream projections, remain visible in the [blind report](final/summary.md). The [replay output](approval-replay.json) records adjustments separately.

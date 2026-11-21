@@ -57,6 +57,23 @@ _VERBS = {
     "call_webhook": r"call|post|invoke",
     "open_ticket": r"open|create|file",
 }
+# Treat registry operations requiring approval the same way when their parameters cannot be grounded.
+_APPROVAL_VERBS = re.compile(
+    r"(?<![\w-])(?:" + "|".join(_VERBS.get(name, re.escape(name)) for name, action in REGISTRY.items()
+                                 if action.default_approval == "required") + r")(?![\w-])", re.IGNORECASE
+)
+_EVIDENCE = r"alerts?|comments?|counts?|dashboards?|errors?|events?|graphs?|health|history|incidents?|logs?|metrics?|notes?|queues?|reports?|status|timestamps?|traces?"
+_MODIFIER = rf"a|an|the|its|this|current|recent|latest|last|existing|service|system|workflow|operator|{_EVIDENCE}|\d+"
+# One resource per noun phrase allows new field/source names without accepting a trailing instruction.
+_OBJECT = rf"(?:(?:{_MODIFIER})\s+)*{_TARGET}"
+_OBSERVATION = re.compile(
+    rf"(?:(?:please\s+)?(?:capture|check|compare|document|examine|inspect|list|look at|measure|monitor|"
+    rf"note|observe|read|record|review|verify|view|watch)\s+{_OBJECT}"
+    rf"|(?:(?:a|an|another)\s+)?(?:(?:brief|general|generic|harmless|informational|manual|operator|reference|"
+    rf"routine|short|simple)\s+)*(?:note|observation|comment))"
+    rf"(?:\s+(?:about|against|at|for|from|in|of|on)\s+{_OBJECT})*", re.IGNORECASE
+)
+_EVIDENCE_ONLY = re.compile(rf"(?:(?:{_MODIFIER})\s+)*(?:{_EVIDENCE})", re.IGNORECASE)
 
 
 def _instructions(text):
@@ -110,9 +127,31 @@ def _fallback(text):
     return None, {}
 
 
+def approval_for(text: str, action: str | None = None) -> str:
+    """Apply the same approval policy to heuristic, model-assisted and manually retained steps."""
+    if _RISKY.search(text) or _APPROVAL_VERBS.search(text):
+        return "required"
+    if action is not None:
+        handler = REGISTRY.get(action)
+        if handler is None or handler.default_approval == "required" or _MANUAL.search(text):
+            return "required"
+        if re.search(r"[;,|\n]|&&|[.!?]\s+\w|\b(?:then|also|while)\b", text, re.IGNORECASE):
+            return "required"
+        # A model may extract one allowed operation from a longer, unrecognized instruction.
+        # An ungated execution must account for the entire step and its grounded target.
+        explicit = re.sub(r"^(please\s+)?probe\b", r"\1get", text, flags=re.IGNORECASE) if action == "http_get" else text
+        return "none" if _fallback(explicit)[0] == action else "required"
+    # Only complete, observational clauses can be presented as ungated manual work.
+    clauses = re.split(r"\s+(?:and|or)\s+|\s*;\s*", text.strip().rstrip(".!?"), flags=re.IGNORECASE)
+    if _OBSERVATION.fullmatch(clauses[0]) and all(
+        _OBSERVATION.fullmatch(clause) or _EVIDENCE_ONLY.fullmatch(clause) for clause in clauses[1:]
+    ):
+        return "none"
+    return "required"
+
+
 def _step(text, action, params):
-    required = _RISKY.search(text) or (action and REGISTRY[action].default_approval == "required")
-    step = {"text": text, "approval": "required" if required else "none"}
+    step = {"text": text, "approval": approval_for(text, action)}
     return {**step, "action": action, **params} if action else step
 
 
