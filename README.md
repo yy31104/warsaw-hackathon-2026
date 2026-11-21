@@ -16,7 +16,7 @@
 [![Critical p99](https://img.shields.io/badge/Critical_p99-0.356_s-C6613F?style=flat-square&labelColor=141D1A)](docs/SCORECARD.md)
 [![Tests](https://img.shields.io/badge/Tests-798_%C2%B7_19_%C2%B7_32_golden-C6613F?style=flat-square&labelColor=141D1A)](docs/GATES.md)
 
-500 repeated warnings shouldn't wake anyone up 500 times. One critical failure should never be missed.
+500 repeated warnings become one incident. Critical failures get a dedicated path to the on-call team.
 
 Alert Funnel takes events from many systems and formats, decides which ones matter, notifies the right person on the channel they prefer, and guides a safe response. It was built in 18 hours for the Goldman Sachs Warsaw Hackathon 2026 (*Flexible Alerting & Notification Service*). Phone, SMS, email and operational actions go to local simulators, never to real people or systems.
 
