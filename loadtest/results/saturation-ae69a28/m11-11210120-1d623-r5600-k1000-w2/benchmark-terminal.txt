@@ -1,0 +1,25 @@
+RUN ID m11-11210120-1d623-r5600-k1000-w2
+2026-11-21T01:56:44.881758+00:00
+> docker compose --ansi never -p m11-11210120-1d623-r5600-k1000-w2 -f "D:\my project\高盛\dev2-m11-saturation\docker-compose.yml" -f "D:\my project\高盛\dev2-m11-saturation\loadtest\results\saturation-ae69a28\compose.measurement.json" run --rm -T --no-deps --name m11-11210120-1d623-r5600-k1000-w2-generator --volume "D:\my project\高盛\dev2-m11-saturation\loadtest:/app/loadtest:ro" --volume "D:\my project\高盛\dev2-m11-saturation\fixtures:/app/fixtures:ro" --volume "D:\my project\高盛\dev2-m11-saturation\loadtest\results\saturation-ae69a28\m11-11210120-1d623-r5600-k1000-w2:/bench-output" rule-worker python -m loadtest.saturation_trial --output /bench-output --run-id m11-11210120-1d623-r5600-k1000-w2 --tag m11-k1000-r5600 --duration 60 --drain-seconds 20 --normal-workers 2 --normal-rate 5600 --normal-keys 1000 --ingest-workers 1 --critical-rate 2 --max-in-flight 2000
+
+ Container m11-11210120-1d623-r5600-k1000-w2-generator Creating 
+ Container m11-11210120-1d623-r5600-k1000-w2-generator Created 
+RUN ID m11-11210120-1d623-r5600-k1000-w2
+Offer 5,600 normal/s + 2/s critical for 60s | 2 normal workers | 1,000 normal keys
+Offer started. Backlog samples below are live.
+   0.0s | accepted       0  processed       0  broker ready       0  DB pending       0
+  10.2s | accepted  35,613  processed   9,812  broker ready  21,262  DB pending  25,801
+  20.4s | accepted  71,840  processed  21,025  broker ready  42,240  DB pending  50,815
+  30.7s | accepted 109,162  processed  32,238  broker ready  62,779  DB pending  76,924
+  41.0s | accepted 145,544  processed  43,051  broker ready  83,564  DB pending 102,493
+  51.2s | accepted 179,491  processed  53,464  broker ready 104,657  DB pending 126,027
+  61.5s | accepted 215,491  processed  65,276  broker ready 118,331  DB pending 150,215
+  71.9s | accepted 254,124  processed  77,090  broker ready  79,768  DB pending 177,034
+RUN ID m11-11210120-1d623-r5600-k1000-w2 | PASS measurement
+Inside offer: 3,501.5 ingested/s, 1,057.9 processed/s.
+Confirmed 333,919/336,120 | dropped 2,201 | publish errors 0 | rejected 0
+Pipeline backlog growing | peak 268,546 | verified phone/SMS 2,202/2,240
+Normal p50/p95/p99 (ms): 28957/49275/50735  N=2000
+Critical p50/p95/p99 (ms): 14863/27717/28604  N=202
+
+Exit code 0
