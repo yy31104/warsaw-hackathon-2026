@@ -20,5 +20,6 @@ BEGIN
     END IF;
 END
 $check$;
+\ir ../db/migrations/137_rule_path_samples.sql
 \ir ../db/migrations/215_log_tail_checkpoints.sql
 COMMIT;

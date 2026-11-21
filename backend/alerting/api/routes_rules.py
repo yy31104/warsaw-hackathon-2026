@@ -7,7 +7,7 @@ from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, Field, StringConstraints
 
-from alerting.api.routes_rule_assist import router as assist_router
+from alerting.api.routes_rule_assist import router as assist_router, rule_path_problems
 from alerting.config import loader
 from alerting.config.access import actor_header, actor_teams, can_manage, config_write, require_actor, require_owner
 from alerting.config.store import ConfigError, audit, get_object, require_current_version, write_object
@@ -40,6 +40,11 @@ async def publish_rule(conn, draft, actor, directory, *, current):
     return public_rule(saved)
 
 
+async def field_advice(db, rule, schemas):
+    problems = await rule_path_problems(db, rule, schemas)
+    return {"warnings": problems, "problems": problems}
+
+
 @router.post("/rules", status_code=201)
 async def create_rule(draft: RuleDraft, actor=Depends(actor_header), db=Depends(pool)):
     async with config_write(db) as (conn, snapshot):
@@ -47,7 +52,8 @@ async def create_rule(draft: RuleDraft, actor=Depends(actor_header), db=Depends(
         if current:
             reason = "This rule is managed in a configuration file" if current.origin == "file" else "Rule ID already exists"
             raise ConfigError(409, reason)
-        return await publish_rule(conn, draft, actor, snapshot.directory, current=None)
+        saved = await publish_rule(conn, draft, actor, snapshot.directory, current=None)
+    return {**saved, **await field_advice(db, saved, snapshot.schemas)}
 
 
 @router.put("/rules/{id}")
@@ -62,7 +68,8 @@ async def update_rule(id: str, draft: RuleDraft, actor=Depends(actor_header), db
             raise ConfigError(404, "Rule not found")
         require_owner(actor, current.spec.get("owner"), snapshot.directory)
         require_current_version(current, draft.version)
-        return await publish_rule(conn, draft, actor, snapshot.directory, current=current)
+        saved = await publish_rule(conn, draft, actor, snapshot.directory, current=current)
+    return {**saved, **await field_advice(db, saved, snapshot.schemas)}
 
 
 class ProposalInput(BaseModel):
@@ -139,21 +146,26 @@ async def approve_proposal(id: int, body: ProposalApproval | None = None,
         if proposal["team_id"] and proposal["team_id"] not in actor_teams(actor, snapshot.directory):
             raise HTTPException(403, "The proposal belongs to a different team")
         if proposal["status"] == "approved":
-            return public_proposal(proposal, current.spec)
-        if proposal["status"] != "open" or current.origin == "file":
-            raise HTTPException(409, "The proposal cannot modify the current rule")
-        require_current_version(current, proposal["base_version"])
-        draft = body.draft if body else None
-        if draft is None and proposal["draft"]:
-            draft = RuleDraft.model_validate(proposal["draft"])
-        if draft is None or draft.id != proposal["rule_id"]:
-            raise HTTPException(422, "Review a draft for this rule before approving")
-        require_current_version(current, draft.version)
-        saved = await publish_rule(conn, draft, actor, snapshot.directory, current=current)
-        await cur.execute("""
-            update rule_proposals set status='approved',decided_by=%s,decided_at=now(),draft=%s,
-            approved_version=%s where id=%s returning *
-        """, (actor, Jsonb(draft.spec()), saved["version"], id))
-        result = await cur.fetchone()
-        await audit(conn, actor, "proposal.approve", "proposal", id, {"version": saved["version"]})
-        return {**public_proposal(result, saved), "saved_rule": saved}
+            result = public_proposal(proposal, current.spec)
+        else:
+            if proposal["status"] != "open" or current.origin == "file":
+                raise HTTPException(409, "The proposal cannot modify the current rule")
+            require_current_version(current, proposal["base_version"])
+            draft = body.draft if body else None
+            if draft is None and proposal["draft"]:
+                draft = RuleDraft.model_validate(proposal["draft"])
+            if draft is None or draft.id != proposal["rule_id"]:
+                raise HTTPException(422, "Review a draft for this rule before approving")
+            require_current_version(current, draft.version)
+            saved = await publish_rule(conn, draft, actor, snapshot.directory, current=current)
+            await cur.execute("""
+                update rule_proposals set status='approved',decided_by=%s,decided_at=now(),draft=%s,
+                approved_version=%s where id=%s returning *
+            """, (actor, Jsonb(draft.spec()), saved["version"], id))
+            result = public_proposal(await cur.fetchone(), saved)
+            result["saved_rule"] = saved
+            await audit(conn, actor, "proposal.approve", "proposal", id, {"version": saved["version"]})
+    advice = await field_advice(db, result["draft"], snapshot.schemas)
+    if "saved_rule" in result:
+        result["saved_rule"].update(advice)
+    return {**result, **advice}
