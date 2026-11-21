@@ -187,3 +187,9 @@ The core chain comes first: RabbitMQ → inbox, fake-telecom and SSE are still t
 
 ## Round 3 (Sat 01:00) — mentor feedback; PRs open by 06:00
 Your items in [IMPROVEMENTS.md](../IMPROVEMENTS.md) Round 3, in order: **M11** saturation test (start it first; it runs while you code), **M6** input formats, **M8** problem shape + **M9** runbook lint, **M7** forgiving fields, **M13** response-metrics API, **M10** version restore API, **M14** replay-storm measurement. One PR per item or per pair.
+
+### Round 3b (Sat 02:45)
+- **Push what you have now** and open PRs; nothing of Round 3 is on `main` yet.
+- **M7 corrected:** ranks such as `SEV1`, `P1` or `high` are never mapped silently. Onboarding suggests a map and a person confirms it.
+- **M13 widened:** add time to awareness, routing failures and noise.
+- **New: M18** schema drift into `schema_issues`.

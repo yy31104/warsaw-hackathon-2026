@@ -228,3 +228,8 @@ W0 merged the assigned windows in the agreed order, W3 [#11](https://github.com/
 ## Round 3 (Sat 01:00) — mentor feedback; PRs open by 06:00
 Your items in [IMPROVEMENTS.md](../IMPROVEMENTS.md) Round 3, in order: **M1** cross-person approval (backend), **M2** OpenAI provider adapter + `/assist/status`, **M3** LLM eval, **M4** "did you mean", **M5** "what happens next", **M12** `SCALING.md` (after daizhongtian's M11 lands), **M16** forgiveness matrix (W0, on final `main`).
 Suggested windows: W2 → M1 · W3 → M2, then M3 · W1 → M4, then M5 · W0 → merges, then M12 and M16.
+
+### Round 3b (Sat 02:45)
+- **M17** (bug a judge can see): render the runbook excerpt with the event's fields before masking and truncation.
+- Default model is `gpt-6.2-sol` (CONTRACT §11).
+- Then W0 only: merge, run final gates, and write `SCALING.md` once M11 lands.
