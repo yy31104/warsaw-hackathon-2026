@@ -1,3 +1,4 @@
+import {inTeam} from '../permissions';
 import {useState, type CSSProperties} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
@@ -106,10 +107,10 @@ export function Now() {
         {heroDetail.data && (heroDetail.data.next_escalation || heroDetail.data.status !== 'open')
           && <EscalationRing incident={heroDetail.data} directory={directory}/>}
         <div className="cf-actions">
-          <button className="cf-btn primary" disabled={acknowledge.isPending} onClick={() => acknowledge.mutate(hero.id)}>
+          <button className="cf-btn primary" disabled={acknowledge.isPending || !inTeam(hero.team_id, actor, false, directory)} onClick={() => acknowledge.mutate(hero.id)}>
             <Icon name="check"/>Acknowledge
           </button>
-          <Link className="cf-btn" to={`/a/${hero.id}`}>Open</Link>
+          <Link className="cf-btn" to={`/a/${hero.id}`}>View incident</Link>
         </div>
       </div>
     </Card> : open.isSuccess ? <Card className="cf-all-handled">
@@ -140,10 +141,12 @@ export function Now() {
       </Card>
       <div className="cf-stack">
         <Card title="Waiting for approval" meta={pending.isSuccess ? `${pending.data.pending_approval_count} · live` : undefined}>
+          {pending.isPending && feedEnabled && <p>Loading approvals…</p>}
+          {actions.some(({action}) => canReview(action, actor)) && <p className="cf-meta">{actions.filter(({action}) => canReview(action, actor)).length} ready for your review</p>}
           {pending.data?.pending_approval_count === 0 && <p><Icon name="check"/> No approvals waiting</p>}
           {actions.map(({alert, action}) => <div className="cf-side-row" key={action.run_id}>
             <Icon name="shield"/><div><strong>{humanize(action.action)}</strong>
-              <small>{personName(action.requested_by, directory)} · {timeLabel(action.created_at)}</small>
+              <small>Requested by {personName(action.requested_by, directory)} · {timeLabel(action.created_at)}</small><small>INC-{alert.id} · {teamName(alert.team_id, directory)}</small>
             </div>
             <Link className="cf-btn" to={`/a/${alert.id}#runbook`}>{canReview(action, actor) ? 'Review' : 'View'}</Link>
           </div>)}
@@ -151,7 +154,7 @@ export function Now() {
         </Card>
         <Card title="On call now">
           {directory.teams.flatMap(item => {
-            if (!item.oncall?.primary) return [];
+            if (!item.oncall?.primary || (team && item.id !== team)) return [];
             const name = personName(item.oncall.primary, directory);
             return <div className="cf-side-row" key={item.id}><Avatar name={name}/><strong>{name}</strong>
               <span className="cf-meta">{teamName(item.id, directory)}</span></div>;
