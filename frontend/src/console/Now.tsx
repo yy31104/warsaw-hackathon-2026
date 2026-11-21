@@ -7,7 +7,7 @@ import type {Alert} from '../model';
 import {benchmark} from './benchmark';
 import {canReview, detailQuery, orderOpenAlerts, useConsoleQueue, useFunnel, useResponseStats, type Funnel} from './data';
 import {ageLabel, Avatar, BenchmarkSource, Card, Chip, countLabel, EscalationRing, Failure, humanize, Icon, LegacyLink,
-  personName, statusLabel, statusTone, teamName, timeLabel} from './ui';
+  EscalationLede, personName, statusLabel, statusTone, teamName, timeLabel} from './ui';
 
 export function IncidentChips({alert}: {alert: Pick<Alert, 'id' | 'team_id' | 'severity'>}) {
   const {directory} = useApp();
@@ -97,7 +97,9 @@ export function Now() {
     {hero ? <Card className="cf-hero">
       <div className="cf-hero-copy">
         <div className="cf-kicker"><span className="cf-state-dot"/>Needs you now</div>
-        <h2>{hero.title}</h2><IncidentChips alert={hero}/>
+        <h2>{hero.title}</h2>
+        {heroDetail.data && <EscalationLede incident={heroDetail.data} directory={directory}/>}
+        <IncidentChips alert={hero}/>
       </div>
       <div className="cf-hero-end">
         <div className="cf-event-total"><strong>×{countLabel(hero.occurrence_count)}</strong><small>events · live</small></div>
@@ -125,7 +127,7 @@ export function Now() {
         </div>
         {incidents.map(alert => <Link className="cf-incident-row" key={alert.id} to={`/a/${alert.id}`}>
           <span className={`cf-state-bar cf-${statusTone(alert.status)}`}/>
-          <div><strong>{alert.title}</strong><small>{teamName(alert.team_id, directory)} · INC-{alert.id}
+          <div><strong>{alert.title}</strong><small>{teamName(alert.team_id, directory)} · <code>INC-{alert.id}</code>
             <span className="cf-mobile-age"> · {ageLabel(alert.first_seen_at)}</span></small></div>
           <b className="cf-tabular">×{countLabel(alert.occurrence_count)}</b>
           <Chip tone={statusTone(alert.status)}>{statusLabel(alert.status)}</Chip>

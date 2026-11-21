@@ -92,6 +92,20 @@ export function Problems({items, suggest}: {items?: Problem[]; suggest?: (from: 
   </li>)}</ul>;
 }
 
+export function EscalationLede({incident, directory}: {incident: IncidentDetail; directory: Directory}) {
+  if (incident.status === 'resolved') return <p className="cf-lede">Resolved. Escalation has stopped.</p>;
+  if (incident.status === 'acknowledged') {
+    return <p className="cf-lede">Escalation stopped. Nobody else will be woken up.</p>;
+  }
+  const next = incident.next_escalation;
+  if (next === undefined) return null;
+  if (!next) return <p className="cf-lede">No escalation is scheduled.</p>;
+
+  const names = next.targets.map(id => personName(id, directory));
+  const action = names.length ? `${names.join(', ')} ${names.length === 1 ? 'is' : 'are'} paged` : 'Escalation is scheduled';
+  return <p className="cf-lede">{action} at <time dateTime={next.at}>{timeLabel(next.at)}</time> unless someone takes it.</p>;
+}
+
 export function EscalationRing({incident, directory}: {incident: IncidentDetail; directory: Directory}) {
   const now = useClock();
   const next = incident.next_escalation;

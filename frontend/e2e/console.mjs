@@ -200,11 +200,18 @@ try {
     const first = await ingest(flow(), 'settlement');
     assert.equal(first.accepted, 1);
     await visible(sam.locator('.cf-hero').getByRole('heading', {name: settlementTitle, exact: true}));
-    await visible(sam.locator('.cf-hero').getByText('Lee is paged'));
+    await visible(sam.locator('.cf-hero').getByText('Lee is paged', {exact: true}));
     incident = await until('settlement incident', async () => (await json('/v1/alerts?team=settlements&status=open')).items
       .find(row => row.rule_id === settlementId));
     assert.equal(incident.severity, 'critical');
-    assert.equal((await json(`/v1/alerts/${incident.id}`)).next_escalation.targets[0], 'lee');
+    const escalation = (await json(`/v1/alerts/${incident.id}`)).next_escalation;
+    assert.equal(escalation.targets[0], 'lee');
+    const time = new Intl.DateTimeFormat('en-GB', {timeZone: 'Europe/Warsaw', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'})
+      .format(new Date(escalation.at));
+    const lede = sam.locator('.cf-hero .cf-lede');
+    await visible(lede.getByText(time, {exact: true}));
+    assert.equal(await lede.innerText(), `Lee is paged at ${time} unless someone takes it.`);
+    assert.equal(await lede.locator('time').getAttribute('datetime'), escalation.at);
     await ingest(flow(), 'settlement-repeat');
     await visible(sam.locator('.cf-hero').getByText('×2', {exact: true}));
     await until('Sam SMS and call', async () => {
@@ -216,6 +223,7 @@ try {
     assert.deepEqual(receipts.map(item => item.channel).sort(), ['phone', 'sms']);
     await sam.locator('.cf-hero').getByRole('button', {name: 'Acknowledge'}).click();
     await visible(main(sam).getByText('Escalation stopped', {exact: true}));
+    await visible(main(sam).getByText('Escalation stopped. Nobody else will be woken up.', {exact: true}));
     const detail = await json(`/v1/alerts/${incident.id}`);
     assert.equal(detail.status, 'acknowledged');
     assert.equal(detail.acked_by, 'sam');
