@@ -31,7 +31,7 @@ async def test_alert_and_runbook_shapes(api, database):
     path = f"/v1/alerts/{item['id']}"
     detail = (await api.get(path)).json()
     model = fixture("alert_detail")
-    assert detail.keys() == model.keys()
+    assert detail.keys() == model.keys() | {"representative_event_id"}
     for key in ("occurrences", "timeline"):
         assert detail[key] and all(row.keys() == model[key][0].keys() for row in detail[key])
     book = (await api.get(path + "/runbook")).json()
@@ -45,6 +45,32 @@ async def test_alert_and_runbook_shapes(api, database):
         assert updated.keys() == item.keys()
     explanation = (await api.get("/v1/events/1/explain")).json()
     assert explanation["id"] == 1 and explanation["decisions"] and explanation["notifications"]
+
+
+async def test_alert_detail_explains_representative_event(api, database):
+    # Process the lower-ID occurrence last, so the final sample differs from the representative.
+    await seed(database, lane="critical")
+    await seed(database)
+    assert await process_batch(database) == 1
+    assert await process_batch(database, lane="critical") == 1
+
+    (item,) = (await api.get("/v1/alerts")).json()["items"]
+    response = await api.get(f"/v1/alerts/{item['id']}")
+    assert response.status_code == 200
+    detail = response.json()
+    first, _ = detail["occurrences"]
+    event_id = detail["representative_event_id"]
+    assert event_id == first["event_id"]
+
+    response = await api.get(f"/v1/events/{event_id}/explain")
+    assert response.status_code == 200
+    explanation = response.json()
+    assert explanation["id"] == event_id
+    (decision,) = [row for row in explanation["decisions"] if row["alert_id"] == detail["id"]]
+    assert decision["rule_id"] == detail["rule_id"]
+    assert decision["rule_version"] == detail["rule_version"]
+    assert decision["outcome"] == "SUPPRESSED_COOLDOWN"
+    assert decision["reason"]["matched"] and decision["reason"]["trace"]
 
 
 async def test_notification_shapes(api, database):
