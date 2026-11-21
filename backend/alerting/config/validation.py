@@ -130,7 +130,7 @@ class RuleDraft(ConfigDraft):
     def spec(self):
         return self.model_dump(
             mode="json", exclude_none=True,
-            exclude={"version", "origin", "source", "plain_english", "matches_last_hour"},
+            exclude={"version", "origin", "source", "plain_english", "matches_last_hour", "warnings", "problems"},
         )
 
 

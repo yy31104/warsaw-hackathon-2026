@@ -1,10 +1,13 @@
 """Read-only rule drafting, evaluation and historical impact endpoints."""
 
+import logging
 from contextlib import asynccontextmanager
 from types import SimpleNamespace
 
 from fastapi import APIRouter, Depends, Header, HTTPException
+from psycopg import OperationalError
 from psycopg.rows import dict_row
+from psycopg.types.json import Jsonb
 from pydantic import BaseModel, Field, model_validator
 from starlette.concurrency import run_in_threadpool
 
@@ -19,6 +22,7 @@ from alerting.routing import plan
 from alerting.rules.dsl import compile as compile_match
 from alerting.rules.engine import Ruleset, evaluate
 from alerting.rules.safety import check
+from alerting.rules.suggestions import sample_filters, unknown_fields
 from alerting.schemas.registry import schemas as active_schemas
 from alerting.simulate.history import alert_snapshot, preview_history
 
@@ -73,6 +77,39 @@ async def _config(conn):
 
 def _rule_from(config, rule_id):
     return next((rule for rule in config.rules if rule["id"] == rule_id), None)
+
+
+async def rule_path_problems(db, rule, schemas):
+    filters = sample_filters(rule)
+    if not filters:
+        return []
+    try:
+        async with _read_only(db) as conn:
+            cursor = await conn.execute("""
+                WITH recent AS (
+                    SELECT DISTINCT sample.id FROM unnest(%s::text[]) registry(id)
+                    CROSS JOIN jsonb_to_recordset(%s) target(exclude boolean, patterns text[])
+                    CROSS JOIN LATERAL (
+                        SELECT e.id FROM events e
+                        WHERE e.schema_id = registry.id AND e.status IN ('pending', 'processed')
+                          AND e.received_at >= now() - interval '24 hours'
+                          AND (cardinality(target.patterns) = 0 OR
+                               (coalesce(e.schema_name, e.fields->>'$schema') LIKE ANY(target.patterns))
+                               <> target.exclude)
+                        ORDER BY e.received_at DESC, e.id DESC LIMIT 50
+                    ) sample
+                )
+                SELECT e.schema_id, coalesce(e.schema_name, e.fields->>'$schema'), e.source_id, e.transport,
+                       array_agg(DISTINCT path)
+                FROM recent JOIN events e USING (id)
+                CROSS JOIN LATERAL jsonb_object_keys(e.fields) AS path
+                GROUP BY 1, 2, 3, 4
+            """, ([schema["id"] for schema in schemas], Jsonb(filters)))
+            samples = await cursor.fetchall()
+    except OperationalError:
+        logging.getLogger(__name__).warning("Recent rule-field samples unavailable", exc_info=True)
+        return []
+    return await run_in_threadpool(unknown_fields, rule, schemas, samples)
 
 
 def _validate_shape(rule):
@@ -154,7 +191,9 @@ async def check_rule(body: CheckRequest, db=Depends(pool)):
         raise HTTPException(404, "Rule not found")
     try:
         _validate_shape(rule)
-        return await run_in_threadpool(check, rule, Ruleset(config.rules, config.schemas), config.schemas, config.directory)
+        result = await run_in_threadpool(check, rule, Ruleset(config.rules, config.schemas), config.schemas, config.directory)
+        problems = await rule_path_problems(db, rule, config.schemas)
+        return {**result, "warnings": [*result["warnings"], *problems], "problems": problems}
     except (ValueError, KeyError, TypeError, ArithmeticError, RecursionError) as exc:
         raise HTTPException(422, str(exc)) from exc
 
