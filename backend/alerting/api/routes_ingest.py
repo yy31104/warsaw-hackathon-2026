@@ -50,7 +50,7 @@ def _rejections(decoded, results):
             continue
         issue = {"index": index, "reason": result.reason}
         if decoded.format != "json":
-            issue.update(row=index + 1, fix_example=FIX_EXAMPLES[decoded.format])
+            issue.update(row=index + 1, field=row.field, fix_example=FIX_EXAMPLES[decoded.format])
             if row.line is not None:
                 issue["line"] = row.line
         rejected.append(issue)

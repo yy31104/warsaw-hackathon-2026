@@ -200,6 +200,74 @@ async def test_content_type_selects_decoder(client):
     assert unsupported.status_code == 415 and unsupported.json()["field"] == "Content-Type"
 
 
+async def test_existing_json_is_identical_across_legacy_content_types(live_http):
+    payload = {"device": {"id": "00123"}, "measurements": [4, 9], "message": "legacy JSON"}
+    body = json.dumps(payload).encode()
+    media_types = (None, "application/json", "text/plain", "application/octet-stream",
+                   "application/x-www-form-urlencoded", "text/csv", "application/xml")
+    stored = []
+    for index, media in enumerate(media_types):
+        key = f"legacy-{index}"
+        headers = {**KEY, "Idempotency-Key": key}
+        if media is not None:
+            headers["Content-Type"] = media
+        response = await live_http.post(URL, headers=headers, content=body)
+        assert response.status_code == 202, (media, response.text)
+        result = response.json()
+        assert result["accepted"] == 1 and not result["rejected"]
+        (event_id,) = result["event_ids"]
+        event = (await live_http.get(f"/v1/events/{event_id}")).json()
+        assert event["source_event_id"] == key and event["raw"] == payload
+        stored.append({key: event[key] for key in ("raw", "fields", "severity", "status", "payload_hash")})
+    assert all(event == stored[0] for event in stored)
+
+
+async def test_json_array_keeps_batch_identity_under_curl_and_plain_text_headers(client):
+    body = b'[{"metric":"one"},{"metric":"two"}]'
+    headers = {**KEY, "Idempotency-Key": "legacy-array"}
+    first = await client.post(URL, content=body, headers={**headers, "Content-Type": "application/x-www-form-urlencoded"})
+    assert first.status_code == 202 and first.json()["accepted"] == 2
+    retry = await client.post(URL, content=body, headers={**headers, "Content-Type": "text/plain"})
+    assert retry.status_code == 202
+    assert retry.json()["duplicates"] == 2 and retry.json()["event_ids"] == first.json()["event_ids"]
+
+
+async def test_explicit_yaml_takes_precedence_for_a_body_that_also_parses_as_json(client):
+    payload = {"alerts": [{"message": "one"}, {"message": "two"}]}
+    response = await client.post("/v1/events/alertmanager", content=json.dumps(payload),
+                                 headers={"X-Api-Key": "demo-alertmanager-key", "Content-Type": "application/yaml"})
+    assert response.status_code == 202, response.text
+    (event_id,) = response.json()["event_ids"]
+    event = (await client.get(f"/v1/events/{event_id}")).json()
+    assert event["raw"] == payload  # YAML keeps this wrapper. The JSON source splits it.
+
+
+async def test_plain_text_uses_ndjson_only_when_all_nonempty_lines_are_objects(client):
+    first_line = b'{"value":"alpha"}'
+    second_line = b'{"value":"beta"}'
+    headers = {**KEY, "Content-Type": "text/plain", "Idempotency-Key": "plain-objects"}
+    response = await client.post(URL, content=first_line + b"\n\n" + second_line, headers=headers)
+    assert response.status_code == 202 and response.json()["accepted"] == 2
+    for index, event_id in enumerate(response.json()["event_ids"]):
+        stored = (await client.get(f"/v1/events/{event_id}")).json()
+        assert stored["raw"] == {"value": ("alpha", "beta")[index]}
+        assert stored["source_event_id"] == f"http-batch:{index}:plain-objects"
+    mixed = await client.post(URL, content=first_line + b"\nraw text", headers={**KEY, "Content-Type": "text/plain"})
+    assert mixed.status_code == 202 and mixed.json()["accepted"] == 2
+    for event_id, value in zip(mixed.json()["event_ids"], (first_line.decode(), "raw text"), strict=True):
+        stored = (await client.get(f"/v1/events/{event_id}")).json()
+        assert stored["raw"] == {"message": value}
+
+
+async def test_yaml_records_report_the_start_line_and_field(client):
+    response = await client.post(URL, content="---\n- sensor: first\n- nested:\n    7: wrong\n- sensor: third\n",
+                                 headers={**KEY, "Content-Type": "application/yaml"})
+    assert response.status_code == 202, response.text
+    assert response.json()["accepted"] == 2
+    (rejection,) = response.json()["rejected"]
+    assert (rejection["index"], rejection["line"], rejection["field"]) == (1, 3, "nested")
+
+
 async def test_non_json_request_and_event_limits(client):
     oversized = await client.post(URL, content=b"message\n" + b"x" * (256 * 1024),
                                   headers={**KEY, "Content-Type": "text/csv"})
@@ -211,7 +279,10 @@ async def test_non_json_request_and_event_limits(client):
     assert "2000 paths" in too_many_fields.json()["rejected"][0]["reason"]
     too_deep = await client.post(URL, content=b"<event>" + b"<a>" * 21 + b"x" + b"</a>" * 21 + b"</event>",
                                 headers={**KEY, "Content-Type": "application/xml"})
-    assert too_deep.status_code == 400 and "depth 20" in too_deep.json()["rejected"][0]["reason"]
+    assert too_deep.status_code == 400
+    (rejection,) = too_deep.json()["rejected"]
+    assert rejection["index"] == 0 and rejection["field"].startswith("a.a.")
+    assert "depth 20" in rejection["reason"] and "line" not in rejection
 
 
 async def test_partial_ndjson_and_csv_preserve_line_and_batch_identity(client):

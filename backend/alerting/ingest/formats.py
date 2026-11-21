@@ -57,6 +57,7 @@ class Row:
     value: object = None
     line: int | None = None
     reason: str | None = None
+    field: str = "body"
 
 
 @dataclass(frozen=True)
@@ -143,59 +144,74 @@ def _csv(text, *, sniff=False):
     return Body("csv", rows, True)
 
 
+def _child_path(path, key):
+    return f"{path}.{key}" if path else str(key)
+
+
 def _yaml_record(value):
     if not isinstance(value, dict):
-        raise InvalidEvent("YAML records must be mappings")
+        raise BodyError("YAML records must be mappings", "yaml")
     remaining = MAX_PATHS + 1  # The root mapping is not counted by flatten().
 
-    def convert(item, depth):
+    def convert(item, depth, path):
         nonlocal remaining
         remaining -= 1
+        field = path or "body"
         if remaining < 0:
-            raise InvalidEvent("event exceeds 2000 paths")
+            raise BodyError("event exceeds 2000 paths", "yaml", field=field)
         if depth > MAX_DEPTH:
-            raise InvalidEvent("event exceeds depth 20")
+            raise BodyError("event exceeds depth 20", "yaml", field=field)
         if isinstance(item, dict):
             if not all(isinstance(key, str) for key in item):
-                raise InvalidEvent("YAML mapping keys must be strings")
-            return {key: convert(child, depth + 1) for key, child in item.items()}
+                raise BodyError("YAML mapping keys must be strings", "yaml", field=field)
+            return {key: convert(child, depth + 1, _child_path(path, key)) for key, child in item.items()}
         if isinstance(item, list):
-            return [convert(child, depth + 1) for child in item]
+            return [convert(child, depth + 1, _child_path(path, index)) for index, child in enumerate(item)]
         if isinstance(item, date):
             return item.isoformat()
         if item is None or isinstance(item, (str, int, float, bool)):
             return item
-        raise InvalidEvent("YAML value cannot be stored as JSON")
+        raise BodyError("YAML value cannot be stored as JSON", "yaml", field=field)
 
-    return convert(value, 0)
+    return convert(value, 0, "")
 
 
 def _yaml(text):
     try:
-        payload = yaml.safe_load(text)
+        # Use the same SafeLoader as safe_load, retaining the record start marks
+        # from this parse instead of composing the YAML document a second time.
+        loader = yaml.SafeLoader(text)
+        try:
+            node = loader.get_single_node()
+            payload = loader.construct_document(node) if node is not None else None
+        finally:
+            loader.dispose()
     except (yaml.YAMLError, ValueError, RecursionError) as exc:
         mark = getattr(exc, "problem_mark", None)
         raise BodyError("Invalid YAML. Send a single mapping or list of mappings", "yaml",
                         line=mark.line + 1 if mark else 1) from exc
     batch = isinstance(payload, list)
     if not batch and not isinstance(payload, dict):
-        raise BodyError("YAML body must be a mapping or list of mappings", "yaml", line=1)
+        line = node.start_mark.line + 1 if node is not None else 1
+        raise BodyError("YAML body must be a mapping or list of mappings", "yaml", line=line)
     rows = []
-    for item in payload if batch else [payload]:
+    records = zip(payload, node.value, strict=True) if batch else [(payload, node)]
+    for item, record in records:
+        line = record.start_mark.line + 1
         try:
-            rows.append(Row(_yaml_record(item)))
-        except InvalidEvent as exc:
-            rows.append(Row(reason=str(exc)))
+            rows.append(Row(_yaml_record(item), line))
+        except BodyError as exc:
+            rows.append(Row(line=line, reason=str(exc), field=exc.field))
     return Body("yaml", rows, batch)
 
 
-def _xml_record(element, depth=0):
+def _xml_record(element, depth=0, path=""):
     if depth > MAX_DEPTH:
-        raise InvalidEvent("event exceeds depth 20")
+        raise BodyError("event exceeds depth 20", "xml", field=path or "body")
     fields = {"@" + name: value for name, value in element.attrib.items()}
     children = {}
     for child in element:
-        children.setdefault(child.tag, []).append(_xml_record(child, depth + 1))
+        children.setdefault(child.tag, []).append(_xml_record(child, depth + 1, _child_path(path, child.tag)))
     fields.update({key: values[0] if len(values) == 1 else values for key, values in children.items()})
     text = ((element.text or "") + "".join(child.tail or "" for child in element)).strip()
     if text:
@@ -219,8 +235,8 @@ def _xml(text):
     for element in root if batch else [root]:
         try:
             rows.append(Row(_xml_record(element)))
-        except InvalidEvent as exc:
-            rows.append(Row(reason=str(exc)))
+        except BodyError as exc:
+            rows.append(Row(reason=str(exc), field=exc.field))
     return Body("xml", rows, batch)
 
 
@@ -241,14 +257,8 @@ def _plain(text, source):
 _DECODERS = {"ndjson": _ndjson, "csv": _csv, "yaml": _yaml, "xml": _xml}
 
 
-def _sniff(body, source):
+def _sniff(body):
     tried = ["json"]
-    try:
-        parsed = _read_json(body)
-    except BodyError:
-        parsed = None
-    if isinstance(parsed, (dict, list)):
-        return _json_body(parsed, source)
     try:
         text = body.decode("utf-8-sig")
     except UnicodeError as exc:
@@ -278,17 +288,45 @@ def _sniff(body, source):
     raise BodyError("Cannot identify a supported format unambiguously", status=415, field="Content-Type", tried=tried)
 
 
-def decode_body(body, content_type, source):
-    if not content_type or not content_type.strip():
-        return _sniff(body, source)
-    format = media_format(content_type)
-    if format is None:
-        raise BodyError("Unsupported Content-Type", status=415, field="Content-Type",
-                        tried=[content_type.partition(";")[0].strip()])
-    if format == "json":
-        return _json_body(_read_json(body), source)
+def _decode_declared(body, format, source):
     try:
         text = body.decode("utf-8-sig")
     except UnicodeError as exc:
         raise BodyError("Body must be encoded as UTF-8", format) from exc
-    return _plain(text, source) if format == "text" else _DECODERS[format](text)
+    if format != "text":
+        return _DECODERS[format](text)
+    if text.lstrip().startswith("{"):
+        ndjson = _ndjson(text)
+        if all(row.reason is None for row in ndjson.rows):
+            return ndjson
+    return _plain(text, source)
+
+
+def decode_body(body, content_type, source):
+    format = media_format(content_type)
+    if format == "json":
+        return _json_body(_read_json(body), source)
+
+    # Legacy clients send JSON with arbitrary headers, including curl's default.
+    # A successfully decoded, explicitly declared CSV/XML/YAML body takes precedence.
+    try:
+        payload = decode_json(body)
+    except InvalidEvent:
+        payload = None
+    if isinstance(payload, (dict, list)):
+        if format in {"csv", "xml", "yaml"}:
+            try:
+                declared = _decode_declared(body, format, source)
+            except BodyError:
+                pass
+            else:
+                if all(row.reason is None for row in declared.rows):
+                    return declared
+        return _json_body(payload, source)
+
+    if not content_type or not content_type.strip():
+        return _sniff(body)
+    if format is None:
+        raise BodyError("Unsupported Content-Type", status=415, field="Content-Type",
+                        tried=[content_type.partition(";")[0].strip()])
+    return _decode_declared(body, format, source)
