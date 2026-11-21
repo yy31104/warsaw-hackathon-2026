@@ -15,6 +15,7 @@ For #19, the first run used the shared development database. Its team-scoped SSE
 | [#19](https://github.com/yy31104/warsaw-hackathon-2026/pull/19) | `adcd73b` | FAIL | 1 failed, 483 passed in 101.16s (0:01:41) | [make test](../loadtest/results/w0-round3/merges/pr-19-adcd73b.log) |
 | [#19](https://github.com/yy31104/warsaw-hackathon-2026/pull/19) | `adcd73b` | PASS | 484 passed in 113.49s (0:01:53) | [make test](../loadtest/results/w0-round3/merges/pr-19-adcd73b-020116.log) |
 | [#20](https://github.com/yy31104/warsaw-hackathon-2026/pull/20) | `de310f6` | PASS | 484 passed in 130.04s (0:02:10) | [make test](../loadtest/results/w0-round3/merges/pr-20-de310f6.log) |
+| [#21](https://github.com/yy31104/warsaw-hackathon-2026/pull/21) | `7196825` | PASS | 487 passed in 99.88s (0:01:39) | [make test](../loadtest/results/w0-round3/merges/pr-21-7196825.log) |
 <!-- w0-round3-end -->
 
 ## G0 — contract (Fri 21:00)
