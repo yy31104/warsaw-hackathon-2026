@@ -97,6 +97,8 @@ export function ConsoleShell({children, live, teams, setActor, setTeam}: {
           {teams.length > 1 && <select aria-label="Team" value={team} onChange={event => setTeam(event.target.value)}>
             {teams.map(item => <option value={item.id} key={item.id}>{teamName(item.id, directory)}</option>)}
           </select>}
+          {teams.length === 1 && <span className="cf-assist" title="The team whose incidents you see">
+            {teamName(teams[0].id, directory)}</span>}
           {directory.users.length > 0 && <label className="cf-view-as"><span>Viewing as</span>
             <select aria-label="Viewing as" value={actor} onChange={event => setActor(event.target.value)}>
               {directory.users.map(person => <option key={person.id} value={person.id}>{personName(person.id, directory)}</option>)}
