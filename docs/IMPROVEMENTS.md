@@ -3,6 +3,30 @@
 **All tiers are targets — we plan to complete every item.** *Target* means planned. An item is **done** only when its acceptance check PASSes on the integrated `main` and is recorded in `docs/GATES.md`; unit tests alone don't count. The order is the build sequence: **core chain → Tier 0 → Tier 1 → Tier 2 → Tier 3**. Nobody starts Tier 2/3 work in their lane until their part of the end-to-end chain (RabbitMQ → inbox → rules → outbox → fake-telecom → live UI) PASSes on `main`. Each person's ordered checklist is the "Full target list" at the end of their handoff.
 Every claimed improvement needs a before/after measurement on the same input, with N.
 
+## Round 3 — mentor feedback (Sat 01:00). Do these first; open every PR by 06:00
+Source: a Goldman Sachs engineer at the venue (notes in BRIEF §9). Inside each person's list the order is the priority. After 06:00 only fixes and integration; W0 runs the final checks on `main` before G3 (07:30).
+
+| # | Item | Owner | Acceptance (record in GATES.md) |
+|---|---|---|---|
+| M1 | **Cross-person approval:** the alert/runbook read returns pending action runs; the team's pending-approval count is exposed | Yi + zhaoqinghe | Sam requests an action; Lee approves it from a fresh browser session; Sam sees `approved_by=lee` and the execution count; the home-page count matches the database |
+| M2 | **LLM provider adapter:** `ASSIST_PROVIDER=openai\|anthropic`, model from `ASSIST_MODEL`, `GET /v1/assist/status` | Yi | With `OPENAI_API_KEY` set, `/schemas/suggest` returns `source: llm` and the model; without a key it returns `source: heuristic`; the status endpoint says which |
+| M3 | **LLM eval:** our own synthetic unseen events and runbooks; rules-only vs two models | Yi | Report n/N field mappings, n/N runbook steps, invented parameters (target 0), risky step without approval (**must be 0**), p50/p95 latency, cost per call. The default model is chosen from these numbers |
+| M4 | **"Did you mean":** a rule field path that no recent event has gets up to 3 closest known paths | Yi | `errorCode` suggests `error.code`; `xyz` gets none; nothing is auto-corrected |
+| M5 | **"What happens next"** on an alert: the next escalation step, its targets, channels and due time | Yi | Alert detail shows the next step and when; after ack it shows none |
+| M6 | **More input formats over HTTP:** JSON object/array, NDJSON, CSV with a header row, YAML, XML (safe parser). Content-Type is sniffed when missing | daizhongtian | One sample per format becomes the same canonical event; malformed input gets a clear 4xx reason; an XML entity-expansion payload is rejected |
+| M7 | **Forgiving fields:** time-format auto-detection (ISO, epoch s/ms, `YYYY-MM-DD HH:MM:SS`) with a no-timezone warning; built-in severity synonyms (sev1/P1/crit/fatal → critical, err → error, warn → warning) when `severity_map` has no entry | daizhongtian | One test per variant; verify marks the value "auto-detected" |
+| M8 | **One problem shape everywhere** (CONTRACT §9): runbook structuring says why a step stayed manual; schemas/verify and rules/check use the same shape | daizhongtian (+ Yi for rules/check) | `restart the service` → `missing_target` with a fix example; an `if …` step → `conditional` |
+| M9 | **Runbook lint at publish:** unknown action, missing params, unknown user/team/phone → rejected with field-level messages; no manual workaround or escalation step → warning | daizhongtian | One test per case |
+| M10 | **Restore a previous version** of a schema, rule or runbook; keep at least the last 5 visible | daizhongtian + zhaoqinghe | Restoring v2 creates v4 equal to v2, audited; the next event uses it |
+| M11 | **Saturation test:** offered load 700 → 1,400 → 2,800 → 5,600 events/s; 1, 2 and 4 normal workers; one hot key vs 1,000 keys. Record sustained processed events/s, p50/p99, backlog trend and dropped; find the knee and the bottleneck | daizhongtian | `loadtest/results/saturation-<commit>/` with the machine spec and the command |
+| M12 | **`docs/SCALING.md`:** what scales out today, what is shared (PostgreSQL), the measured curve, the plan for 10×/100×/1,000× | Yi | Every number cites a result file or says "not measured" |
+| M13 | **Response metrics (PagerDuty-style):** MTTA, MTTR, ack rate, interruptions (SMS + phone per responder) | daizhongtian (API) + zhaoqinghe (tiles) | The numbers match a SQL check over the same window |
+| M14 | **Replay storm, measured only:** 1,000 `needs_review` events → publish the schema → count the notifications | daizhongtian | The count and the rules used are recorded |
+| M15 | **Frontend on integrated main:** assist on/off badge; runbook original vs structured steps (kind, approval, source, reason); problems with fix examples; operations-console alert list; response-metric tiles; restore-version button | zhaoqinghe | The browser scenarios pass on integrated `main` |
+| M16 | **Forgiveness matrix:** the README example with 8 deviations (renamed field, upper-case severity, epoch time, extra nesting, CSV, XML, no timezone, a typo in a rule field) → the result of each | W0 (Yi), on final `main` | Table in GATES.md and the README |
+
+Nice-to-have, only after all of the above: a "don't notify on replay" switch or watchers; an acknowledgement timeout that re-triggers.
+
 ## Tier 0 — P0 hardening (BRIEF §4, Yi)
 Poison-event isolation · approval security · DB timeouts · stale recovery never closes a newer episode · action timeout = `unknown`.
 

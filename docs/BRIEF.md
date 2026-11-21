@@ -93,7 +93,9 @@ Write **pure functions with tests first** (fixtures in `fixtures/`), then wire D
 
   README "what is mocked" (Marlon).
 
-**P0.5 — LLM onboarding (daizhongtian):** schema-mapping suggestion and runbook structuring, each with a deterministic fallback.
+**P0.5 — LLM onboarding (daizhongtian; provider adapter and eval: Yi):** schema-mapping suggestion and runbook structuring, each with a deterministic fallback. Provider: OpenAI, because we have no Anthropic API key (CONTRACT §11).
+
+**Round 3 — mentor feedback (Sat 01:00), before G3:** more input formats and forgiving fields, explanations with fix examples, runbook lint, version restore, measured LLM eval, saturation test + `SCALING.md`, PagerDuty-style "what happens next" and response metrics. List and acceptance: [IMPROVEMENTS.md](IMPROVEMENTS.md) Round 3.
 
 **P0 hardening — reliability under bad input and failures (Yi, before any new feature):**
 1. **Poison-event isolation.** One bad event never blocks the rest. Errors are classified: deterministic bad input → quarantine that event with its reason; transient DB errors → roll back and retry; a faulty rule → skip that rule, record it, keep processing everything else. Each event has a retry budget.
@@ -162,18 +164,20 @@ The deadline isn't confirmed: either ~11:00 Sat (18-hour format) or 23:00 Sat. *
 
 Every 60–90 min, each person posts in the chat: what works (a command or test), what got merged, what they need from whom, what's blocked, what's next.
 
-## 7. Demo storyboard (5:00)
+## 7. Demo storyboard (5:00) — organised by the judging pillars (updated Sat 01:00)
 
-| t | Shot |
-|---|---|
-| 0:00 | The problem: the right person finds out late, or drowns in duplicates |
-| 0:20 | Three sources at once → Settlements gets phone + SMS, Rates gets an email, Anna gets SMS or email depending on the time |
-| 1:10 | Storm: 500 failures → 1 red incident counting live. Funnel 500 → 1 → 2 sends |
-| 1:40 | Runbook with the real workflowId → retry → fails twice → escalation needs approval → lead replies `YES 4821` by SMS → audit trail → auto-resolve |
-| 2:40 | Judge's unseen schema → `needs_review` → LLM-suggested mapping → confirm → rule from the sample → next event routed. Unseen runbook → structured steps |
-| 3:30 | "Too noisy" → proposed rule → impact preview → approve → hot reload |
-| 4:00 | Measured: msgs/s, e2e p50/p99 (with N), 1 vs 2 workers, channel down = 0 lost |
-| 4:40 | One file adds a provider or an action. Fresh clone → N commands. What's mocked. AI use and privacy |
+Say the pillar names out loud. Every number on screen has a source file.
+
+| t | Shot | Pillar |
+|---|---|---|
+| 0:00 | The problem: the right person finds out late, or drowns in duplicates. What we built, in one sentence | — |
+| 0:20 | Three sources at once → Settlements gets phone + SMS, Rates gets an email, Anna gets SMS or email depending on the time | Implementation (2.1–2.3) |
+| 1:00 | Judge's unseen event (JSON, CSV or XML) → problems explained ("did you mean…", unit unclear, no timezone) → mapping suggested → one "should notify" and one "should stay quiet" sample verified → published → next event routed. Forgiveness matrix on screen | **Flexibility** |
+| 2:00 | Storm: 500 failures → 1 incident counting live. Ack stops the escalation; "what happens next" shows the next step. Runbook action → approval by SMS reply → audit → auto-resolve | Implementation (2.4–2.6) |
+| 2:50 | Unseen Markdown runbook → original next to structured steps; manual steps keep their reason; lint catches a wrong contact | **Flexibility** |
+| 3:30 | Load script in one command → events/s, p50/p99 with N, dropped = 0; provider down for 30 s → 0 lost | **Throughput / latency** |
+| 4:10 | Saturation curve for 1/2/4 workers, the bottleneck, and the plan to 1M requests (measured vs not measured) | **Scalability** |
+| 4:40 | Innovation recap (verify business meaning before publishing; rule safety check). AI use: LLM only at configuration time, never on the alert path; accuracy n/N. What's mocked. Limitations | Innovation |
 
 ## 8. Risks
 
@@ -185,3 +189,17 @@ Every 60–90 min, each person posts in the chat: what works (a command or test)
 | Yi and daizhongtian carry the heaviest load | P1 is cut first. Marlon takes polish, README and video from G3 |
 | A storm hammering one incident row | Batch claim + in-batch pre-aggregation (`count = count + k`) |
 | Deadline ambiguity | Safe submission at 10:30 regardless |
+
+## 9. Mentor feedback (Goldman Sachs engineer, Sat 00:50)
+
+What the mentor told us, paraphrased from the recording:
+- **The judging pillars are flexibility, scalability and throughput/latency.** "If you use AI, the UX will be fine." Name the three pillars in the video and show evidence for each.
+- **Flexibility means forgiving.** If a user deviates a little from the README (a typo, another format, CSV instead of JSON), does it still work? State every unsupported format as a limitation; limitations cost flexibility points.
+- **Runbooks are for a support team** that follows the steps without having to think. The most important part is the written workaround for when code can't fix the problem. YAML/JSON is for machines and Markdown for people; converting Markdown to structured steps with an LLM is fine. A human-written runbook needs a **lint step** before it is accepted.
+- **Throughput and latency are easy to measure:** p50/p99, throughput, how much was dropped. Put the load-test script and its results in the repo and the presentation.
+- **Scalability:** explain how the system grows to a million requests and many more consumers. It doesn't have to be built, but every claim needs a reason or a measurement. No fake statements.
+- **An LLM adds latency**, so keep it off the hot path.
+- **Configuration history:** keep the last 3–5 versions so you can roll back. Not re-notifying on replayed history (a switch, or watchers only) is nice-to-have, not core.
+- **Reference product: PagerDuty** (alert people, acknowledge, alert again). Learn from its incident lifecycle, escalation policies, notification rules and response metrics (MTTA, MTTR). Don't present those patterns as new.
+
+What we do about it: IMPROVEMENTS.md Round 3 (M1–M16), all PRs open by 06:00.

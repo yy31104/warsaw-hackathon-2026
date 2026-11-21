@@ -14,7 +14,10 @@
       "approval": "none",
       "state": null,
       "resolves_alert": false,
-      "runs": 0
+      "runs": 0,
+      "run_id": null,
+      "approved_by": null,
+      "execution_count": 0
     },
     {
       "index": 1,
@@ -27,7 +30,10 @@
       "approval": "none",
       "state": "failed",
       "runs": 2,
-      "resolves_alert": false
+      "resolves_alert": false,
+      "run_id": 2,
+      "approved_by": null,
+      "execution_count": 2
     },
     {
       "index": 2,
@@ -44,7 +50,10 @@
       ],
       "suggested": true,
       "resolves_alert": false,
-      "runs": 1
+      "runs": 1,
+      "run_id": 3,
+      "approved_by": null,
+      "execution_count": 0
     }
   ],
   "can_structure": false

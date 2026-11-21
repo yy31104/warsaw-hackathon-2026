@@ -184,3 +184,6 @@ The core chain comes first: RabbitMQ → inbox, fake-telecom and SSE are still t
 - ☐ #21 webhook HMAC per source
 
 **Measure first:** run the measurements (COPY vs multi-row insert, GIN index cost, decisions per 1,000 events) and hand the evidence to Yi.
+
+## Round 3 (Sat 01:00) — mentor feedback; PRs open by 06:00
+Your items in [IMPROVEMENTS.md](../IMPROVEMENTS.md) Round 3, in order: **M11** saturation test (start it first; it runs while you code), **M6** input formats, **M8** problem shape + **M9** runbook lint, **M7** forgiving fields, **M13** response-metrics API, **M10** version restore API, **M14** replay-storm measurement. One PR per item or per pair.

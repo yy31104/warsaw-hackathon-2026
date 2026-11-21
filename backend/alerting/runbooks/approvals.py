@@ -23,6 +23,31 @@ from alerting.runbooks.actions.network import check_execution
 from alerting.runbooks.render import render
 
 
+# These two reads must agree with the expiry check in decide(), even before cleanup runs.
+PENDING_APPROVAL = "r.state='pending_approval' and r.approval_expires_at > %s"
+
+
+async def pending_for_alert(cur, alert_id):
+    await cur.execute(
+        f"""select r.id as run_id, r.action, r.requested_by, r.state as status, r.created_at
+            from action_runs r where r.alert_id=%s and {PENDING_APPROVAL}
+            order by r.created_at, r.id""",
+        (alert_id, SYSTEM.now()),
+    )
+    return await cur.fetchall()
+
+
+async def pending_count(cur, team):
+    query = f"""select count(*) as pending_approval_count from action_runs r
+                join alerts a on a.id=r.alert_id where {PENDING_APPROVAL}"""
+    params = [SYSTEM.now()]
+    if team:
+        query += " and a.team_id=%s"
+        params.append(team)
+    await cur.execute(query, params)
+    return await cur.fetchone()
+
+
 def public(row):
     return {k: v for k, v in row.items() if k != "approval_code"}
 
@@ -47,8 +72,18 @@ async def runbook_for(cur, alert, settings):
     await cur.execute("select fields from events where id=%s", (alert["representative_event_id"],))
     event = await cur.fetchone()
     await cur.execute(
-        "select step_index,action,state from action_runs where alert_id=%s and runbook_id=%s order by id",
-        (alert["id"], book["id"]),
+        """select r.id as run_id, r.step_index, r.action,
+                  case when r.state='pending_approval' and r.approval_expires_at<=%s
+                       then 'expired' else r.state end as state,
+                  case when r.state <> 'rejected' then r.approved_by end as approved_by,
+                  coalesce(executions.n, 0) as execution_count
+           from action_runs r left join (
+               select detail->>'run_id' as run_id, count(*) as n from audit_log
+               where target_kind='alert' and target_id=%s and action='action.execute'
+               group by detail->>'run_id'
+           ) executions on executions.run_id=r.id::text
+           where r.alert_id=%s and r.runbook_id=%s order by r.id""",
+        (SYSTEM.now(), str(alert["id"]), alert["id"], book["id"]),
     )
     team = by_id(settings.directory["teams"]).get(alert["team_id"], {})
     return render(
