@@ -4,10 +4,11 @@ import hashlib
 import json
 import os
 import sqlite3
+from asyncio import sleep
 from collections.abc import Callable
 from contextlib import closing
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import uuid4
 
 from fastapi import FastAPI, Header, HTTPException, Request
@@ -19,6 +20,8 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 
 FailureCount = Annotated[int, Field(ge=0, le=2**63 - 1)]
+DemoAction = Literal["retry_workflow", "restart_service", "open_ticket"]
+DEMO_DELAY_SECONDS = 4.0
 
 
 class Mode(BaseModel):
@@ -29,6 +32,18 @@ class Mode(BaseModel):
 
 class RetryConfig(Mode):
     fail_n: FailureCount
+
+
+class DelayNext(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    action: DemoAction
+
+
+class DelayedDemoResponse(JSONResponse):
+    async def __call__(self, scope, receive, send):
+        # ASGI sends this response after perform() has committed and closed SQLite.
+        await sleep(DEMO_DELAY_SECONDS)
+        await super().__call__(scope, receive, send)
 
 
 def execution_receipt(status: int, output: dict) -> dict:
@@ -46,6 +61,7 @@ def execution_receipt(status: int, output: dict) -> dict:
 
 
 def create_app(path: str | Path) -> FastAPI:
+    demo_enabled = os.getenv("DEMO_MODE") == "1"
     with closing(sqlite3.connect(path)) as db, db:
         db.executescript("""
             create table if not exists settings (
@@ -58,7 +74,16 @@ def create_app(path: str | Path) -> FastAPI:
                 body text not null
             );
         """)
+        if demo_enabled:
+            db.execute("create table if not exists demo_delays (action text primary key)")
     app = FastAPI(title="Simulated mock-ops")
+
+    if demo_enabled:
+        @app.post("/demo/delay-next")
+        def delay_next(body: DelayNext):
+            with closing(sqlite3.connect(path)) as db, db:
+                db.execute("insert or ignore into demo_delays(action) values (?)", (body.action,))
+            return {"simulated": True, "action": body.action, "delay_seconds": DEMO_DELAY_SECONDS}
 
     @app.exception_handler(StarletteHTTPException)
     async def http_error(request, exc):
@@ -80,6 +105,8 @@ def create_app(path: str | Path) -> FastAPI:
         route: str,
         params: dict,
         operation: Callable[[sqlite3.Connection], tuple[int, dict]],
+        *,
+        delay_action: DemoAction | None = None,
     ) -> JSONResponse:
         if key is not None and not key.strip():
             raise HTTPException(422, "Idempotency-Key must be nonempty")
@@ -106,6 +133,12 @@ def create_app(path: str | Path) -> FastAPI:
                     "insert into receipts values (?, ?, ?, ?)",
                     (key, signature, status, json.dumps(output)),
                 )
+                if demo_enabled and delay_action is not None:
+                    armed = db.execute(
+                        "delete from demo_delays where action=? returning action", (delay_action,)
+                    ).fetchone()
+                    if armed:
+                        return DelayedDemoResponse(output, status_code=status)
             return JSONResponse(output, status_code=status)
 
     def update_mode(route: str, key: str, mode: Mode):
@@ -151,21 +184,23 @@ def create_app(path: str | Path) -> FastAPI:
             ok = count > fail_n
             return (200 if ok else 503), {"workflow": workflow, "attempt": count, "ok": ok}
 
-        return perform(idempotency_key, "POST", "/workflows/retry", {"workflow": workflow}, attempt)
+        return perform(idempotency_key, "POST", "/workflows/retry", {"workflow": workflow}, attempt,
+                       delay_action="retry_workflow")
 
     @app.post("/services/{name}/restart")
     def restart(name: str, idempotency_key: str = Header(...)):
         def action(db):
             return 200, {"ok": True, "service": name, "restart_id": uuid4().hex}
 
-        return perform(idempotency_key, "POST", "/services/restart", {"service": name}, action)
+        return perform(idempotency_key, "POST", "/services/restart", {"service": name}, action,
+                       delay_action="restart_service")
 
     @app.post("/tickets")
     def ticket(body: dict, idempotency_key: str = Header(...)):
         def issue(db):
             return 201, {"ok": True, "ticket_id": uuid4().hex, "title": body.get("title")}
 
-        return perform(idempotency_key, "POST", "/tickets", body, issue)
+        return perform(idempotency_key, "POST", "/tickets", body, issue, delay_action="open_ticket")
 
     @app.get("/metrics/pool")
     def metrics(service: str = "counterparty-service", idempotency_key: str | None = Header(None)):

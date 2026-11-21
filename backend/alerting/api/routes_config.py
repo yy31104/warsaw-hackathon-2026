@@ -5,6 +5,7 @@ import os
 
 from fastapi import APIRouter, Depends
 
+from alerting.api.routes_parser_assist import router as parser_assist_router
 from alerting.api.routes_runbook_assist import router as assist_router
 from alerting.config import loader
 from alerting.config.access import actor_header, config_write, require_owner
@@ -25,6 +26,7 @@ async def lifespan(_app):
 
 router = APIRouter(prefix="/v1", tags=["config"], lifespan=lifespan)
 router.include_router(assist_router)
+router.include_router(parser_assist_router)
 
 
 @router.get("/sources")

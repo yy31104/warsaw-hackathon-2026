@@ -4,5 +4,8 @@
 !backend/uv.lock
 !backend/alerting/
 !backend/alerting/**
+!fixtures/
+!fixtures/protected/
+!fixtures/protected/*.yaml
 **/__pycache__/
 **/*.pyc

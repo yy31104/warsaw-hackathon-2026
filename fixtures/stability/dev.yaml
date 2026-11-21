@@ -1,0 +1,143 @@
+# Synthetic development split for checked-in channels, rules and schema mappings.
+# Each sample starts with empty incident state. Routes are exact immediate deliveries.
+- id: dev-notional-in-major-units
+  schema: business-envelope
+  source: rates-bridge
+  description: A block is already in major currency units and exceeds the rates threshold.
+  hypotheses:
+    - {id: amount, kind: scale, path: payload.notional, values: [1, 0.01]}
+    - {id: summary, kind: alias, path: message, values: [payload.reason, meta.note]}
+  oracle: {amount: 1, summary: payload.reason}
+  samples:
+    - event:
+        meta: {schema: trade.rejected.v4, producer: rates-bridge, ts: 1795161600000, note: rejected block}
+        payload: {desk: rates, notional: 65000000, tradeId: MAJOR-1, currency: EUR, reason: desk limit}
+      expected: {rules: [rates-big-rejects], routes: [[rita, email], ['team:rates', ui]], critical: false}
+
+- id: dev-notional-in-minor-units
+  schema: business-envelope
+  source: venue-archive
+  description: The legacy archive reports cents. The rejection is below the page threshold.
+  hypotheses:
+    - {id: amount, kind: scale, path: payload.notional, values: [1, 0.01]}
+    - {id: producer, kind: alias, path: service, values: [payload.book, meta.producer]}
+  oracle: {amount: 0.01, producer: meta.producer}
+  samples:
+    - event:
+        meta: {schema: trade.rejected.archive, producer: venue-archive, ts: 1795161700000}
+        payload: {desk: rates, notional: 250000000, book: gov-bonds, tradeId: MINOR-2, currency: EUR, reason: stale quote}
+      expected: {rules: [], routes: [], critical: false}
+
+- id: dev-settlement-independent-fields
+  schema: workflow
+  source: clearing-runner
+  description: Production settlement failures go to the same duty contacts for either latency unit and description field.
+  hypotheses:
+    - {id: unit, kind: scale, path: retryDelay, values: [1, 0.001]}
+    - {id: summary, kind: alias, path: message, values: [error.message, operatorNote]}
+  oracle: {unit: 0.001, summary: operatorNote}
+  samples:
+    - event:
+        type: WORKFLOW_FAILED
+        workflowId: CLEAR-DEV-3
+        workflowName: order-settlement
+        step: validate
+        environment: prod
+        severity: ERROR
+        timestamp: '2026-11-20T09:45:00Z'
+        operatorNote: Validation rejected
+        retryDelay: 2500
+        error: {code: INVALID_BOOK, message: Book is closed}
+      expected: {rules: [settlements-wf-failed], routes: [[sam, phone], [sam, sms], ['team:settlements', ui]], critical: false}
+
+- id: dev-monitor-service-alias
+  schema: alertmanager
+  source: observability-bridge
+  description: A critical alert identifies the affected workload separately from its collector.
+  hypotheses:
+    - {id: workload, kind: alias, path: service, values: [labels.service, labels.workload]}
+    - {id: code, kind: alias, path: error_code, values: [alertname, labels.code]}
+  oracle: {workload: labels.workload, code: labels.code}
+  samples:
+    - event:
+        alertname: ReserveExhausted
+        labels: {service: observability-bridge, workload: payments-api, code: MX-44, region: central, severity: critical}
+        startsAt: '2026-11-20T10:20:00Z'
+        status: firing
+      expected: {rules: [anna-payments-critical], routes: [[anna, sms]], critical: true}
+
+- id: dev-warning-grade
+  schema: alertmanager
+  source: meter-sampler
+  description: The sampler uses S0 for a warning. Its signal should stay quiet under the critical-only payment rule.
+  hypotheses:
+    - {id: grade, kind: severity, path: labels.severity, label: S0, values: [critical, warning]}
+    - {id: delay, kind: scale, path: delay, values: [0.001, 1]}
+  oracle: {grade: warning, delay: 1}
+  samples:
+    - event:
+        alertname: RetryObserved
+        labels: {service: payments-api, severity: S0, region: south}
+        startsAt: '2026-11-20T10:25:00Z'
+        delay: 28
+        status: firing
+      expected: {rules: [], routes: [], critical: false}
+
+- id: dev-pricing-digest
+  schema: pricing-log
+  source: pricing-logs
+  transport: logfile
+  description: A warning matches the pricing digest. No initial delivery occurs on this isolated sample.
+  hypotheses:
+    - {id: grade, kind: severity, path: level, label: PRICE_7, values: [info, warning]}
+    - {id: latency, kind: scale, path: latency_ms, values: [0.001, 1]}
+  oracle: {grade: warning, latency: 1}
+  samples:
+    - event:
+        level: PRICE_7
+        instance: pricing-engine-west
+        instrument: BOND-6
+        msg: Quote update delayed
+        latency_ms: 32
+        timestamp: '2026-11-20T10:15:00Z'
+      expected: {rules: [pricing-warn-logs], routes: [], critical: false}
+
+- id: dev-timezone-contact-window
+  schema: alertmanager
+  source: clock-bridge
+  description: The producer emits UTC wall times without offsets. The morning sample falls inside Anna's Warsaw SMS window and the evening sample falls outside it.
+  hypotheses:
+    - {id: timezone, kind: timezone, path: startsAt, values: [Europe/Warsaw, UTC]}
+    - {id: summary, kind: alias, path: message, values: [annotations.summary, annotations.detail]}
+  oracle: {timezone: UTC, summary: annotations.summary}
+  samples:
+    - event:
+        alertname: LedgerPressure
+        labels: {service: payments-api, severity: critical, region: east}
+        annotations: {summary: Ledger pressure, detail: Morning capacity low}
+        startsAt: '2026-11-20T07:30:00'
+        status: firing
+      expected: {rules: [anna-payments-critical], routes: [[anna, sms]], critical: true}
+    - event:
+        alertname: FundsQueueLong
+        labels: {service: payments-api, severity: critical, region: east}
+        annotations: {summary: Queue backed up, detail: Evening funds queue delayed}
+        startsAt: '2026-11-20T21:30:00'
+        status: firing
+      expected: {rules: [anna-payments-critical], routes: [[anna, email]], critical: true}
+
+- id: dev-world-cap
+  schema: business-envelope
+  source: archival-trades
+  description: Four unresolved three-way interpretations yield 81 worlds. The non-rates trade still has a known correct quiet outcome.
+  hypotheses:
+    - {id: amount, kind: scale, path: payload.notional, values: [1, 0.01, 0.001]}
+    - {id: service, kind: alias, path: service, values: [meta.producer, meta.router, payload.book]}
+    - {id: summary, kind: alias, path: message, values: [meta.note, payload.reason, payload.code]}
+    - {id: error, kind: alias, path: error_code, values: [payload.code, meta.tag, payload.reason]}
+  oracle: {amount: 0.001, service: meta.producer, summary: meta.note, error: payload.code}
+  samples:
+    - event:
+        meta: {schema: trade.rejected.archive, producer: archival-trades, router: archive-mux, ts: 1795161700000, tag: TRADE, note: archived rejection}
+        payload: {desk: credit, book: credit-core, notional: 11000000, tradeId: CAP-8, currency: EUR, reason: counterparty limit, code: A-16}
+      expected: {rules: [], routes: [], critical: false}

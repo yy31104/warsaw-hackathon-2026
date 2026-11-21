@@ -95,6 +95,8 @@ services:
     build:
       context: .
       dockerfile: mocks/mock_ops/Dockerfile
+    environment:
+      DEMO_MODE: ${DEMO_MODE:-1}
     ports: ["127.0.0.1:${MOCK_OPS_PORT:-8200}:8200"]
     volumes: [mock-ops-data:/data]
     networks:
@@ -124,6 +126,8 @@ services:
 
   ingest-amqp:
     <<: *backend
+    deploy:
+      replicas: 2
     command: ["python", "-m", "alerting.ingest.amqp"]
     depends_on:
       <<: *database-ready
@@ -152,6 +156,10 @@ services:
   delivery-worker:
     <<: *backend
     command: ["python", "-m", "alerting.delivery.worker"]
+    environment:
+      <<: *backend-environment
+      DELIVERY_BATCH: ${DELIVERY_BATCH:-25}
+      DELIVERY_CONCURRENCY: ${DELIVERY_CONCURRENCY:-16}
     depends_on:
       <<: *database-ready
       fake-telecom:

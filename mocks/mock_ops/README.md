@@ -33,8 +33,18 @@ The override adds the `counterparty-service` alias on the default network, publi
 | `POST /tickets` | Accepts a JSON object and returns 201 with a synthetic `ticket_id` and the supplied title. |
 | `GET /metrics/pool`, `GET /deployments` | Return synthetic pool occupancy and deployment revisions. Both accept a `service` query parameter. |
 | `GET /executions/{key}` | Returns the stored `state` and backend-compatible action `result` for a recorded key. An unseen key returns 404. |
+| `POST /demo/delay-next` | With `DEMO_MODE=1`, arm one delayed reply for `retry_workflow`, `restart_service` or `open_ticket`. Send the selected name in the JSON `action` field. |
 
-Every POST requires an `Idempotency-Key`. Repeating the same operation with that key returns the original HTTP status and body, including a simulated failure. Reusing it for a different operation or parameters returns 409. The receiver commits the simulated effect and receipt together. Runbook reads with a key capture a replayable snapshot. Reads without a key show current state.
+Action and configuration POSTs require an `Idempotency-Key`. Repeating the same operation with that key returns the original HTTP status and body, including a simulated failure. Reusing it for a different operation or parameters returns 409. The receiver commits the simulated effect and receipt together. Runbook reads with a key capture a replayable snapshot. Reads without a key show current state.
+
+To demonstrate **Check result**, arm the receiver before running the settlement runbook's **Retry workflow** step.
+
+```sh
+curl --fail-with-body -sS http://127.0.0.1:8200/demo/delay-next \
+  -H 'Content-Type: application/json' -d '{"action":"retry_workflow"}'
+```
+
+The next fresh matching action commits its effect and receipt, then waits four seconds to send its reply. The backend reaches its three-second timeout and marks the run unknown. **Check result** retrieves the recorded outcome using the same action ID. Replays immediately return the stored response.
 
 For a two-failure scenario, submit the following requests in order. Replaying a failed key leaves the counter at its original attempt. A fresh demo can use a new workflow ID and new keys.
 

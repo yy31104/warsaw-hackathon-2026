@@ -1,0 +1,45 @@
+{
+  "source": "10c398e3c01aa2b292f6accbdcfac85fbdf0b8fc",
+  "utc": "2026-11-21T02:25:24.953210+00:00",
+  "benchmark_argv": [
+    "python",
+    "-m",
+    "loadtest.platform_bench",
+    "--output",
+    "/bench-output",
+    "--tag",
+    "w0-m11",
+    "--duration",
+    "60",
+    "--normal-rate",
+    "700",
+    "--critical-rate",
+    "0",
+    "--normal-workers",
+    "1",
+    "--critical-workers",
+    "1",
+    "--normal-keys",
+    "1000",
+    "--max-in-flight",
+    "2000",
+    "--drain-timeout",
+    "90"
+  ],
+  "running_projects": [
+    "w0m11-10c398e"
+  ],
+  "running_services": [
+    "api",
+    "delivery-worker",
+    "fake-telecom",
+    "ingest-amqp",
+    "mailpit",
+    "mock-ops",
+    "postgres",
+    "rabbitmq",
+    "rule-worker",
+    "rule-worker-critical",
+    "scheduler"
+  ]
+}

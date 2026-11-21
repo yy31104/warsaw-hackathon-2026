@@ -19,7 +19,8 @@ import psycopg
 from psycopg_pool import PoolTimeout
 
 from alerting import db
-from alerting.config import files
+from alerting.config import files, loader
+from alerting.config.store import get_object
 from alerting.ingest.inputs import prepare
 from alerting.ingest.normalize import MAX_BYTES
 from alerting.ingest.store import RejectedInput, save_batch
@@ -195,6 +196,8 @@ class LogTail:
 
     async def poll(self, schemas, db_pool) -> bool:
         """Commit one bounded batch and its checkpoint. Return whether the cursor advanced."""
+        if schemas is None:
+            await loader.sync_files(db_pool)
         async with ingest_registry(db_pool, schemas) as (conn, active):
             await conn.execute("""
                 INSERT INTO log_tail_checkpoints (source_id, path)
@@ -209,8 +212,16 @@ class LogTail:
             if batch is None:
                 return False
             checkpoint, records = batch
+            source = self.source
+            if schemas is None and records:
+                # The running follower uses the committed parser for this unread batch.
+                # The source path and checkpoint stay with this file across parser edits.
+                current = await get_object(conn, "source", source["id"])
+                if not current or not current.active or current.spec["transport"] != "logfile":
+                    return False
+                source = current.spec
             inputs = [
-                prepare(line, self.source, active) if isinstance(line, bytes)
+                prepare(line, source, active) if isinstance(line, bytes)
                 else RejectedInput(self.source["id"], None, line)
                 for line in records
             ]

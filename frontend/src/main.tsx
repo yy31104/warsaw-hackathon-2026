@@ -9,4 +9,4 @@ import './redesign.css';
 import App from './App';
 import {theme} from './theme';
 const client=new QueryClient({defaultOptions:{queries:{retry:false,refetchOnWindowFocus:false}}});
-ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><MantineProvider theme={theme} defaultColorScheme="dark"><QueryClientProvider client={client}><BrowserRouter><App/></BrowserRouter></QueryClientProvider></MantineProvider></React.StrictMode>);
+ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><MantineProvider theme={theme} defaultColorScheme="light"><QueryClientProvider client={client}><BrowserRouter><App/></BrowserRouter></QueryClientProvider></MantineProvider></React.StrictMode>);

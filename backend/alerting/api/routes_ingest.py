@@ -4,17 +4,18 @@ from hmac import compare_digest
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
+from fastapi.responses import JSONResponse
 from psycopg.types.json import Jsonb
 
 from alerting.clock import SYSTEM
 from alerting.config import files
 from alerting.contracts import Outcome
 from alerting.db import pool
+from alerting.ingest.formats import BodyError, FIX_EXAMPLES, decode_body, media_format
 from alerting.ingest.inputs import prepare
-from alerting.ingest.normalize import MAX_BYTES, InvalidEvent, decode_json, flatten
+from alerting.ingest.normalize import MAX_BYTES, flatten
 from alerting.ingest.store import RejectedInput, save_batch
 from alerting.schemas.registry import ingest_registry
-from alerting.templates import lookup
 
 router = APIRouter(prefix="/v1", tags=["ingest"])
 
@@ -29,6 +30,33 @@ def _event_key(key: str | None, batch_index: int | None) -> str | None:
     return key
 
 
+def _body_error(error: BodyError) -> JSONResponse:
+    if error.format == "json":
+        # Keep the existing JSON error envelope and status.
+        return JSONResponse({"detail": f"{error}. Check field {error.field}. For example, send {error.fix}."},
+                            status_code=error.status)
+    content = {"detail": str(error), "field": error.field, "fix_example": error.fix}
+    if error.line is not None:
+        content["line"] = error.line
+    if error.tried:
+        content.update(tried=error.tried, hint=error.fix)
+    return JSONResponse(content, status_code=error.status)
+
+
+def _rejections(decoded, results):
+    rejected = []
+    for index, (row, result) in enumerate(zip(decoded.rows, results, strict=True)):
+        if result.outcome != Outcome.REJECTED:
+            continue
+        issue = {"index": index, "reason": result.reason}
+        if decoded.format != "json":
+            issue.update(row=index + 1, field=row.field, fix_example=FIX_EXAMPLES[decoded.format])
+            if row.line is not None:
+                issue["line"] = row.line
+        rejected.append(issue)
+    return rejected
+
+
 @router.post("/events/{source_id}", status_code=202)
 async def ingest(source_id: str, request: Request, x_api_key: str | None = Header(None),
                  idempotency_key: str | None = Header(None), db_pool=Depends(pool)):
@@ -40,38 +68,41 @@ async def ingest(source_id: str, request: Request, x_api_key: str | None = Heade
 
     received_at = SYSTEM.now()
     body = bytearray()
-    error_status = 400
+    content_type = request.headers.get("content-type")
     try:
         async for chunk in request.stream():
             if len(body) + len(chunk) > MAX_BYTES:
-                error_status = 413
-                raise InvalidEvent("body exceeds 256 KiB")
+                raise BodyError("body exceeds 256 KiB", media_format(content_type), status=413)
             body.extend(chunk)
-        payload = decode_json(body)
-        if isinstance(payload, dict) and (path := source.get("split_path")):
-            children = lookup(payload, path)
-            if children is not None or path in payload:
-                if not isinstance(children, list):
-                    raise InvalidEvent("split_path must contain an array")
-                payload = children
-    except InvalidEvent as exc:
+        decoded = decode_body(body, content_type, source)
+    except BodyError as exc:
         async with db_pool.connection() as conn:
             await save_batch(conn, [RejectedInput(source_id, idempotency_key, str(exc))])
-        raise HTTPException(error_status, str(exc)) from exc
+        return _body_error(exc)
 
-    batch = isinstance(payload, list)
     async with ingest_registry(db_pool, files.schemas()) as (conn, schemas):
-        inputs = [prepare(item, source, schemas, message_id=_event_key(idempotency_key, i if batch else None),
-                          headers=request.headers, received_at=received_at)
-                  for i, item in enumerate(payload if batch else [payload])]
+        if decoded.format == "text" and not source.get("parser"):
+            schemas = []  # Bare text supplies no trusted fields for automatic routing.
+        inputs = []
+        for index, row in enumerate(decoded.rows):
+            key = _event_key(idempotency_key, index if decoded.batch else None)
+            if row.reason is not None:
+                inputs.append(RejectedInput(source_id, key, row.reason))
+            else:
+                inputs.append(prepare(row.value, source, schemas, message_id=key, headers=request.headers,
+                                      received_at=received_at))
         results = await save_batch(conn, inputs)
-    return {
+    rejected = _rejections(decoded, results)
+    response = {
         "accepted": sum(r.outcome in (Outcome.ACCEPTED, Outcome.NEEDS_REVIEW) for r in results),
         "duplicates": sum(r.outcome == Outcome.DUPLICATE for r in results),
         "conflicts": sum(r.outcome == Outcome.CONFLICT for r in results),
-        "rejected": [{"index": i, "reason": r.reason} for i, r in enumerate(results) if r.outcome == Outcome.REJECTED],
+        "rejected": rejected,
         "event_ids": [r.event_id for r in results if r.event_id is not None],
     }
+    if decoded.format != "json" and rejected and len(rejected) == len(results):
+        return JSONResponse({"detail": "Every record was rejected", **response}, status_code=400)
+    return response
 
 
 def _filter_value(value: str):

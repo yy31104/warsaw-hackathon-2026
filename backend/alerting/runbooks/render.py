@@ -84,7 +84,9 @@ def render(book, fields, runs=(), approvers=()):
             runs=len(history),
             execution_count=sum(r["execution_count"] for r in history),
         )
-        if step["approval"] == "required":
+        if step["state"] == "unknown":
+            step["requested_by"] = latest.get("requested_by")
+        if step["approval"] == "required" or step["state"] == "unknown":
             step["approvers"] = list(approvers)
         if step.get("action") == "escalate":
             step["suggested"] = failures >= 2

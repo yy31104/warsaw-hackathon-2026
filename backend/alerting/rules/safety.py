@@ -14,6 +14,7 @@ from alerting.routing import plan
 from alerting.routing.directory import by_id, team_for
 from alerting.rules.dsl import compile, number
 from alerting.rules.engine import Ruleset, evaluate
+from alerting.rules.scoring import score
 
 
 def _leaves(node, positive=True):
@@ -261,7 +262,7 @@ def _trace_evidence(node, rows):
     return matched, [leaf for ok, proof in branches if ok == matched for leaf in proof]
 
 
-def _draft_event(raw, source, schema, detector, at):
+def _draft_event(raw, source, schema, detector, at, naive_timezone=None):
     trace = []
 
     def detect(fields):
@@ -269,24 +270,33 @@ def _draft_event(raw, source, schema, detector, at):
         trace.extend(rows)
         return schema if matched else None
 
-    event = normalize(raw, source, detect, received_at=at)
+    event = normalize(raw, source, detect, received_at=at, naive_timezone=naive_timezone)
     return event, trace
 
 
-def _sample_result(event, trace, schema, ruleset, directory, runbooks, expected, clock):
+def _sample_result(event, trace, schema, ruleset, directory, runbooks, expected, clock, *, include_outcome=False):
     intents, evidence, warnings = [], [], set()
+    matched, alerts, critical_page = [], [], False
     if event.schema_id is None:
         _, evidence = _trace_evidence(schema["detect"], iter(trace))
     else:
         evaluation = evaluate(event, ruleset, {}, clock)
+        if include_outcome:
+            matched = sorted(d["rule_id"] for d in evaluation.decisions if d["reason"].get("matched"))
         notifying_rules = set()
         for op in evaluation.alert_ops:
+            severity = op.effective_severity or event.severity
+            if include_outcome:
+                priority, _, _ = score(severity, event.environment, 1, op.rule, fields=event.fields, schema=schema)
+                alerts.append({"rule_id": op.rule["id"], "severity": severity.value,
+                               "priority": priority, "alert_key": op.key})
             if op.notify:
                 routed = plan(
-                    _snapshot(op, event.severity), op.transition, op.rule, event.fields,
+                    _snapshot(op, severity), op.routing_transition or op.transition, op.rule, event.fields,
                     directory, runbooks, {}, clock,
                 ).intents
                 if routed:
+                    critical_page |= severity == Severity.critical
                     notifying_rules.add(op.rule["id"])
                     intents.extend(routed)
         matches = {rule["id"]: rule.get("match", {}) for rule, _ in ruleset.rules}
@@ -322,7 +332,7 @@ def _sample_result(event, trace, schema, ruleset, directory, runbooks, expected,
         )
     else:
         passed = expected == ("notify" if intents else "quiet")
-    return {
+    result = {
         "actual": actual,
         "expected": expected,
         "passed": passed,
@@ -330,9 +340,18 @@ def _sample_result(event, trace, schema, ruleset, directory, runbooks, expected,
         "fields": event.fields,
         "unit_warnings": sorted(warnings),
     }
+    if include_outcome:
+        pairs = sorted({(intent.recipient, intent.channel.value) for intent in intents})
+        result["operational_outcome"] = {
+            "matched_rule_ids": matched, "alerts": sorted(alerts, key=lambda row: row["rule_id"]),
+            "deliveries": [{"recipient": recipient, "channel": channel} for recipient, channel in pairs],
+        }
+        result["critical_page"] = critical_page
+    return result
 
 
-def verify(schema, samples, ruleset, directory, runbooks, clock):
+def verify(schema, samples, ruleset, directory, runbooks, clock, *, include_outcome=False, timezones=None,
+           check_budget=None):
     """Evaluate independent raw samples against a draft or an overlay of an active schema."""
     base = schema.get("base", schema.get("id"))
     if "base" in schema and base not in ruleset.schemas:
@@ -346,11 +365,16 @@ def verify(schema, samples, ruleset, directory, runbooks, clock):
     transform_scales(draft.get("transforms", {}))
     trial = Ruleset([rule for rule, _ in ruleset.rules], [draft])
     clock = FixedClock(clock.now())
+    timezone = (timezones or {}).get(draft.get("aliases", {}).get("time"))
     results = []
     for sample in samples:
+        if check_budget:
+            check_budget()
         source = {"id": sample.get("source", "preview"), "transport": sample.get("transport", "http")}
-        event, trace = _draft_event(sample["event"], source, draft, detector, clock.now())
+        event, trace = _draft_event(sample["event"], source, draft, detector, clock.now(), timezone)
+        sample_clock = FixedClock(event.occurred_at) if timezone and event.occurred_at else clock
         results.append(
-            _sample_result(event, trace, draft, trial, directory, runbooks, sample["expect"], clock)
+            _sample_result(event, trace, draft, trial, directory, runbooks, sample.get("expect"), sample_clock,
+                           include_outcome=include_outcome)
         )
     return {"samples": results, "all_pass": all(result["passed"] for result in results)}

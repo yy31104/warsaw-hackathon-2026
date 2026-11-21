@@ -1,0 +1,25 @@
+RUN ID m11-11210204-82ce5-r1400-k1000-w1
+2026-11-21T02:04:25.179887+00:00
+> docker compose --ansi never -p m11-11210204-82ce5-r1400-k1000-w1 -f "D:\my project\高盛\dev2-m11-saturation\docker-compose.yml" -f "D:\my project\高盛\dev2-m11-saturation\loadtest\results\saturation-ae69a28\diagnostic-rules\compose.measurement.json" run --rm -T --no-deps --name m11-11210204-82ce5-r1400-k1000-w1-generator --volume "D:\my project\高盛\dev2-m11-saturation\loadtest:/app/loadtest:ro" --volume "D:\my project\高盛\dev2-m11-saturation\fixtures:/app/fixtures:ro" --volume "D:\my project\高盛\dev2-m11-saturation\loadtest\results\saturation-ae69a28\diagnostic-rules\m11-11210204-82ce5-r1400-k1000-w1:/bench-output" rule-worker python -m loadtest.saturation_trial --output /bench-output --run-id m11-11210204-82ce5-r1400-k1000-w1 --tag m11-k1000-r1400 --duration 60 --drain-seconds 20 --normal-workers 1 --normal-rate 1400 --normal-keys 1000 --ingest-workers 1 --critical-rate 2 --max-in-flight 2000
+
+ Container m11-11210204-82ce5-r1400-k1000-w1-generator Creating 
+ Container m11-11210204-82ce5-r1400-k1000-w1-generator Created 
+RUN ID m11-11210204-82ce5-r1400-k1000-w1
+Offer 1,400 normal/s + 2/s critical for 60s | 1 normal workers | 1,000 normal keys
+Offer started. Backlog samples below are live.
+   0.0s | accepted       0  processed       0  broker ready       0  DB pending       0
+  10.1s | accepted  14,020  processed   5,019  broker ready       0  DB pending   9,001
+  20.2s | accepted  28,180  processed  11,240  broker ready       0  DB pending  16,940
+  30.3s | accepted  42,410  processed  17,460  broker ready       0  DB pending  24,950
+  40.5s | accepted  56,570  processed  23,680  broker ready       0  DB pending  32,890
+  50.6s | accepted  70,941  processed  30,500  broker ready       0  DB pending  40,441
+  60.8s | accepted  84,120  processed  37,120  broker ready       0  DB pending  47,000
+  71.1s | accepted  84,120  processed  44,320  broker ready       0  DB pending  39,800
+RUN ID m11-11210204-82ce5-r1400-k1000-w1 | PASS measurement
+Inside offer: 1,402.0 ingested/s, 608.6 processed/s.
+Confirmed 84,120/84,120 | dropped 0 | publish errors 0 | rejected 0
+Pipeline backlog growing | peak 47,000 | verified phone/SMS 2,240/2,240
+Normal p50/p95/p99 (ms): 23172/38853/39968  N=2000
+Critical p50/p95/p99 (ms): 211/373/422  N=240
+
+Exit code 0

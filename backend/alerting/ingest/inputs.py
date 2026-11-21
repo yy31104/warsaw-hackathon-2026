@@ -26,7 +26,10 @@ def prepare(payload, source: dict, schemas: list[dict] | SchemaDetector, *, mess
         if source["transport"] == "logfile":
             if isinstance(payload, bytes):
                 payload = payload.decode("utf-8")
-            payload = parse_log_line(payload, source["parser"])
+            if payload.lstrip().startswith("{"):
+                payload = decode_json(payload.encode())
+            else:
+                payload = parse_log_line(payload, source["parser"])
         elif isinstance(payload, bytes):
             payload = decode_json(payload)
         return normalize(payload, source, schemas, received_at=received_at, message_id=message_id, trace=trace)

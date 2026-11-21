@@ -1,0 +1,32 @@
+{
+  "services": {
+    "api": {
+      "image": "m11satbuild-ae69a28-backend:local",
+      "pull_policy": "never"
+    },
+    "ingest-amqp": {
+      "image": "m11satbuild-ae69a28-backend:local",
+      "pull_policy": "never"
+    },
+    "rule-worker": {
+      "image": "m11satbuild-ae69a28-backend:local",
+      "pull_policy": "never"
+    },
+    "rule-worker-critical": {
+      "image": "m11satbuild-ae69a28-backend:local",
+      "pull_policy": "never"
+    },
+    "delivery-worker": {
+      "image": "m11satbuild-ae69a28-backend:local",
+      "pull_policy": "never"
+    },
+    "scheduler": {
+      "image": "m11satbuild-ae69a28-backend:local",
+      "pull_policy": "never"
+    },
+    "fake-telecom": {
+      "image": "m11satbuild-ae69a28-fake-telecom",
+      "pull_policy": "never"
+    }
+  }
+}

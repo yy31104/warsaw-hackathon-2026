@@ -10,6 +10,7 @@ import {MOCK_MODE, request} from './api';
 import type {Rule} from './types';
 import {ImpactResults} from './VerificationPanels';
 import {ImpactPreview, type ImpactPreviewResult} from './ImpactPreview';
+import {OptimizerPanel} from './OptimizerPanel';
 
 type Proposal = {
   id: number;
@@ -48,7 +49,7 @@ function LiveProposalPage() {
 function LiveProposal({proposal, rule, mayApprove, onApproved}: {
   proposal: Proposal; rule?: Rule; mayApprove: boolean; onApproved: (rule: Rule) => Promise<void>;
 }) {
-  const {actor} = useApp();
+  const {actor, notice} = useApp();
   const [yaml, setYaml] = useState<string | null>(null);
   const [result, setResult] = useState<{yaml: string | null; result: ImpactPreviewResult} | null>(null);
   const [error, setError] = useState('');
@@ -94,6 +95,13 @@ function LiveProposal({proposal, rule, mayApprove, onApproved}: {
         : !mayApprove && <p>Rule ownership is required to approve this proposal.</p>}
       <ErrorBox error={error}/>
       {result && result.yaml === yaml && <ImpactPreview result={result.result}/>}
+      {rule && <OptimizerPanel actor={actor} ruleId={proposal.rule_id} proposalId={proposal.id} draft={yaml}
+        disabled={busy || stale} onUse={mayApprove && !stale ? next => {
+          setYaml(YAML.stringify({...next, id: rule.id, owner: rule.owner, origin: rule.origin, version: rule.version}));
+          setResult(null);
+          setError('');
+          notice('Option loaded into the proposal editor');
+        } : undefined}/>}
     </>}
   </div>;
 }

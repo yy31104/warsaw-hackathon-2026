@@ -1,0 +1,16 @@
+RUN ID m11-11210120-1d623-r1400-k1-w2
+2026-11-21T01:31:18.642160+00:00
+> docker compose --ansi never -p m11-11210120-1d623-r1400-k1-w2 -f "D:\my project\高盛\dev2-m11-saturation\docker-compose.yml" -f "D:\my project\高盛\dev2-m11-saturation\loadtest\results\saturation-ae69a28\compose.measurement.json" ps --format "table {{.Service}}	{{.Name}}	{{.State}}	{{.Health}}"
+
+SERVICE                NAME                                                    STATE     <no value>
+api                    m11-11210120-1d623-r1400-k1-w2-api-1                    running   healthy
+delivery-worker        m11-11210120-1d623-r1400-k1-w2-delivery-worker-1        running   
+fake-telecom           m11-11210120-1d623-r1400-k1-w2-fake-telecom-1           running   healthy
+ingest-amqp            m11-11210120-1d623-r1400-k1-w2-ingest-amqp-1            running   
+mailpit                m11-11210120-1d623-r1400-k1-w2-mailpit-1                running   healthy
+postgres               m11-11210120-1d623-r1400-k1-w2-postgres-1               running   healthy
+rabbitmq               m11-11210120-1d623-r1400-k1-w2-rabbitmq-1               running   healthy
+rule-worker            m11-11210120-1d623-r1400-k1-w2-rule-worker-1            running   
+rule-worker            m11-11210120-1d623-r1400-k1-w2-rule-worker-2            running   
+rule-worker-critical   m11-11210120-1d623-r1400-k1-w2-rule-worker-critical-1   running   
+scheduler              m11-11210120-1d623-r1400-k1-w2-scheduler-1              running

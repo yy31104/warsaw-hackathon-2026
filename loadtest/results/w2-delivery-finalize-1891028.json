@@ -1,0 +1,500 @@
+{
+  "decision": "deferred_after_failed_normal_end_to_end_gate",
+  "e2e": [
+    {
+      "git": "cc5bd7c67606571fe016af03957cba5a5d31e0a1",
+      "run_id": "m11-11210326-bb859-r700-k1000-w4",
+      "workload_sha256": "5804a2c054511b70324d863286d262bcbb02b3c8949b1a6feee529841dc5b4be",
+      "input_fixture": "c10157316c30cfb26665b829044a45362a4b7b7fb07f8d12f05397dc5a9c54f8",
+      "measurement_scripts": {
+        "run_saturation.py": "49d62b5d731530e438f64923926767777a61a02ee78ac38d4afb50326c21bd2e",
+        "saturation_trial.py": "3c1d5fd59b073a36bf439087496b020f97673db9e1a75a50b95f7c260da9cc3f",
+        "bench_generate.py": "a941f3d6d285a7415aa32e50098419bcc59e69b67a0083cbf81da6c4a510cea2",
+        "bench_collect.py": "bea3c892912aca0109b0c54e2835db5ddd330a20fb764ec9d9ebfa850defaab8"
+      },
+      "observations_sha256": "09e91274d93470134102ded9aff2ee8cc9452745af931f39e3c8e537d9b45444",
+      "normal_p99_ms": 5738,
+      "critical_p99_ms": 356,
+      "normal_target_pass": false,
+      "critical_target_pass": true,
+      "events": 42120,
+      "expected": 2240,
+      "unique_receipts": 2240,
+      "duplicate_receipts": 0,
+      "peak_delivery_backlog": 1575,
+      "peak_oldest_pending_s": 4.769851,
+      "end_backlog": 0,
+      "status": "PASS"
+    },
+    {
+      "git": "189102874b2e49fd0c6619bfbec5416a781c7a11",
+      "run_id": "m11-11210338-3d72e-r700-k1000-w4",
+      "workload_sha256": "5804a2c054511b70324d863286d262bcbb02b3c8949b1a6feee529841dc5b4be",
+      "input_fixture": "c10157316c30cfb26665b829044a45362a4b7b7fb07f8d12f05397dc5a9c54f8",
+      "measurement_scripts": {
+        "run_saturation.py": "49d62b5d731530e438f64923926767777a61a02ee78ac38d4afb50326c21bd2e",
+        "saturation_trial.py": "3c1d5fd59b073a36bf439087496b020f97673db9e1a75a50b95f7c260da9cc3f",
+        "bench_generate.py": "a941f3d6d285a7415aa32e50098419bcc59e69b67a0083cbf81da6c4a510cea2",
+        "bench_collect.py": "bea3c892912aca0109b0c54e2835db5ddd330a20fb764ec9d9ebfa850defaab8"
+      },
+      "observations_sha256": "f18b3c2ecc934b1662aa0dceb7017a1cc87512c3fa5cbdddbdaf187c1a7a8b9d",
+      "normal_p99_ms": 9138,
+      "critical_p99_ms": 372,
+      "normal_target_pass": false,
+      "critical_target_pass": true,
+      "events": 42120,
+      "expected": 2240,
+      "unique_receipts": 2240,
+      "duplicate_receipts": 0,
+      "peak_delivery_backlog": 1800,
+      "peak_oldest_pending_s": 8.683936,
+      "end_backlog": 0,
+      "status": "PASS"
+    }
+  ],
+  "candidate_summary": {
+    "run_id": "m11-11210338-3d72e-r700-k1000-w4",
+    "status": "PASS",
+    "measurement_errors": [],
+    "duration_s": 60,
+    "normal_workers": 4,
+    "ingest_workers": 2,
+    "normal_keys": 1000,
+    "normal_offer_per_s": 700,
+    "critical_offer_per_s": 2,
+    "started_at_ms": 1795232339981,
+    "offer_ended_at_ms": 1795232399981,
+    "sampled_until_ms": 1795232400745,
+    "workload_sha256": "5804a2c054511b70324d863286d262bcbb02b3c8949b1a6feee529841dc5b4be",
+    "scheduled": 42120,
+    "broker_confirmed": 42120,
+    "broker_confirmed_in_window": 42120,
+    "generator_dropped": 0,
+    "publish_errors": 0,
+    "max_abs_offer_lag_ms": 10,
+    "p99_abs_offer_lag_ms": 5,
+    "accepted_in_window": 42120,
+    "accepted_in_window_per_s": 702.0,
+    "processed_in_window": 42066,
+    "processed_in_window_per_s": 701.1,
+    "processed_steady_per_s": 702.34,
+    "accepted_after_drain": 42120,
+    "processed_after_drain": 42120,
+    "confirmed_not_stored_at_snapshot": 0,
+    "rejected": 0,
+    "duplicate_inputs": 0,
+    "conflicting_inputs": 0,
+    "backlog": {
+      "warmup_s": 10,
+      "block_width_s": 16.666666666666668,
+      "minimum_growth_per_block": 175.5,
+      "pipeline": {
+        "trend": "no sustained growth",
+        "block_medians": [
+          71,
+          79.5,
+          72.0
+        ]
+      },
+      "rabbit_ready": {
+        "trend": "no sustained growth",
+        "block_medians": [
+          0,
+          0.0,
+          0.0
+        ]
+      },
+      "processing_backlog": {
+        "trend": "no sustained growth",
+        "block_medians": [
+          71,
+          79.5,
+          72.0
+        ]
+      },
+      "delivery_backlog": {
+        "trend": "no sustained growth",
+        "block_medians": [
+          2,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "final_sample": {
+      "observed_at_ms": 1795232400744,
+      "accepted": 42120,
+      "processed": 42120,
+      "processing_backlog": 0,
+      "planned": 2240,
+      "delivered": 2240,
+      "delivery_backlog": 0,
+      "terminal": 2240,
+      "failed": 0,
+      "attempts": 2240,
+      "oldest_pending_s": 0.0,
+      "rabbit_ready": 0,
+      "pg_activity": []
+    },
+    "peak_pipeline_backlog": 174,
+    "peak_delivery_backlog": 1800,
+    "peak_oldest_pending_s": 8.683936,
+    "postgres_active_wait_session_samples": {
+      "Client:ClientRead": 1,
+      "Running:CPU or runnable": 12,
+      "IO:WALSync": 1
+    },
+    "postgres_peak_waiting_sessions": {
+      "Client:ClientRead": 1,
+      "Running:CPU or runnable": 2,
+      "IO:WALSync": 1
+    },
+    "rule_decisions_after_drain": 168480,
+    "notifications_expected": 2240,
+    "notifications_verified": 2240,
+    "notification_slots_without_verified_receipt": 0,
+    "duplicate_receipts": 0,
+    "invalid_receipts": 0,
+    "receiver_latency": {
+      "normal": {
+        "n": 2000,
+        "p50_ms": 5306,
+        "p95_ms": 8777,
+        "p99_ms": 9138
+      },
+      "critical": {
+        "n": 240,
+        "p50_ms": 219,
+        "p95_ms": 349,
+        "p99_ms": 372
+      }
+    },
+    "evidence_written_at_ms": 1795232401069,
+    "postgres_docker_cpu_pct": {
+      "n": 13,
+      "mean": 70.56692307692308,
+      "peak": 152.87
+    },
+    "actual_normal_workers": 4,
+    "actual_ingest_workers": 2,
+    "actual_delivery_workers": 1
+  },
+  "normal_slowest_20_median_ms": {
+    "stages": [
+      "offer_to_ingest",
+      "ingest_to_event_processed",
+      "event_processed_to_attempt_start",
+      "attempt_start_to_receipt",
+      "receipt_to_attempt_finalized"
+    ],
+    "cc5bd7c": [
+      13.554,
+      237.149,
+      5476.168,
+      19.847,
+      12.285
+    ],
+    "1891028": [
+      9.397,
+      196.919,
+      8920.06,
+      16.704,
+      32.344
+    ],
+    "join": "receiver UUID to outbox to (step, generation timestamp) to offered source event ID to processed trace, and notification UUID to first attempt"
+  },
+  "microbench": {
+    "before_uniform": [
+      {
+        "mode": "batch",
+        "workload": "uniform",
+        "workers": 1,
+        "notices": 2000,
+        "teams": 1,
+        "provider_delay_ms": 5.0,
+        "batch_size": 25,
+        "per_worker_channel_limit": 16,
+        "provider_calls": 2000,
+        "unique_delivered": 2000,
+        "delivery_attempts": 2000,
+        "peak_in_flight": 16,
+        "elapsed_s": 3.076,
+        "sends_per_s": 650.25
+      },
+      {
+        "mode": "batch",
+        "workload": "uniform",
+        "workers": 4,
+        "notices": 2000,
+        "teams": 1,
+        "provider_delay_ms": 5.0,
+        "batch_size": 25,
+        "per_worker_channel_limit": 16,
+        "provider_calls": 2000,
+        "unique_delivered": 2000,
+        "delivery_attempts": 2000,
+        "peak_in_flight": 16,
+        "elapsed_s": 2.728,
+        "sends_per_s": 733.08
+      }
+    ],
+    "before_mixed": [
+      {
+        "mode": "batch",
+        "workload": "mixed",
+        "workers": 1,
+        "notices": 2000,
+        "teams": 1,
+        "provider_delay_ms": 5.0,
+        "batch_size": 25,
+        "per_worker_channel_limit": 16,
+        "provider_calls": 2000,
+        "unique_delivered": 2000,
+        "delivery_attempts": 2000,
+        "peak_in_flight": 16,
+        "elapsed_s": 3.301,
+        "sends_per_s": 605.94,
+        "workload_sha256": "c610620f399e85e0c50a42a6338b5e280ba6934f6eec5793c90dde7eecd58364",
+        "receipts": {
+          "normal": {
+            "expected": 1960,
+            "received": 1960,
+            "p99_ms": 3267.84
+          },
+          "critical": {
+            "expected": 40,
+            "received": 40,
+            "p99_ms": 99.74
+          }
+        },
+        "backlog": {
+          "start": 2000,
+          "max": 2000,
+          "end": 0,
+          "samples_s_remaining": [
+            [
+              0,
+              2000
+            ],
+            [
+              0.251,
+              1894
+            ],
+            [
+              1.002,
+              1435
+            ],
+            [
+              2.002,
+              824
+            ],
+            [
+              3.302,
+              0
+            ]
+          ]
+        }
+      },
+      {
+        "mode": "batch",
+        "workload": "mixed",
+        "workers": 4,
+        "notices": 2000,
+        "teams": 1,
+        "provider_delay_ms": 5.0,
+        "batch_size": 25,
+        "per_worker_channel_limit": 16,
+        "provider_calls": 2000,
+        "unique_delivered": 2000,
+        "delivery_attempts": 2000,
+        "peak_in_flight": 16,
+        "elapsed_s": 2.954,
+        "sends_per_s": 677.12,
+        "workload_sha256": "c610620f399e85e0c50a42a6338b5e280ba6934f6eec5793c90dde7eecd58364",
+        "receipts": {
+          "normal": {
+            "expected": 1960,
+            "received": 1960,
+            "p99_ms": 2924.67
+          },
+          "critical": {
+            "expected": 40,
+            "received": 40,
+            "p99_ms": 90.97
+          }
+        },
+        "backlog": {
+          "start": 2000,
+          "max": 2000,
+          "end": 0,
+          "samples_s_remaining": [
+            [
+              0,
+              2000
+            ],
+            [
+              0.251,
+              1885
+            ],
+            [
+              1.002,
+              1553
+            ],
+            [
+              2.002,
+              710
+            ],
+            [
+              2.955,
+              0
+            ]
+          ]
+        }
+      }
+    ],
+    "after_uniform": [
+      {
+        "mode": "batch",
+        "workload": "uniform",
+        "workers": 1,
+        "notices": 2000,
+        "teams": 1,
+        "provider_delay_ms": 5.0,
+        "batch_size": 25,
+        "per_worker_channel_limit": 16,
+        "provider_calls": 2000,
+        "unique_delivered": 2000,
+        "delivery_attempts": 2000,
+        "peak_in_flight": 16,
+        "elapsed_s": 2.482,
+        "sends_per_s": 805.68
+      },
+      {
+        "mode": "batch",
+        "workload": "uniform",
+        "workers": 4,
+        "notices": 2000,
+        "teams": 1,
+        "provider_delay_ms": 5.0,
+        "batch_size": 25,
+        "per_worker_channel_limit": 16,
+        "provider_calls": 2000,
+        "unique_delivered": 2000,
+        "delivery_attempts": 2000,
+        "peak_in_flight": 16,
+        "elapsed_s": 2.688,
+        "sends_per_s": 744.07
+      }
+    ],
+    "after_mixed": [
+      {
+        "mode": "batch",
+        "workload": "mixed",
+        "workers": 1,
+        "notices": 2000,
+        "teams": 1,
+        "provider_delay_ms": 5.0,
+        "batch_size": 25,
+        "per_worker_channel_limit": 16,
+        "provider_calls": 2000,
+        "unique_delivered": 2000,
+        "delivery_attempts": 2000,
+        "peak_in_flight": 16,
+        "elapsed_s": 2.439,
+        "sends_per_s": 819.92,
+        "workload_sha256": "c610620f399e85e0c50a42a6338b5e280ba6934f6eec5793c90dde7eecd58364",
+        "receipts": {
+          "normal": {
+            "expected": 1960,
+            "received": 1960,
+            "p99_ms": 2407.7
+          },
+          "critical": {
+            "expected": 40,
+            "received": 40,
+            "p99_ms": 64.67
+          }
+        },
+        "backlog": {
+          "start": 2000,
+          "max": 2000,
+          "end": 0,
+          "samples_s_remaining": [
+            [
+              0,
+              2000
+            ],
+            [
+              0.251,
+              1835
+            ],
+            [
+              1.002,
+              1210
+            ],
+            [
+              2.001,
+              360
+            ],
+            [
+              2.44,
+              0
+            ]
+          ]
+        }
+      },
+      {
+        "mode": "batch",
+        "workload": "mixed",
+        "workers": 4,
+        "notices": 2000,
+        "teams": 1,
+        "provider_delay_ms": 5.0,
+        "batch_size": 25,
+        "per_worker_channel_limit": 16,
+        "provider_calls": 2000,
+        "unique_delivered": 2000,
+        "delivery_attempts": 2000,
+        "peak_in_flight": 16,
+        "elapsed_s": 1.84,
+        "sends_per_s": 1086.96,
+        "workload_sha256": "c610620f399e85e0c50a42a6338b5e280ba6934f6eec5793c90dde7eecd58364",
+        "receipts": {
+          "normal": {
+            "expected": 1960,
+            "received": 1960,
+            "p99_ms": 1820.91
+          },
+          "critical": {
+            "expected": 40,
+            "received": 40,
+            "p99_ms": 60.14
+          }
+        },
+        "backlog": {
+          "start": 2000,
+          "max": 2000,
+          "end": 0,
+          "samples_s_remaining": [
+            [
+              0,
+              2000
+            ],
+            [
+              0.251,
+              1835
+            ],
+            [
+              1.002,
+              994
+            ],
+            [
+              1.841,
+              0
+            ]
+          ]
+        }
+      }
+    ]
+  }
+}
