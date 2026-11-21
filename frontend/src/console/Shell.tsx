@@ -12,6 +12,7 @@ import './console.css';
 
 const pages = [
   {path: '/', title: 'Now', icon: 'now'},
+  {path: '/incidents', title: 'Incidents', icon: 'incidents'},
   {path: '/sources', title: 'Sources', icon: 'sources'},
   {path: '/rules', title: 'Rules', icon: 'rules'},
   {path: '/runbooks', title: 'Runbooks', icon: 'runbooks'},

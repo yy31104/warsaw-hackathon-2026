@@ -6,6 +6,7 @@ import type {IncidentDetail, Problem} from './data';
 const paths = {
   funnel: 'M3 5h18l-7 8v6l-4 2v-8z',
   now: 'M3 12h4l3-8 4 16 3-8h4',
+  incidents: 'M12 3 3 8l9 5 9-5-9-5ZM3 13l9 5 9-5M3 17.5l9 5 9-5',
   sources: 'M12 3v12m0 0-4-4m4 4 4-4M4 17v3h16v-3',
   rules: 'M4 6h10m3 0h3M4 12h3m3 0h10M4 18h10m3 0h3',
   runbooks: 'M5 4h14v16H5zM9 8h6M9 12h6M9 16h4',
