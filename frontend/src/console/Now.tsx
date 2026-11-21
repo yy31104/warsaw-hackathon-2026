@@ -103,7 +103,8 @@ export function Now() {
       </div>
       <div className="cf-hero-end">
         <div className="cf-event-total"><strong>×{countLabel(hero.occurrence_count)}</strong><small>events · live</small></div>
-        {heroDetail.data && <EscalationRing incident={heroDetail.data} directory={directory}/>}
+        {heroDetail.data && (heroDetail.data.next_escalation || heroDetail.data.status !== 'open')
+          && <EscalationRing incident={heroDetail.data} directory={directory}/>}
         <div className="cf-actions">
           <button className="cf-btn primary" disabled={acknowledge.isPending} onClick={() => acknowledge.mutate(hero.id)}>
             <Icon name="check"/>Acknowledge

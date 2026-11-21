@@ -587,3 +587,21 @@
   .cf-top h1 small.cf-top-note { font-size: 11.5px; }
   .cf-tour { inset: auto 12px calc(70px + env(safe-area-inset-bottom, 0px)) 12px; width: auto; }
 }
+
+/* ---------- Layout polish: centred content, rows with room, aligned brand ---------- */
+.cf-content { margin-inline: auto; width: 100%; }
+.console .cf-top { padding-inline: max(clamp(16px, 2.2vw, 36px), calc((100% - 1420px) / 2 + clamp(16px, 2.2vw, 36px))); }
+.cf-side-row, .cf-rule-row, .cf-timeline li, .cf-step, .cf-map-row, .cf-ladder, .cf-chain li { padding-inline: 14px; }
+.cf-card :is(.cf-side-row, .cf-rule-row, .cf-incident-row, .cf-step, .cf-map-row, .cf-ladder)
+  + :is(.cf-side-row, .cf-rule-row, .cf-incident-row, .cf-step, .cf-map-row, .cf-ladder),
+.cf-timeline li + li, .cf-chain li + li { margin-top: 6px; }
+.cf-incident-list .cf-incident-row { margin-inline: clamp(14px, 1.65vw, 24px); }
+.cf-rule-row :is(strong, small) { text-align: start; }
+.cf-rail .cf-brand .cf-logo { margin: 0; }
+@media (min-width: 1041px) {
+  .cf-rail .cf-brand { align-items: center; }
+  .cf-rail .cf-brand .cf-wordmark { font-size: 15px; line-height: 1.2; }
+}
+@media (max-width: 740px) {
+  .console .cf-top { padding-inline: 12px; }
+}
