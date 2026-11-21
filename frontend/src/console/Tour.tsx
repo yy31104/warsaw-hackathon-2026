@@ -8,7 +8,7 @@ export const stops = [
   {path: '/sources', title: 'Hook up a system', text: 'Paste one sample event. It guesses the fields, you say what they mean.'},
   {path: '/rules', title: 'Decide who gets paged', text: 'Say what to match and who to call. Test it on real history before you save.'},
   {path: '/runbooks', title: 'Write down the fix', text: 'Steps anyone can follow. Risky ones wait for a second person to approve.'},
-  {path: '/oncall', title: 'Who picks up', text: 'Set who’s on call, who backs them up, and when you don’t want a text.'},
+  {path: '/oncall', title: 'Who picks up', text: 'See who’s on call and who backs them up. Then set when you want a call, a text or just an email.'},
 ] as const;
 
 export function Tour({step, setStep}: {step: number; setStep: (step: number | null) => void}) {

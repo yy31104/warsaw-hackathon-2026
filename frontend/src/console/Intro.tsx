@@ -11,7 +11,7 @@ const story = [
   {verb: 'Group', value: '1', label: 'incident', icon: 'funnel', page: '/', place: 'Now',
     caption: '500 repeats. One incident.', how: 'Nothing to do. It shows up on Now.'},
   {verb: 'Page', value: '0.24 s', label: 'to Sam', icon: 'phone', page: '/oncall', place: 'On call',
-    caption: 'Sam’s phone rings. If nobody answers, Lee is next.', how: 'Pick who’s on call and who backs them up.'},
+    caption: 'Sam’s phone rings. If nobody answers, Lee is next.', how: 'See who’s on call. Set how you want to be reached.'},
   {verb: 'Fix', value: '6m 40s', label: 'to fixed', icon: 'check', page: '/runbooks', place: 'Runbooks',
     caption: 'One approved retry. Fixed, and it’s all on record.', how: 'Ack it, run the step, close it.'},
 ] as const;
