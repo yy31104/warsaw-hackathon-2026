@@ -5,7 +5,7 @@ import {useApp} from '../App';
 import {api, request} from '../api';
 import {inTeam} from '../permissions';
 import {canReview, detailQuery, representativeExplainPath, type IncidentDetail} from './data';
-import {Card, Chip, EscalationRing, Failure, humanize, Icon, LegacyLink,
+import {Card, Chip, EscalationLede, EscalationRing, Failure, humanize, Icon, LegacyLink,
   personName, teamName, countLabel, timeLabel, useClock} from './ui';
 import {IncidentChips} from './Now';
 import {timelineRows, type TimelineRule} from './timeline';
@@ -183,6 +183,7 @@ export function Incident() {
     <Card className="cf-incident-header">
       <IncidentChips alert={incident}/>
       <h2>{incident.title}</h2>
+      <EscalationLede incident={incident} directory={directory}/>
       {incident.body && <p className="cf-incident-summary">{incident.body}</p>}
       <div className="cf-lifecycle-wrap">
         <ol className="cf-lifecycle">{lifecycle.map(stage => <li key={stage.name} className={`cf-${stage.tone}`} data-completed={Boolean(stage.at)}>
