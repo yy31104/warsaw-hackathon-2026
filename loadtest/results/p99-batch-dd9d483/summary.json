@@ -1,0 +1,619 @@
+{
+  "experiment": "Normal receiver p99 vs DELIVERY_BATCH, config only (no application code change)",
+  "images_built_from": "dd9d4834216f63ded7dabd130ea6b58ea62c1d3f",
+  "main_at_report": "b4a32c2 (backend/, docker-compose.yml, loadtest/*.py and fixtures/ identical to dd9d483)",
+  "host": "Apple M4 Pro, macOS 27.2, Docker VM 14 CPUs; see each run's host.json and machine.json",
+  "workload": {
+    "normal_per_s": 700,
+    "critical_per_s": 2,
+    "normal_keys": 1000,
+    "offer_s": 60,
+    "drain_s": 20,
+    "ingest_workers": 2,
+    "normal_rule_workers": 4,
+    "critical_rule_workers": 1,
+    "delivery_workers": 1,
+    "workload_sha256": [
+      "5804a2c054511b70324d863286d262bcbb02b3c8949b1a6feee529841dc5b4be"
+    ]
+  },
+  "order": "B25, A50, A50, B25 (r2-r5), alternating, fresh Compose project and volumes per run",
+  "environment_note": "Busier than the original cc5bd7c trial: compose projects alertfunnel-demo and alertfunnel-local-review (14 containers each) ran idle throughout; 1-min load average in the trial windows 7.4-9.5 (r5 spiked to 19.7 for the last 2 s of offer and the drain without a pipeline stall). The matched baseline measured 7.167 and 6.722 s, not 5.738 s.",
+  "excluded_runs": {
+    "r1-b25": "INVALID. Whole-pipeline stall of ~11 s at 06:55:27 (ingest, rule processing and sends all paused) overlapping another session's image build for w0f-release-final (frontend image created 06:56:19; docker-buildx still running at 06:57) and a Playwright run that ended about 20 s before the offer. Load average 18-20. Kept as raw evidence only."
+  },
+  "reconstructed_records": {
+    "r3-a50": "host.json reconstructed from compose-ls.jsonl; wrapper snapshots lost to a quoting bug. Trial data complete."
+  },
+  "baseline_B25_25x16": {
+    "runs": [
+      "r2-b25",
+      "r5-b25"
+    ],
+    "normal_p99_ms": [
+      7167,
+      6722
+    ],
+    "normal_p99_mean_ms": 6944.5,
+    "critical_p99_ms": [
+      347,
+      405
+    ],
+    "gates_all_runs": {
+      "normal_p99_lt_5s": false,
+      "critical_p99_lt_1s": true,
+      "normal_2000_of_2000": true,
+      "critical_240_of_240": true,
+      "zero_duplicate_receipts": true,
+      "no_accepted_event_loss": true
+    }
+  },
+  "candidate_A_50x16": {
+    "runs": [
+      "r3-a50",
+      "r4-a50"
+    ],
+    "normal_p99_ms": [
+      7426,
+      7086
+    ],
+    "normal_p99_mean_ms": 7256.0,
+    "critical_p99_ms": [
+      557,
+      638
+    ],
+    "gates_all_runs": {
+      "normal_p99_lt_5s": false,
+      "critical_p99_lt_1s": true,
+      "normal_2000_of_2000": true,
+      "critical_240_of_240": true,
+      "zero_duplicate_receipts": true,
+      "no_accepted_event_loss": true
+    }
+  },
+  "candidate_A_vs_matched_baseline_normal_p99": {
+    "mean_ratio": 1.0448556411548708,
+    "adjacent_pairs": {
+      "r3/r2": 1.0361378540533,
+      "r4/r5": 1.0541505504314193
+    }
+  },
+  "candidate_B_50x24": "NOT_RUN (stop rule: run only if 50/16 clearly beats the matched baseline)",
+  "candidate_C_2_delivery_workers": "NOT_RUN (same stop rule)",
+  "verdict": {
+    "normal_p99_lt_5s": "FAIL",
+    "critical_p99_lt_1s": "PASS",
+    "receipts_complete": "PASS",
+    "zero_duplicates": "PASS",
+    "no_accepted_event_loss": "PASS",
+    "A50_better_than_matched_B25": "NO",
+    "config_change_recommended": "NO"
+  },
+  "runs": [
+    {
+      "label": "r1-b25",
+      "run_id": "m11-11210553-bbfa8-r700-k1000-w4",
+      "requested": {
+        "DELIVERY_BATCH": 25,
+        "DELIVERY_CONCURRENCY": 16,
+        "delivery_workers": 1
+      },
+      "delivery_worker_env_observed": [
+        {
+          "name": "/m11-11210553-bbfa8-r700-k1000-w4-delivery-worker-1",
+          "image": "af-p99-img-backend:local",
+          "env": [
+            "DELIVERY_CONCURRENCY=16",
+            "DELIVERY_TARGET_S=30",
+            "DELIVERY_BATCH=25"
+          ]
+        }
+      ],
+      "workload_sha256": "5804a2c054511b70324d863286d262bcbb02b3c8949b1a6feee529841dc5b4be",
+      "workers": {
+        "normal": 4,
+        "ingest": 2,
+        "delivery": 1
+      },
+      "offer_local": "06:54:28\u201306:55:28",
+      "trial_status": "PASS",
+      "receiver_latency": {
+        "normal": {
+          "n": 2000,
+          "p50_ms": 6716,
+          "p95_ms": 10637,
+          "p99_ms": 10826
+        },
+        "critical": {
+          "n": 240,
+          "p50_ms": 230,
+          "p95_ms": 489,
+          "p99_ms": 15411
+        }
+      },
+      "receipts": {
+        "critical": {
+          "received": 240,
+          "expected": 240
+        },
+        "normal": {
+          "received": 2000,
+          "expected": 2000
+        }
+      },
+      "duplicate_receipts": 0,
+      "invalid_receipts": 0,
+      "events": {
+        "scheduled": 42120,
+        "broker_confirmed": 42120,
+        "generator_dropped": 0,
+        "publish_errors": 0,
+        "accepted_after_drain": 42120,
+        "processed_after_drain": 42120,
+        "accepted_not_processed_after_drain": 0,
+        "confirmed_not_stored_at_snapshot": 0,
+        "final_processing_backlog": 0,
+        "final_delivery_backlog": 0,
+        "final_rabbit_ready": 0,
+        "final_failed": 0
+      },
+      "peak_delivery_backlog": 1666,
+      "postgres_docker_cpu_pct": {
+        "n": 11,
+        "mean": 74.65727272727273,
+        "peak": 143.48
+      },
+      "slowest20_normal_median_ms": {
+        "e2e_ms": 10849.5,
+        "offer_to_ingest_ms": 12.5595703125,
+        "ingest_to_processed_ms": 634.7855224609375,
+        "processed_to_first_claim_ms": 10169.68408203125,
+        "claim_to_receipt_ms": 14.81494140625
+      },
+      "host": {
+        "pre_loadavg": "{ 7.73 6.95 8.92 }",
+        "post_loadavg": "{ 16.69 11.99 10.72 }",
+        "trial_window_load1_mean": 18.06,
+        "trial_window_load1_max": 19.99,
+        "foreign_test_or_build_processes_in_window": [
+          "66816 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --disable-field-trial-config",
+          "66835 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=gpu-process --no-sand",
+          "66836 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=utility --utility-sub",
+          "66840 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+          "66841 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+          "66862 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o"
+        ],
+        "containers_pre": 80,
+        "compose_projects_pre": {
+          "w0-console-final-copy": 12,
+          "w0f-final-copy": 14,
+          "alertfunnel-local-review": 14,
+          "alertfunnel-demo": 14,
+          "alertfunnel": 3,
+          "<other, not this project>": 23
+        },
+        "foreign_processes_sampled": true,
+        "reconstructed_host_record": false
+      },
+      "gates": {
+        "normal_p99_lt_5s": false,
+        "critical_p99_lt_1s": false,
+        "normal_2000_of_2000": true,
+        "critical_240_of_240": true,
+        "zero_duplicate_receipts": true,
+        "no_accepted_event_loss": true
+      }
+    },
+    {
+      "label": "r2-b25",
+      "run_id": "m11-11210559-67f5d-r700-k1000-w4",
+      "requested": {
+        "DELIVERY_BATCH": 25,
+        "DELIVERY_CONCURRENCY": 16,
+        "delivery_workers": 1
+      },
+      "delivery_worker_env_observed": [
+        {
+          "name": "/m11-11210559-67f5d-r700-k1000-w4-delivery-worker-1",
+          "image": "af-p99-img-backend:local",
+          "env": [
+            "DELIVERY_TARGET_S=30",
+            "DELIVERY_BATCH=25",
+            "DELIVERY_CONCURRENCY=16"
+          ]
+        }
+      ],
+      "workload_sha256": "5804a2c054511b70324d863286d262bcbb02b3c8949b1a6feee529841dc5b4be",
+      "workers": {
+        "normal": 4,
+        "ingest": 2,
+        "delivery": 1
+      },
+      "offer_local": "07:00:13\u201307:01:13",
+      "trial_status": "PASS",
+      "receiver_latency": {
+        "normal": {
+          "n": 2000,
+          "p50_ms": 4249,
+          "p95_ms": 6978,
+          "p99_ms": 7167
+        },
+        "critical": {
+          "n": 240,
+          "p50_ms": 210,
+          "p95_ms": 304,
+          "p99_ms": 347
+        }
+      },
+      "receipts": {
+        "critical": {
+          "received": 240,
+          "expected": 240
+        },
+        "normal": {
+          "received": 2000,
+          "expected": 2000
+        }
+      },
+      "duplicate_receipts": 0,
+      "invalid_receipts": 0,
+      "events": {
+        "scheduled": 42120,
+        "broker_confirmed": 42120,
+        "generator_dropped": 0,
+        "publish_errors": 0,
+        "accepted_after_drain": 42120,
+        "processed_after_drain": 42120,
+        "accepted_not_processed_after_drain": 0,
+        "confirmed_not_stored_at_snapshot": 0,
+        "final_processing_backlog": 0,
+        "final_delivery_backlog": 0,
+        "final_rabbit_ready": 0,
+        "final_failed": 0
+      },
+      "peak_delivery_backlog": 1652,
+      "postgres_docker_cpu_pct": {
+        "n": 12,
+        "mean": 61.839166666666664,
+        "peak": 131.35
+      },
+      "slowest20_normal_median_ms": {
+        "e2e_ms": 7177.0,
+        "offer_to_ingest_ms": 7.7110595703125,
+        "ingest_to_processed_ms": 139.305908203125,
+        "processed_to_first_claim_ms": 7002.803955078125,
+        "claim_to_receipt_ms": 21.093994140625
+      },
+      "host": {
+        "pre_loadavg": "{ 4.72 9.31 9.99 }",
+        "post_loadavg": "{ 7.81 9.31 9.93 }",
+        "trial_window_load1_mean": 7.4,
+        "trial_window_load1_max": 8.3,
+        "foreign_test_or_build_processes_in_window": [],
+        "containers_pre": 54,
+        "compose_projects_pre": {
+          "alertfunnel-local-review": 14,
+          "alertfunnel-demo": 14,
+          "alertfunnel": 3,
+          "<other, not this project>": 23
+        },
+        "foreign_processes_sampled": true,
+        "reconstructed_host_record": false
+      },
+      "gates": {
+        "normal_p99_lt_5s": false,
+        "critical_p99_lt_1s": true,
+        "normal_2000_of_2000": true,
+        "critical_240_of_240": true,
+        "zero_duplicate_receipts": true,
+        "no_accepted_event_loss": true
+      }
+    },
+    {
+      "label": "r3-a50",
+      "run_id": "m11-11210601-42882-r700-k1000-w4",
+      "requested": {
+        "DELIVERY_BATCH": 50,
+        "DELIVERY_CONCURRENCY": 16,
+        "delivery_workers": 1
+      },
+      "delivery_worker_env_observed": [],
+      "workload_sha256": "5804a2c054511b70324d863286d262bcbb02b3c8949b1a6feee529841dc5b4be",
+      "workers": {
+        "normal": 4,
+        "ingest": 2,
+        "delivery": 1
+      },
+      "offer_local": "07:02:05\u201307:03:05",
+      "trial_status": "PASS",
+      "receiver_latency": {
+        "normal": {
+          "n": 2000,
+          "p50_ms": 4066,
+          "p95_ms": 7006,
+          "p99_ms": 7426
+        },
+        "critical": {
+          "n": 240,
+          "p50_ms": 231,
+          "p95_ms": 349,
+          "p99_ms": 557
+        }
+      },
+      "receipts": {
+        "critical": {
+          "received": 240,
+          "expected": 240
+        },
+        "normal": {
+          "received": 2000,
+          "expected": 2000
+        }
+      },
+      "duplicate_receipts": 0,
+      "invalid_receipts": 0,
+      "events": {
+        "scheduled": 42120,
+        "broker_confirmed": 42120,
+        "generator_dropped": 0,
+        "publish_errors": 0,
+        "accepted_after_drain": 42120,
+        "processed_after_drain": 42120,
+        "accepted_not_processed_after_drain": 0,
+        "confirmed_not_stored_at_snapshot": 0,
+        "final_processing_backlog": 0,
+        "final_delivery_backlog": 0,
+        "final_rabbit_ready": 0,
+        "final_failed": 0
+      },
+      "peak_delivery_backlog": 1830,
+      "postgres_docker_cpu_pct": {
+        "n": 12,
+        "mean": 58.20666666666667,
+        "peak": 102.23
+      },
+      "slowest20_normal_median_ms": {
+        "e2e_ms": 7440.5,
+        "offer_to_ingest_ms": 7.58349609375,
+        "ingest_to_processed_ms": 249.387451171875,
+        "processed_to_first_claim_ms": 7073.4798583984375,
+        "claim_to_receipt_ms": 108.97412109375
+      },
+      "host": {
+        "pre_loadavg": "{ 6.47 8.79 9.71 }",
+        "post_loadavg": "{ 9.01 9.05 9.72 }",
+        "trial_window_load1_mean": 7.75,
+        "trial_window_load1_max": 8.62,
+        "foreign_test_or_build_processes_in_window": [],
+        "containers_pre": null,
+        "compose_projects_pre": [
+          "alertfunnel",
+          "alertfunnel-demo",
+          "alertfunnel-local-review",
+          "<other>",
+          "m11-11210601-42882-r700-k1000-w4"
+        ],
+        "foreign_processes_sampled": false,
+        "reconstructed_host_record": true
+      },
+      "gates": {
+        "normal_p99_lt_5s": false,
+        "critical_p99_lt_1s": true,
+        "normal_2000_of_2000": true,
+        "critical_240_of_240": true,
+        "zero_duplicate_receipts": true,
+        "no_accepted_event_loss": true
+      }
+    },
+    {
+      "label": "r4-a50",
+      "run_id": "m11-11210604-be50f-r700-k1000-w4",
+      "requested": {
+        "DELIVERY_BATCH": 50,
+        "DELIVERY_CONCURRENCY": 16,
+        "delivery_workers": 1
+      },
+      "delivery_worker_env_observed": [
+        {
+          "name": "/m11-11210604-be50f-r700-k1000-w4-delivery-worker-1",
+          "image": "af-p99-img-backend:local",
+          "env": [
+            "DELIVERY_BATCH=50",
+            "DELIVERY_CONCURRENCY=16",
+            "DELIVERY_TARGET_S=30"
+          ]
+        }
+      ],
+      "workload_sha256": "5804a2c054511b70324d863286d262bcbb02b3c8949b1a6feee529841dc5b4be",
+      "workers": {
+        "normal": 4,
+        "ingest": 2,
+        "delivery": 1
+      },
+      "offer_local": "07:04:38\u201307:05:38",
+      "trial_status": "PASS",
+      "receiver_latency": {
+        "normal": {
+          "n": 2000,
+          "p50_ms": 4180,
+          "p95_ms": 6844,
+          "p99_ms": 7086
+        },
+        "critical": {
+          "n": 240,
+          "p50_ms": 229,
+          "p95_ms": 333,
+          "p99_ms": 638
+        }
+      },
+      "receipts": {
+        "critical": {
+          "received": 240,
+          "expected": 240
+        },
+        "normal": {
+          "received": 2000,
+          "expected": 2000
+        }
+      },
+      "duplicate_receipts": 0,
+      "invalid_receipts": 0,
+      "events": {
+        "scheduled": 42120,
+        "broker_confirmed": 42120,
+        "generator_dropped": 0,
+        "publish_errors": 0,
+        "accepted_after_drain": 42120,
+        "processed_after_drain": 42120,
+        "accepted_not_processed_after_drain": 0,
+        "confirmed_not_stored_at_snapshot": 0,
+        "final_processing_backlog": 0,
+        "final_delivery_backlog": 0,
+        "final_rabbit_ready": 0,
+        "final_failed": 0
+      },
+      "peak_delivery_backlog": 1831,
+      "postgres_docker_cpu_pct": {
+        "n": 13,
+        "mean": 73.02230769230769,
+        "peak": 121.41
+      },
+      "slowest20_normal_median_ms": {
+        "e2e_ms": 7127.0,
+        "offer_to_ingest_ms": 7.6195068359375,
+        "ingest_to_processed_ms": 244.365478515625,
+        "processed_to_first_claim_ms": 6761.926513671875,
+        "claim_to_receipt_ms": 110.6259765625
+      },
+      "host": {
+        "pre_loadavg": "{ 7.41 8.68 9.55 }",
+        "post_loadavg": "{ 8.08 8.59 9.42 }",
+        "trial_window_load1_mean": 7.8,
+        "trial_window_load1_max": 8.43,
+        "foreign_test_or_build_processes_in_window": [],
+        "containers_pre": 54,
+        "compose_projects_pre": {
+          "alertfunnel-local-review": 14,
+          "alertfunnel-demo": 14,
+          "alertfunnel": 3,
+          "<other, not this project>": 23
+        },
+        "foreign_processes_sampled": true,
+        "reconstructed_host_record": false
+      },
+      "gates": {
+        "normal_p99_lt_5s": false,
+        "critical_p99_lt_1s": true,
+        "normal_2000_of_2000": true,
+        "critical_240_of_240": true,
+        "zero_duplicate_receipts": true,
+        "no_accepted_event_loss": true
+      }
+    },
+    {
+      "label": "r5-b25",
+      "run_id": "m11-11210606-163a2-r700-k1000-w4",
+      "requested": {
+        "DELIVERY_BATCH": 25,
+        "DELIVERY_CONCURRENCY": 16,
+        "delivery_workers": 1
+      },
+      "delivery_worker_env_observed": [
+        {
+          "name": "/m11-11210606-163a2-r700-k1000-w4-delivery-worker-1",
+          "image": "af-p99-img-backend:local",
+          "env": [
+            "DELIVERY_CONCURRENCY=16",
+            "DELIVERY_TARGET_S=30",
+            "DELIVERY_BATCH=25"
+          ]
+        }
+      ],
+      "workload_sha256": "5804a2c054511b70324d863286d262bcbb02b3c8949b1a6feee529841dc5b4be",
+      "workers": {
+        "normal": 4,
+        "ingest": 2,
+        "delivery": 1
+      },
+      "offer_local": "07:06:30\u201307:07:30",
+      "trial_status": "PASS",
+      "receiver_latency": {
+        "normal": {
+          "n": 2000,
+          "p50_ms": 3866,
+          "p95_ms": 6467,
+          "p99_ms": 6722
+        },
+        "critical": {
+          "n": 240,
+          "p50_ms": 214,
+          "p95_ms": 326,
+          "p99_ms": 405
+        }
+      },
+      "receipts": {
+        "critical": {
+          "received": 240,
+          "expected": 240
+        },
+        "normal": {
+          "received": 2000,
+          "expected": 2000
+        }
+      },
+      "duplicate_receipts": 0,
+      "invalid_receipts": 0,
+      "events": {
+        "scheduled": 42120,
+        "broker_confirmed": 42120,
+        "generator_dropped": 0,
+        "publish_errors": 0,
+        "accepted_after_drain": 42120,
+        "processed_after_drain": 42120,
+        "accepted_not_processed_after_drain": 0,
+        "confirmed_not_stored_at_snapshot": 0,
+        "final_processing_backlog": 0,
+        "final_delivery_backlog": 0,
+        "final_rabbit_ready": 0,
+        "final_failed": 0
+      },
+      "peak_delivery_backlog": 1636,
+      "postgres_docker_cpu_pct": {
+        "n": 13,
+        "mean": 53.94923076923077,
+        "peak": 127.94
+      },
+      "slowest20_normal_median_ms": {
+        "e2e_ms": 6731.5,
+        "offer_to_ingest_ms": 3.092529296875,
+        "ingest_to_processed_ms": 112.52197265625,
+        "processed_to_first_claim_ms": 6592.1634521484375,
+        "claim_to_receipt_ms": 23.321044921875
+      },
+      "host": {
+        "pre_loadavg": "{ 6.82 8.26 9.28 }",
+        "post_loadavg": "{ 19.22 11.27 10.28 }",
+        "trial_window_load1_mean": 9.49,
+        "trial_window_load1_max": 19.71,
+        "foreign_test_or_build_processes_in_window": [],
+        "containers_pre": 54,
+        "compose_projects_pre": {
+          "alertfunnel-local-review": 14,
+          "alertfunnel-demo": 14,
+          "alertfunnel": 3,
+          "<other, not this project>": 23
+        },
+        "foreign_processes_sampled": true,
+        "reconstructed_host_record": false
+      },
+      "gates": {
+        "normal_p99_lt_5s": false,
+        "critical_p99_lt_1s": true,
+        "normal_2000_of_2000": true,
+        "critical_240_of_240": true,
+        "zero_duplicate_receipts": true,
+        "no_accepted_event_loss": true
+      }
+    }
+  ]
+}

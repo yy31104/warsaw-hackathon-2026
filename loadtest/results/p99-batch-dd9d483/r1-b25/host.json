@@ -1,0 +1,1668 @@
+{
+  "label": "r1-b25",
+  "requested": {
+    "DELIVERY_BATCH": 25,
+    "DELIVERY_CONCURRENCY": 16,
+    "delivery_workers": 1
+  },
+  "runner_exit_code": 0,
+  "delivery_worker_env_observed": [
+    {
+      "name": "/m11-11210553-bbfa8-r700-k1000-w4-delivery-worker-1",
+      "image": "af-p99-img-backend:local",
+      "env": [
+        "DELIVERY_CONCURRENCY=16",
+        "DELIVERY_TARGET_S=30",
+        "DELIVERY_BATCH=25"
+      ]
+    }
+  ],
+  "pre": {
+    "phase": "pre",
+    "utc": "2026-11-21T05:53:23Z",
+    "local": "06:53:23",
+    "loadavg": "{ 7.73 6.95 8.92 }",
+    "test_processes": [],
+    "containers": [
+      {
+        "Names": "w0-console-final-copy-frontend-1",
+        "Image": "w0-console-final-copy-frontend",
+        "Status": "Up 2 seconds (healthy)"
+      },
+      {
+        "Names": "w0-console-final-copy-api-1",
+        "Image": "w0-console-final-copy-backend:local",
+        "Status": "Up 5 seconds (healthy)"
+      },
+      {
+        "Names": "w0-console-final-copy-delivery-worker-1",
+        "Image": "w0-console-final-copy-backend:local",
+        "Status": "Up 5 seconds"
+      },
+      {
+        "Names": "w0-console-final-copy-rule-worker-1",
+        "Image": "w0-console-final-copy-backend:local",
+        "Status": "Up 5 seconds"
+      },
+      {
+        "Names": "w0-console-final-copy-rule-worker-critical-1",
+        "Image": "w0-console-final-copy-backend:local",
+        "Status": "Up 5 seconds"
+      },
+      {
+        "Names": "w0-console-final-copy-ingest-logtail-1",
+        "Image": "w0-console-final-copy-backend:local",
+        "Status": "Up 5 seconds"
+      },
+      {
+        "Names": "w0-console-final-copy-scheduler-1",
+        "Image": "w0-console-final-copy-backend:local",
+        "Status": "Up 5 seconds"
+      },
+      {
+        "Names": "w0-console-final-copy-postgres-1",
+        "Image": "postgres:16-alpine",
+        "Status": "Up 8 seconds (healthy)"
+      },
+      {
+        "Names": "w0-console-final-copy-rabbitmq-1",
+        "Image": "rabbitmq:3.13-management-alpine",
+        "Status": "Up 8 seconds (health: starting)"
+      },
+      {
+        "Names": "w0-console-final-copy-mock-ops-1",
+        "Image": "w0-console-final-copy-mock-ops",
+        "Status": "Up 8 seconds"
+      },
+      {
+        "Names": "w0-console-final-copy-fake-telecom-1",
+        "Image": "w0-console-final-copy-fake-telecom",
+        "Status": "Up 8 seconds (healthy)"
+      },
+      {
+        "Names": "w0-console-final-copy-mailpit-1",
+        "Image": "axllent/mailpit:latest",
+        "Status": "Up 8 seconds (healthy)"
+      },
+      {
+        "Names": "w0f-final-copy-frontend-1",
+        "Image": "w0f-final-copy-frontend",
+        "Status": "Up 28 seconds (healthy)"
+      },
+      {
+        "Names": "w0f-final-copy-api-1",
+        "Image": "w0f-final-copy-backend:local",
+        "Status": "Up 30 seconds (healthy)"
+      },
+      {
+        "Names": "w0f-final-copy-ingest-amqp-2",
+        "Image": "w0f-final-copy-backend:local",
+        "Status": "Up 22 seconds"
+      },
+      {
+        "Names": "w0f-final-copy-ingest-amqp-1",
+        "Image": "w0f-final-copy-backend:local",
+        "Status": "Up 22 seconds"
+      },
+      {
+        "Names": "w0f-final-copy-scheduler-1",
+        "Image": "w0f-final-copy-backend:local",
+        "Status": "Up 30 seconds"
+      },
+      {
+        "Names": "w0f-final-copy-ingest-logtail-1",
+        "Image": "w0f-final-copy-backend:local",
+        "Status": "Up 30 seconds"
+      },
+      {
+        "Names": "w0f-final-copy-rule-worker-critical-1",
+        "Image": "w0f-final-copy-backend:local",
+        "Status": "Up 30 seconds"
+      },
+      {
+        "Names": "w0f-final-copy-rule-worker-1",
+        "Image": "w0f-final-copy-backend:local",
+        "Status": "Up 30 seconds"
+      },
+      {
+        "Names": "w0f-final-copy-delivery-worker-1",
+        "Image": "w0f-final-copy-backend:local",
+        "Status": "Up 30 seconds"
+      },
+      {
+        "Names": "w0f-final-copy-rabbitmq-1",
+        "Image": "rabbitmq:3.13-management-alpine",
+        "Status": "Up 34 seconds (healthy)"
+      },
+      {
+        "Names": "w0f-final-copy-postgres-1",
+        "Image": "postgres:16-alpine",
+        "Status": "Up 34 seconds (healthy)"
+      },
+      {
+        "Names": "w0f-final-copy-fake-telecom-1",
+        "Image": "w0f-final-copy-fake-telecom",
+        "Status": "Up 34 seconds (healthy)"
+      },
+      {
+        "Names": "w0f-final-copy-mock-ops-1",
+        "Image": "w0f-final-copy-mock-ops",
+        "Status": "Up 34 seconds"
+      },
+      {
+        "Names": "w0f-final-copy-mailpit-1",
+        "Image": "axllent/mailpit:latest",
+        "Status": "Up 34 seconds (healthy)"
+      },
+      {
+        "Names": "alertfunnel-local-review-frontend-1",
+        "Image": "alertfunnel-local-review-frontend",
+        "Status": "Up 19 minutes (healthy)"
+      },
+      {
+        "Names": "alertfunnel-local-review-api-1",
+        "Image": "alertfunnel-local-review-backend:local",
+        "Status": "Up 19 minutes (healthy)"
+      },
+      {
+        "Names": "alertfunnel-local-review-ingest-amqp-2",
+        "Image": "alertfunnel-local-review-backend:local",
+        "Status": "Up 18 minutes"
+      },
+      {
+        "Names": "alertfunnel-local-review-delivery-worker-1",
+        "Image": "alertfunnel-local-review-backend:local",
+        "Status": "Up 19 minutes"
+      },
+      {
+        "Names": "alertfunnel-local-review-rule-worker-1",
+        "Image": "alertfunnel-local-review-backend:local",
+        "Status": "Up 19 minutes"
+      },
+      {
+        "Names": "alertfunnel-local-review-rule-worker-critical-1",
+        "Image": "alertfunnel-local-review-backend:local",
+        "Status": "Up 19 minutes"
+      },
+      {
+        "Names": "alertfunnel-local-review-ingest-amqp-1",
+        "Image": "alertfunnel-local-review-backend:local",
+        "Status": "Up 18 minutes"
+      },
+      {
+        "Names": "alertfunnel-local-review-scheduler-1",
+        "Image": "alertfunnel-local-review-backend:local",
+        "Status": "Up 19 minutes"
+      },
+      {
+        "Names": "alertfunnel-local-review-ingest-logtail-1",
+        "Image": "alertfunnel-local-review-backend:local",
+        "Status": "Up 19 minutes"
+      },
+      {
+        "Names": "alertfunnel-local-review-rabbitmq-1",
+        "Image": "rabbitmq:3.13-management-alpine",
+        "Status": "Up 19 minutes (healthy)"
+      },
+      {
+        "Names": "alertfunnel-local-review-postgres-1",
+        "Image": "postgres:16-alpine",
+        "Status": "Up 19 minutes (healthy)"
+      },
+      {
+        "Names": "alertfunnel-local-review-mock-ops-1",
+        "Image": "alertfunnel-local-review-mock-ops",
+        "Status": "Up 19 minutes"
+      },
+      {
+        "Names": "alertfunnel-local-review-fake-telecom-1",
+        "Image": "alertfunnel-local-review-fake-telecom",
+        "Status": "Up 19 minutes (healthy)"
+      },
+      {
+        "Names": "alertfunnel-local-review-mailpit-1",
+        "Image": "axllent/mailpit:latest",
+        "Status": "Up 19 minutes (healthy)"
+      },
+      {
+        "Names": "alertfunnel-demo-frontend-1",
+        "Image": "alertfunnel-demo-frontend",
+        "Status": "Up 2 hours (healthy)"
+      },
+      {
+        "Names": "alertfunnel-demo-api-1",
+        "Image": "alertfunnel-demo-backend:local",
+        "Status": "Up 2 hours (healthy)"
+      },
+      {
+        "Names": "alertfunnel-demo-rule-worker-1",
+        "Image": "alertfunnel-demo-backend:local",
+        "Status": "Up 2 hours"
+      },
+      {
+        "Names": "alertfunnel-demo-delivery-worker-1",
+        "Image": "alertfunnel-demo-backend:local",
+        "Status": "Up 2 hours"
+      },
+      {
+        "Names": "alertfunnel-demo-ingest-amqp-2",
+        "Image": "alertfunnel-demo-backend:local",
+        "Status": "Up 2 hours"
+      },
+      {
+        "Names": "alertfunnel-demo-rule-worker-critical-1",
+        "Image": "alertfunnel-demo-backend:local",
+        "Status": "Up 2 hours"
+      },
+      {
+        "Names": "alertfunnel-demo-scheduler-1",
+        "Image": "alertfunnel-demo-backend:local",
+        "Status": "Up 2 hours"
+      },
+      {
+        "Names": "alertfunnel-demo-ingest-logtail-1",
+        "Image": "alertfunnel-demo-backend:local",
+        "Status": "Up 2 hours"
+      },
+      {
+        "Names": "alertfunnel-demo-ingest-amqp-1",
+        "Image": "alertfunnel-demo-backend:local",
+        "Status": "Up 2 hours"
+      },
+      {
+        "Names": "alertfunnel-demo-postgres-1",
+        "Image": "postgres:16-alpine",
+        "Status": "Up 2 hours (healthy)"
+      },
+      {
+        "Names": "alertfunnel-demo-rabbitmq-1",
+        "Image": "rabbitmq:3.13-management-alpine",
+        "Status": "Up 2 hours (healthy)"
+      },
+      {
+        "Names": "alertfunnel-demo-fake-telecom-1",
+        "Image": "alertfunnel-demo-fake-telecom",
+        "Status": "Up 2 hours (healthy)"
+      },
+      {
+        "Names": "alertfunnel-demo-mock-ops-1",
+        "Image": "alertfunnel-demo-mock-ops",
+        "Status": "Up 2 hours"
+      },
+      {
+        "Names": "alertfunnel-demo-mailpit-1",
+        "Image": "axllent/mailpit:latest",
+        "Status": "Up 2 hours (healthy)"
+      },
+      {
+        "Names": "alertfunnel-postgres-1",
+        "Image": "postgres:16-alpine",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "alertfunnel-rabbitmq-1",
+        "Image": "rabbitmq:3.13-management-alpine",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "alertfunnel-mailpit-1",
+        "Image": "axllent/mailpit:latest",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/postgres:17.6.1.159",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "chronicle-local:latest",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "postgres:18",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/postgres:17.6.1.143",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/studio:2026.08.03-sha-022b374",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/postgres-meta:v0.96.8",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/storage-api:v1.68.10",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/postgrest:v14.16",
+        "Status": "Up 11 hours"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/realtime:v2.124.2",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/mailpit:v1.30.2",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/gotrue:v2.195.0",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/vector:0.53.0-alpine",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/logflare:1.50.1",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/studio:2026.08.03-sha-022b374",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/postgres-meta:v0.96.8",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/storage-api:v1.71.0",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/postgrest:v14.17",
+        "Status": "Up 11 hours"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/realtime:v2.124.2",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/mailpit:v1.30.2",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/gotrue:v2.195.0",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/kong:2.8.1",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/vector:0.53.0-alpine",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/logflare:1.50.1",
+        "Status": "Up 11 hours (healthy)"
+      }
+    ],
+    "docker_stats": [
+      {
+        "Name": "w0-console-final-copy-frontend-1",
+        "CPUPerc": "0.62%",
+        "MemUsage": "12.69MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0-console-final-copy-api-1",
+        "CPUPerc": "13.28%",
+        "MemUsage": "56.9MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0-console-final-copy-delivery-worker-1",
+        "CPUPerc": "0.98%",
+        "MemUsage": "38.7MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0-console-final-copy-rule-worker-1",
+        "CPUPerc": "0.65%",
+        "MemUsage": "37.79MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0-console-final-copy-rule-worker-critical-1",
+        "CPUPerc": "0.56%",
+        "MemUsage": "37.79MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0-console-final-copy-ingest-logtail-1",
+        "CPUPerc": "0.80%",
+        "MemUsage": "37.49MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0-console-final-copy-scheduler-1",
+        "CPUPerc": "0.18%",
+        "MemUsage": "37.07MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0-console-final-copy-postgres-1",
+        "CPUPerc": "2.98%",
+        "MemUsage": "59.76MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0-console-final-copy-rabbitmq-1",
+        "CPUPerc": "2.93%",
+        "MemUsage": "173MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0-console-final-copy-mock-ops-1",
+        "CPUPerc": "0.10%",
+        "MemUsage": "39.92MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0-console-final-copy-fake-telecom-1",
+        "CPUPerc": "0.11%",
+        "MemUsage": "44.95MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0-console-final-copy-mailpit-1",
+        "CPUPerc": "0.00%",
+        "MemUsage": "7.453MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0f-final-copy-frontend-1",
+        "CPUPerc": "0.00%",
+        "MemUsage": "11.65MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0f-final-copy-api-1",
+        "CPUPerc": "6.84%",
+        "MemUsage": "65.35MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0f-final-copy-ingest-amqp-2",
+        "CPUPerc": "0.00%",
+        "MemUsage": "36.13MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0f-final-copy-ingest-amqp-1",
+        "CPUPerc": "0.00%",
+        "MemUsage": "36.14MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0f-final-copy-scheduler-1",
+        "CPUPerc": "0.00%",
+        "MemUsage": "37.04MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0f-final-copy-ingest-logtail-1",
+        "CPUPerc": "0.49%",
+        "MemUsage": "37.48MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0f-final-copy-rule-worker-critical-1",
+        "CPUPerc": "0.49%",
+        "MemUsage": "37.79MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0f-final-copy-rule-worker-1",
+        "CPUPerc": "0.48%",
+        "MemUsage": "37.79MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0f-final-copy-delivery-worker-1",
+        "CPUPerc": "0.83%",
+        "MemUsage": "43.45MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0f-final-copy-rabbitmq-1",
+        "CPUPerc": "0.94%",
+        "MemUsage": "118.2MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0f-final-copy-postgres-1",
+        "CPUPerc": "0.96%",
+        "MemUsage": "78.31MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0f-final-copy-fake-telecom-1",
+        "CPUPerc": "15.86%",
+        "MemUsage": "42.94MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0f-final-copy-mock-ops-1",
+        "CPUPerc": "0.10%",
+        "MemUsage": "40.88MiB / 7.75GiB"
+      },
+      {
+        "Name": "w0f-final-copy-mailpit-1",
+        "CPUPerc": "0.00%",
+        "MemUsage": "9.355MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-frontend-1",
+        "CPUPerc": "0.72%",
+        "MemUsage": "12.11MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-api-1",
+        "CPUPerc": "15.54%",
+        "MemUsage": "54.75MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-ingest-amqp-2",
+        "CPUPerc": "0.00%",
+        "MemUsage": "36.13MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-delivery-worker-1",
+        "CPUPerc": "0.90%",
+        "MemUsage": "43.44MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-rule-worker-1",
+        "CPUPerc": "0.50%",
+        "MemUsage": "37.99MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-rule-worker-critical-1",
+        "CPUPerc": "0.59%",
+        "MemUsage": "37.99MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-ingest-amqp-1",
+        "CPUPerc": "0.00%",
+        "MemUsage": "36.14MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-scheduler-1",
+        "CPUPerc": "0.15%",
+        "MemUsage": "37.09MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-ingest-logtail-1",
+        "CPUPerc": "0.61%",
+        "MemUsage": "37.63MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-rabbitmq-1",
+        "CPUPerc": "0.35%",
+        "MemUsage": "117.8MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-postgres-1",
+        "CPUPerc": "2.47%",
+        "MemUsage": "74.28MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-mock-ops-1",
+        "CPUPerc": "0.08%",
+        "MemUsage": "40.86MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-fake-telecom-1",
+        "CPUPerc": "16.73%",
+        "MemUsage": "54.98MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-mailpit-1",
+        "CPUPerc": "0.00%",
+        "MemUsage": "7.676MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-frontend-1",
+        "CPUPerc": "0.56%",
+        "MemUsage": "12.85MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-api-1",
+        "CPUPerc": "16.58%",
+        "MemUsage": "80.88MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-rule-worker-1",
+        "CPUPerc": "0.50%",
+        "MemUsage": "38.61MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-delivery-worker-1",
+        "CPUPerc": "0.99%",
+        "MemUsage": "48.71MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-ingest-amqp-2",
+        "CPUPerc": "0.00%",
+        "MemUsage": "35.53MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-rule-worker-critical-1",
+        "CPUPerc": "0.54%",
+        "MemUsage": "38.6MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-scheduler-1",
+        "CPUPerc": "0.09%",
+        "MemUsage": "37.24MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-ingest-logtail-1",
+        "CPUPerc": "0.46%",
+        "MemUsage": "33.38MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-ingest-amqp-1",
+        "CPUPerc": "0.00%",
+        "MemUsage": "36.09MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-postgres-1",
+        "CPUPerc": "2.31%",
+        "MemUsage": "72.27MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-rabbitmq-1",
+        "CPUPerc": "0.13%",
+        "MemUsage": "119.2MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-fake-telecom-1",
+        "CPUPerc": "15.39%",
+        "MemUsage": "43.06MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-mock-ops-1",
+        "CPUPerc": "0.11%",
+        "MemUsage": "44.26MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-mailpit-1",
+        "CPUPerc": "0.00%",
+        "MemUsage": "8.844MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-postgres-1",
+        "CPUPerc": "1.11%",
+        "MemUsage": "231.8MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-rabbitmq-1",
+        "CPUPerc": "39.69%",
+        "MemUsage": "158.8MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-mailpit-1",
+        "CPUPerc": "0.00%",
+        "MemUsage": "13.07MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.20%",
+        "MemUsage": "93.04MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "15.40%",
+        "MemUsage": "41.7MiB / 512MiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "2.45%",
+        "MemUsage": "35.73MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.29%",
+        "MemUsage": "112.5MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "1.16%",
+        "MemUsage": "195.3MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.24%",
+        "MemUsage": "76MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.00%",
+        "MemUsage": "134MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.08%",
+        "MemUsage": "128.5MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.36%",
+        "MemUsage": "205.4MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.00%",
+        "MemUsage": "11.3MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.00%",
+        "MemUsage": "17.52MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.33%",
+        "MemUsage": "186.9MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "1.17%",
+        "MemUsage": "479.1MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "1.35%",
+        "MemUsage": "191MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.24%",
+        "MemUsage": "81.42MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.00%",
+        "MemUsage": "114.4MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.04%",
+        "MemUsage": "131.9MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.32%",
+        "MemUsage": "183.6MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.00%",
+        "MemUsage": "13.45MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.02%",
+        "MemUsage": "13.64MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.01%",
+        "MemUsage": "27.09MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.33%",
+        "MemUsage": "189.5MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.81%",
+        "MemUsage": "499MiB / 7.75GiB"
+      }
+    ]
+  },
+  "post": {
+    "phase": "post",
+    "utc": "2026-11-21T05:55:57Z",
+    "local": "06:55:57",
+    "loadavg": "{ 16.69 11.99 10.72 }",
+    "test_processes": [],
+    "containers": [
+      {
+        "Names": "w0f-final-copy-frontend-1",
+        "Image": "w0f-final-copy-frontend",
+        "Status": "Up 3 minutes (healthy)"
+      },
+      {
+        "Names": "w0f-final-copy-api-1",
+        "Image": "w0f-final-copy-backend:local",
+        "Status": "Up 3 minutes (healthy)"
+      },
+      {
+        "Names": "w0f-final-copy-ingest-amqp-2",
+        "Image": "w0f-final-copy-backend:local",
+        "Status": "Up 2 minutes"
+      },
+      {
+        "Names": "w0f-final-copy-ingest-amqp-1",
+        "Image": "w0f-final-copy-backend:local",
+        "Status": "Up 2 minutes"
+      },
+      {
+        "Names": "w0f-final-copy-scheduler-1",
+        "Image": "w0f-final-copy-backend:local",
+        "Status": "Up 3 minutes"
+      },
+      {
+        "Names": "w0f-final-copy-ingest-logtail-1",
+        "Image": "w0f-final-copy-backend:local",
+        "Status": "Up 3 minutes"
+      },
+      {
+        "Names": "w0f-final-copy-rule-worker-critical-1",
+        "Image": "w0f-final-copy-backend:local",
+        "Status": "Up 3 minutes"
+      },
+      {
+        "Names": "w0f-final-copy-rule-worker-1",
+        "Image": "w0f-final-copy-backend:local",
+        "Status": "Up 3 minutes"
+      },
+      {
+        "Names": "w0f-final-copy-delivery-worker-1",
+        "Image": "w0f-final-copy-backend:local",
+        "Status": "Up 3 minutes"
+      },
+      {
+        "Names": "w0f-final-copy-rabbitmq-1",
+        "Image": "rabbitmq:3.13-management-alpine",
+        "Status": "Up 3 minutes (healthy)"
+      },
+      {
+        "Names": "w0f-final-copy-postgres-1",
+        "Image": "postgres:16-alpine",
+        "Status": "Up 3 minutes (healthy)"
+      },
+      {
+        "Names": "w0f-final-copy-fake-telecom-1",
+        "Image": "w0f-final-copy-fake-telecom",
+        "Status": "Up 3 minutes (healthy)"
+      },
+      {
+        "Names": "w0f-final-copy-mock-ops-1",
+        "Image": "w0f-final-copy-mock-ops",
+        "Status": "Up 3 minutes"
+      },
+      {
+        "Names": "w0f-final-copy-mailpit-1",
+        "Image": "axllent/mailpit:latest",
+        "Status": "Up 3 minutes (healthy)"
+      },
+      {
+        "Names": "alertfunnel-local-review-frontend-1",
+        "Image": "alertfunnel-local-review-frontend",
+        "Status": "Up 21 minutes (healthy)"
+      },
+      {
+        "Names": "alertfunnel-local-review-api-1",
+        "Image": "alertfunnel-local-review-backend:local",
+        "Status": "Up 21 minutes (healthy)"
+      },
+      {
+        "Names": "alertfunnel-local-review-ingest-amqp-2",
+        "Image": "alertfunnel-local-review-backend:local",
+        "Status": "Up 21 minutes"
+      },
+      {
+        "Names": "alertfunnel-local-review-delivery-worker-1",
+        "Image": "alertfunnel-local-review-backend:local",
+        "Status": "Up 21 minutes"
+      },
+      {
+        "Names": "alertfunnel-local-review-rule-worker-1",
+        "Image": "alertfunnel-local-review-backend:local",
+        "Status": "Up 21 minutes"
+      },
+      {
+        "Names": "alertfunnel-local-review-rule-worker-critical-1",
+        "Image": "alertfunnel-local-review-backend:local",
+        "Status": "Up 21 minutes"
+      },
+      {
+        "Names": "alertfunnel-local-review-ingest-amqp-1",
+        "Image": "alertfunnel-local-review-backend:local",
+        "Status": "Up 21 minutes"
+      },
+      {
+        "Names": "alertfunnel-local-review-scheduler-1",
+        "Image": "alertfunnel-local-review-backend:local",
+        "Status": "Up 21 minutes"
+      },
+      {
+        "Names": "alertfunnel-local-review-ingest-logtail-1",
+        "Image": "alertfunnel-local-review-backend:local",
+        "Status": "Up 21 minutes"
+      },
+      {
+        "Names": "alertfunnel-local-review-rabbitmq-1",
+        "Image": "rabbitmq:3.13-management-alpine",
+        "Status": "Up 21 minutes (healthy)"
+      },
+      {
+        "Names": "alertfunnel-local-review-postgres-1",
+        "Image": "postgres:16-alpine",
+        "Status": "Up 21 minutes (healthy)"
+      },
+      {
+        "Names": "alertfunnel-local-review-mock-ops-1",
+        "Image": "alertfunnel-local-review-mock-ops",
+        "Status": "Up 21 minutes"
+      },
+      {
+        "Names": "alertfunnel-local-review-fake-telecom-1",
+        "Image": "alertfunnel-local-review-fake-telecom",
+        "Status": "Up 21 minutes (healthy)"
+      },
+      {
+        "Names": "alertfunnel-local-review-mailpit-1",
+        "Image": "axllent/mailpit:latest",
+        "Status": "Up 21 minutes (healthy)"
+      },
+      {
+        "Names": "alertfunnel-demo-frontend-1",
+        "Image": "alertfunnel-demo-frontend",
+        "Status": "Up 2 hours (healthy)"
+      },
+      {
+        "Names": "alertfunnel-demo-api-1",
+        "Image": "alertfunnel-demo-backend:local",
+        "Status": "Up 2 hours (healthy)"
+      },
+      {
+        "Names": "alertfunnel-demo-rule-worker-1",
+        "Image": "alertfunnel-demo-backend:local",
+        "Status": "Up 2 hours"
+      },
+      {
+        "Names": "alertfunnel-demo-delivery-worker-1",
+        "Image": "alertfunnel-demo-backend:local",
+        "Status": "Up 2 hours"
+      },
+      {
+        "Names": "alertfunnel-demo-ingest-amqp-2",
+        "Image": "alertfunnel-demo-backend:local",
+        "Status": "Up 2 hours"
+      },
+      {
+        "Names": "alertfunnel-demo-rule-worker-critical-1",
+        "Image": "alertfunnel-demo-backend:local",
+        "Status": "Up 2 hours"
+      },
+      {
+        "Names": "alertfunnel-demo-scheduler-1",
+        "Image": "alertfunnel-demo-backend:local",
+        "Status": "Up 2 hours"
+      },
+      {
+        "Names": "alertfunnel-demo-ingest-logtail-1",
+        "Image": "alertfunnel-demo-backend:local",
+        "Status": "Up 2 hours"
+      },
+      {
+        "Names": "alertfunnel-demo-ingest-amqp-1",
+        "Image": "alertfunnel-demo-backend:local",
+        "Status": "Up 2 hours"
+      },
+      {
+        "Names": "alertfunnel-demo-postgres-1",
+        "Image": "postgres:16-alpine",
+        "Status": "Up 2 hours (healthy)"
+      },
+      {
+        "Names": "alertfunnel-demo-rabbitmq-1",
+        "Image": "rabbitmq:3.13-management-alpine",
+        "Status": "Up 2 hours (healthy)"
+      },
+      {
+        "Names": "alertfunnel-demo-fake-telecom-1",
+        "Image": "alertfunnel-demo-fake-telecom",
+        "Status": "Up 2 hours (healthy)"
+      },
+      {
+        "Names": "alertfunnel-demo-mock-ops-1",
+        "Image": "alertfunnel-demo-mock-ops",
+        "Status": "Up 2 hours"
+      },
+      {
+        "Names": "alertfunnel-demo-mailpit-1",
+        "Image": "axllent/mailpit:latest",
+        "Status": "Up 2 hours (healthy)"
+      },
+      {
+        "Names": "alertfunnel-postgres-1",
+        "Image": "postgres:16-alpine",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "alertfunnel-rabbitmq-1",
+        "Image": "rabbitmq:3.13-management-alpine",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "alertfunnel-mailpit-1",
+        "Image": "axllent/mailpit:latest",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/postgres:17.6.1.159",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "chronicle-local:latest",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "postgres:18",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/postgres:17.6.1.143",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/studio:2026.08.03-sha-022b374",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/postgres-meta:v0.96.8",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/storage-api:v1.68.10",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/postgrest:v14.16",
+        "Status": "Up 11 hours"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/realtime:v2.124.2",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/mailpit:v1.30.2",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/gotrue:v2.195.0",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/vector:0.53.0-alpine",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/logflare:1.50.1",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/studio:2026.08.03-sha-022b374",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/postgres-meta:v0.96.8",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/storage-api:v1.71.0",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/postgrest:v14.17",
+        "Status": "Up 11 hours"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/realtime:v2.124.2",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/mailpit:v1.30.2",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/gotrue:v2.195.0",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/kong:2.8.1",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/vector:0.53.0-alpine",
+        "Status": "Up 11 hours (healthy)"
+      },
+      {
+        "Names": "<other>",
+        "Image": "public.ecr.aws/supabase/logflare:1.50.1",
+        "Status": "Up 14 seconds (healthy)"
+      }
+    ],
+    "docker_stats": [
+      {
+        "Name": "w0f-final-copy-rabbitmq-1",
+        "CPUPerc": "7.41%",
+        "MemUsage": "114.3MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-frontend-1",
+        "CPUPerc": "0.71%",
+        "MemUsage": "12.27MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-api-1",
+        "CPUPerc": "15.61%",
+        "MemUsage": "54.71MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-ingest-amqp-2",
+        "CPUPerc": "0.00%",
+        "MemUsage": "35.57MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-delivery-worker-1",
+        "CPUPerc": "1.16%",
+        "MemUsage": "42.82MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-rule-worker-1",
+        "CPUPerc": "0.77%",
+        "MemUsage": "37.4MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-rule-worker-critical-1",
+        "CPUPerc": "1.31%",
+        "MemUsage": "37.38MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-ingest-amqp-1",
+        "CPUPerc": "0.00%",
+        "MemUsage": "35.57MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-scheduler-1",
+        "CPUPerc": "0.34%",
+        "MemUsage": "36.71MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-ingest-logtail-1",
+        "CPUPerc": "0.82%",
+        "MemUsage": "37.09MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-rabbitmq-1",
+        "CPUPerc": "0.15%",
+        "MemUsage": "116.6MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-postgres-1",
+        "CPUPerc": "2.59%",
+        "MemUsage": "73.96MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-mock-ops-1",
+        "CPUPerc": "0.10%",
+        "MemUsage": "39.46MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-fake-telecom-1",
+        "CPUPerc": "15.80%",
+        "MemUsage": "44.49MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-local-review-mailpit-1",
+        "CPUPerc": "0.00%",
+        "MemUsage": "10.5MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-frontend-1",
+        "CPUPerc": "0.67%",
+        "MemUsage": "12.89MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-api-1",
+        "CPUPerc": "16.78%",
+        "MemUsage": "67.92MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-rule-worker-1",
+        "CPUPerc": "0.78%",
+        "MemUsage": "37.82MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-delivery-worker-1",
+        "CPUPerc": "1.30%",
+        "MemUsage": "47.02MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-ingest-amqp-2",
+        "CPUPerc": "0.00%",
+        "MemUsage": "35.53MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-rule-worker-critical-1",
+        "CPUPerc": "0.71%",
+        "MemUsage": "34.46MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-scheduler-1",
+        "CPUPerc": "0.34%",
+        "MemUsage": "29.2MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-ingest-logtail-1",
+        "CPUPerc": "0.49%",
+        "MemUsage": "29.71MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-ingest-amqp-1",
+        "CPUPerc": "0.00%",
+        "MemUsage": "35.53MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-postgres-1",
+        "CPUPerc": "2.78%",
+        "MemUsage": "71.12MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-rabbitmq-1",
+        "CPUPerc": "0.26%",
+        "MemUsage": "119.4MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-fake-telecom-1",
+        "CPUPerc": "17.24%",
+        "MemUsage": "44.27MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-mock-ops-1",
+        "CPUPerc": "0.11%",
+        "MemUsage": "43.98MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-demo-mailpit-1",
+        "CPUPerc": "0.00%",
+        "MemUsage": "12.32MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-postgres-1",
+        "CPUPerc": "1.03%",
+        "MemUsage": "212.6MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-rabbitmq-1",
+        "CPUPerc": "0.16%",
+        "MemUsage": "88.91MiB / 7.75GiB"
+      },
+      {
+        "Name": "alertfunnel-mailpit-1",
+        "CPUPerc": "0.00%",
+        "MemUsage": "14.43MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.75%",
+        "MemUsage": "99.45MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "17.69%",
+        "MemUsage": "41MiB / 512MiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "3.47%",
+        "MemUsage": "31.88MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.53%",
+        "MemUsage": "111.8MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.01%",
+        "MemUsage": "201MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.33%",
+        "MemUsage": "73.8MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.03%",
+        "MemUsage": "117.3MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.03%",
+        "MemUsage": "129.5MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "1.18%",
+        "MemUsage": "202.1MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.00%",
+        "MemUsage": "15.31MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.00%",
+        "MemUsage": "19.74MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "1.10%",
+        "MemUsage": "140.9MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "1.55%",
+        "MemUsage": "458.4MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.03%",
+        "MemUsage": "206.9MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.37%",
+        "MemUsage": "87.44MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.04%",
+        "MemUsage": "101.2MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.08%",
+        "MemUsage": "102.9MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "1.43%",
+        "MemUsage": "187.6MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.00%",
+        "MemUsage": "19.72MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.00%",
+        "MemUsage": "15.25MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "0.00%",
+        "MemUsage": "30.6MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "1.18%",
+        "MemUsage": "132.4MiB / 7.75GiB"
+      },
+      {
+        "Name": "<other>",
+        "CPUPerc": "2.42%",
+        "MemUsage": "607.1MiB / 7.75GiB"
+      }
+    ]
+  },
+  "during_5s_samples": [
+    {
+      "local": "06:53:25",
+      "loadavg": "{ 7.27 6.86 8.87 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:53:30",
+      "loadavg": "{ 8.21 7.07 8.93 }",
+      "test_processes": [
+        "66816 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --disable-field-trial-config",
+        "66835 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=gpu-process --no-sand",
+        "66836 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=utility --utility-sub",
+        "66840 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66841 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66862 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o"
+      ]
+    },
+    {
+      "local": "06:53:35",
+      "loadavg": "{ 9.47 7.35 9.02 }",
+      "test_processes": [
+        "66816 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --disable-field-trial-config",
+        "66835 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=gpu-process --no-sand",
+        "66836 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=utility --utility-sub",
+        "66840 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66841 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66862 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66897 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o"
+      ]
+    },
+    {
+      "local": "06:53:40",
+      "loadavg": "{ 14.08 8.34 9.36 }",
+      "test_processes": [
+        "66816 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --disable-field-trial-config",
+        "66835 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=gpu-process --no-sand",
+        "66836 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=utility --utility-sub",
+        "66840 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66841 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66862 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66897 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o"
+      ]
+    },
+    {
+      "local": "06:53:46",
+      "loadavg": "{ 14.87 8.60 9.45 }",
+      "test_processes": [
+        "66816 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --disable-field-trial-config",
+        "66835 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=gpu-process --no-sand",
+        "66836 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=utility --utility-sub",
+        "66840 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66841 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66862 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66897 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o"
+      ]
+    },
+    {
+      "local": "06:53:51",
+      "loadavg": "{ 15.44 8.82 9.52 }",
+      "test_processes": [
+        "66816 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --disable-field-trial-config",
+        "66835 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=gpu-process --no-sand",
+        "66836 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=utility --utility-sub",
+        "66840 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66841 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66862 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o"
+      ]
+    },
+    {
+      "local": "06:53:56",
+      "loadavg": "{ 15.97 9.04 9.59 }",
+      "test_processes": [
+        "66816 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --disable-field-trial-config",
+        "66835 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=gpu-process --no-sand",
+        "66836 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=utility --utility-sub",
+        "66840 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66841 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66862 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o"
+      ]
+    },
+    {
+      "local": "06:54:01",
+      "loadavg": "{ 16.61 9.29 9.68 }",
+      "test_processes": [
+        "66816 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --disable-field-trial-config",
+        "66835 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=gpu-process --no-sand",
+        "66836 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=utility --utility-sub",
+        "66840 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66841 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66862 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o"
+      ]
+    },
+    {
+      "local": "06:54:06",
+      "loadavg": "{ 16.96 9.48 9.74 }",
+      "test_processes": [
+        "66816 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --disable-field-trial-config",
+        "66835 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=gpu-process --no-sand",
+        "66836 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=utility --utility-sub",
+        "66840 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66841 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o",
+        "66862 ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell --type=renderer --headless=o"
+      ]
+    },
+    {
+      "local": "06:54:11",
+      "loadavg": "{ 17.85 9.79 9.85 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:54:16",
+      "loadavg": "{ 19.14 10.19 9.99 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:54:21",
+      "loadavg": "{ 18.81 10.27 10.02 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:54:26",
+      "loadavg": "{ 18.82 10.41 10.07 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:54:31",
+      "loadavg": "{ 19.64 10.72 10.18 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:54:36",
+      "loadavg": "{ 19.91 10.92 10.26 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:54:41",
+      "loadavg": "{ 19.99 11.09 10.32 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:54:46",
+      "loadavg": "{ 19.59 11.16 10.35 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:54:51",
+      "loadavg": "{ 19.71 11.32 10.41 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:54:57",
+      "loadavg": "{ 18.77 11.26 10.40 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:55:02",
+      "loadavg": "{ 18.55 11.34 10.43 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:55:07",
+      "loadavg": "{ 18.26 11.40 10.45 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:55:12",
+      "loadavg": "{ 17.52 11.36 10.45 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:55:17",
+      "loadavg": "{ 16.52 11.26 10.41 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:55:22",
+      "loadavg": "{ 15.59 11.15 10.38 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:55:27",
+      "loadavg": "{ 15.63 11.23 10.41 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:55:32",
+      "loadavg": "{ 15.74 11.33 10.45 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:55:37",
+      "loadavg": "{ 17.44 11.75 10.61 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:55:42",
+      "loadavg": "{ 18.20 12.01 10.70 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:55:47",
+      "loadavg": "{ 17.95 12.06 10.73 }",
+      "test_processes": []
+    },
+    {
+      "local": "06:55:52",
+      "loadavg": "{ 17.79 12.12 10.76 }",
+      "test_processes": []
+    }
+  ]
+}

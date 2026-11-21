@@ -1,0 +1,238 @@
+{
+  "run_id": "m11-11210604-be50f-r700-k1000-w4",
+  "trial_status": "PASS",
+  "measurement_errors": [],
+  "workload_sha256": "5804a2c054511b70324d863286d262bcbb02b3c8949b1a6feee529841dc5b4be",
+  "workers": {
+    "normal": 4,
+    "ingest": 2,
+    "delivery": 1
+  },
+  "receiver_latency": {
+    "normal": {
+      "n": 2000,
+      "p50_ms": 4180,
+      "p95_ms": 6844,
+      "p99_ms": 7086
+    },
+    "critical": {
+      "n": 240,
+      "p50_ms": 229,
+      "p95_ms": 333,
+      "p99_ms": 638
+    }
+  },
+  "receipts": {
+    "critical": {
+      "received": 240,
+      "expected": 240
+    },
+    "normal": {
+      "received": 2000,
+      "expected": 2000
+    }
+  },
+  "notifications_expected": 2240,
+  "notifications_verified": 2240,
+  "slots_without_verified_receipt": 0,
+  "duplicate_receipts": 0,
+  "duplicate_receipts_by_lane": {
+    "critical": 0,
+    "normal": 0
+  },
+  "invalid_receipts": 0,
+  "events": {
+    "scheduled": 42120,
+    "broker_confirmed": 42120,
+    "generator_dropped": 0,
+    "publish_errors": 0,
+    "accepted_after_drain": 42120,
+    "processed_after_drain": 42120,
+    "accepted_not_processed_after_drain": 0,
+    "confirmed_not_stored_at_snapshot": 0,
+    "final_processing_backlog": 0,
+    "final_delivery_backlog": 0,
+    "final_rabbit_ready": 0,
+    "final_failed": 0
+  },
+  "peak_delivery_backlog": 1831,
+  "peak_oldest_pending_s": 6.685822,
+  "postgres_docker_cpu_pct": {
+    "n": 13,
+    "mean": 73.02230769230769,
+    "peak": 121.41
+  },
+  "slowest20_normal": {
+    "n_breakdown_rows": 2000,
+    "n_unmatched_trigger": 0,
+    "median_ms": {
+      "e2e_ms": 7127.0,
+      "offer_to_ingest_ms": 7.6195068359375,
+      "ingest_to_processed_ms": 244.365478515625,
+      "processed_to_first_claim_ms": 6761.926513671875,
+      "claim_to_receipt_ms": 110.6259765625
+    },
+    "rows": [
+      {
+        "notification_id": "dee650b1-e0ca-4da0-978e-40f013563309",
+        "e2e_ms": 7176,
+        "offer_to_ingest_ms": 6.427001953125,
+        "ingest_to_processed_ms": 153.299072265625,
+        "processed_to_first_claim_ms": 6905.64794921875,
+        "claim_to_receipt_ms": 110.6259765625
+      },
+      {
+        "notification_id": "e6f80f22-4fcd-4978-95c1-fbbc45e465c5",
+        "e2e_ms": 7176,
+        "offer_to_ingest_ms": 6.669921875,
+        "ingest_to_processed_ms": 153.384033203125,
+        "processed_to_first_claim_ms": 6905.320068359375,
+        "claim_to_receipt_ms": 110.6259765625
+      },
+      {
+        "notification_id": "ffa24c51-fafb-4c64-9585-4c0c5ed199dc",
+        "e2e_ms": 7137,
+        "offer_to_ingest_ms": 7.927001953125,
+        "ingest_to_processed_ms": 245.639892578125,
+        "processed_to_first_claim_ms": 6761.80712890625,
+        "claim_to_receipt_ms": 121.6259765625
+      },
+      {
+        "notification_id": "ff142fa0-0901-4528-a78a-f2e6eea532b1",
+        "e2e_ms": 7132,
+        "offer_to_ingest_ms": 7.489013671875,
+        "ingest_to_processed_ms": 245.916015625,
+        "processed_to_first_claim_ms": 6761.968994140625,
+        "claim_to_receipt_ms": 116.6259765625
+      },
+      {
+        "notification_id": "f3e17bf9-80f3-49b7-bf9a-51672447a58b",
+        "e2e_ms": 7130,
+        "offer_to_ingest_ms": 9.68408203125,
+        "ingest_to_processed_ms": 244.572021484375,
+        "processed_to_first_claim_ms": 6761.117919921875,
+        "claim_to_receipt_ms": 114.6259765625
+      },
+      {
+        "notification_id": "fe293733-212f-46b2-9d12-4a7270ac9e59",
+        "e2e_ms": 7130,
+        "offer_to_ingest_ms": 9.93505859375,
+        "ingest_to_processed_ms": 244.383056640625,
+        "processed_to_first_claim_ms": 6761.055908203125,
+        "claim_to_receipt_ms": 114.6259765625
+      },
+      {
+        "notification_id": "ee330816-c867-406d-8ca5-5cc2e061f89f",
+        "e2e_ms": 7129,
+        "offer_to_ingest_ms": 7.7529296875,
+        "ingest_to_processed_ms": 245.79296875,
+        "processed_to_first_claim_ms": 6761.828125,
+        "claim_to_receipt_ms": 113.6259765625
+      },
+      {
+        "notification_id": "f0e2445d-476b-4c18-900a-16830069dcf8",
+        "e2e_ms": 7128,
+        "offer_to_ingest_ms": 6.697998046875,
+        "ingest_to_processed_ms": 153.126953125,
+        "processed_to_first_claim_ms": 6905.549072265625,
+        "claim_to_receipt_ms": 62.6259765625
+      },
+      {
+        "notification_id": "e785982a-73ad-4af0-9506-6d797994d8dd",
+        "e2e_ms": 7128,
+        "offer_to_ingest_ms": 7.75,
+        "ingest_to_processed_ms": 245.739990234375,
+        "processed_to_first_claim_ms": 6761.884033203125,
+        "claim_to_receipt_ms": 112.6259765625
+      },
+      {
+        "notification_id": "f2793dc3-daba-42e6-bd1c-edb7f4457f65",
+        "e2e_ms": 7128,
+        "offer_to_ingest_ms": 7.929931640625,
+        "ingest_to_processed_ms": 245.712158203125,
+        "processed_to_first_claim_ms": 6761.73193359375,
+        "claim_to_receipt_ms": 112.6259765625
+      },
+      {
+        "notification_id": "fb12dea5-b677-4450-9cca-04a2a4468497",
+        "e2e_ms": 7126,
+        "offer_to_ingest_ms": 4.794921875,
+        "ingest_to_processed_ms": 155.066162109375,
+        "processed_to_first_claim_ms": 6905.512939453125,
+        "claim_to_receipt_ms": 60.6259765625
+      },
+      {
+        "notification_id": "8989fdcb-ae2f-4ad7-89cd-062934f13572",
+        "e2e_ms": 7126,
+        "offer_to_ingest_ms": 8.388916015625,
+        "ingest_to_processed_ms": 245.135986328125,
+        "processed_to_first_claim_ms": 6761.84912109375,
+        "claim_to_receipt_ms": 110.6259765625
+      },
+      {
+        "notification_id": "d5a1f532-9c58-449b-9f99-a8dbc75362e8",
+        "e2e_ms": 7126,
+        "offer_to_ingest_ms": 8.39501953125,
+        "ingest_to_processed_ms": 245.83203125,
+        "processed_to_first_claim_ms": 6761.14697265625,
+        "claim_to_receipt_ms": 110.6259765625
+      },
+      {
+        "notification_id": "eb53b0c4-4263-4b54-a5f5-73301168ff54",
+        "e2e_ms": 7126,
+        "offer_to_ingest_ms": 7.929931640625,
+        "ingest_to_processed_ms": 245.712158203125,
+        "processed_to_first_claim_ms": 6761.73193359375,
+        "claim_to_receipt_ms": 110.6259765625
+      },
+      {
+        "notification_id": "b2474921-5ccd-4bab-b4d8-ba0e6504bb1f",
+        "e2e_ms": 7126,
+        "offer_to_ingest_ms": 9.93408203125,
+        "ingest_to_processed_ms": 244.347900390625,
+        "processed_to_first_claim_ms": 6761.092041015625,
+        "claim_to_receipt_ms": 110.6259765625
+      },
+      {
+        "notification_id": "f20fe2e8-4ecc-485d-9ee9-39f3537c24c5",
+        "e2e_ms": 7107,
+        "offer_to_ingest_ms": 4.804931640625,
+        "ingest_to_processed_ms": 154.799072265625,
+        "processed_to_first_claim_ms": 6905.77001953125,
+        "claim_to_receipt_ms": 41.6259765625
+      },
+      {
+        "notification_id": "f803e373-c4ab-465a-a91e-51954190df18",
+        "e2e_ms": 7107,
+        "offer_to_ingest_ms": 6.666015625,
+        "ingest_to_processed_ms": 153.35302734375,
+        "processed_to_first_claim_ms": 6905.35498046875,
+        "claim_to_receipt_ms": 41.6259765625
+      },
+      {
+        "notification_id": "eb54f1fc-a0d4-43ae-8018-706c3ed3a92c",
+        "e2e_ms": 7090,
+        "offer_to_ingest_ms": 6.416015625,
+        "ingest_to_processed_ms": 153.550048828125,
+        "processed_to_first_claim_ms": 6905.407958984375,
+        "claim_to_receipt_ms": 24.6259765625
+      },
+      {
+        "notification_id": "ee5cac64-127c-4328-a1bb-f25652d03cc4",
+        "e2e_ms": 7087,
+        "offer_to_ingest_ms": 6.56689453125,
+        "ingest_to_processed_ms": 153.2041015625,
+        "processed_to_first_claim_ms": 6905.60302734375,
+        "claim_to_receipt_ms": 21.6259765625
+      },
+      {
+        "notification_id": "e291206f-a960-4fb4-89a1-4e1f93de51f0",
+        "e2e_ms": 7087,
+        "offer_to_ingest_ms": 6.6689453125,
+        "ingest_to_processed_ms": 153.363037109375,
+        "processed_to_first_claim_ms": 6905.342041015625,
+        "claim_to_receipt_ms": 21.6259765625
+      }
+    ]
+  }
+}
