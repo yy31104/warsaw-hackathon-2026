@@ -6,5 +6,5 @@ export function mergeAlert(items:Alert[], message:StreamMessage):Alert[] {
   return items.map(item=>item.id===message.data.id ? {...item,...message.data,id:item.id} as Alert : item);
 }
 export function filterAlerts(items:Alert[], filters:{team:string;status:string;severity:string;q:string}) {
- return items.filter(a=>(!filters.team||a.team_id===filters.team)&&(!filters.status||a.status===filters.status)&&(!filters.severity||a.severity===filters.severity)&&`${a.title} ${a.body} ${a.rule_id}`.toLowerCase().includes(filters.q.toLowerCase()));
+ return items.filter(a=>(!filters.team||a.team_id===filters.team)&&(!filters.status||a.status===filters.status)&&(!filters.severity||a.severity===filters.severity)&&`${a.id} ${a.title} ${a.body} ${a.rule_id} ${a.team_id}`.toLowerCase().includes(filters.q.toLowerCase()));
 }
