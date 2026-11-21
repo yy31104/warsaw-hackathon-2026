@@ -67,6 +67,19 @@ A separate run pair used the same two source commits, schedule hash, hardware, o
 
 The pool waits are small relative to the remaining normal latency. In the uninstrumented after trial, the 20 slowest verified normal receipts spent a median of 5.727 s from offer to first delivery claim and 19.8 ms from claim to receipt. This trace points to the work before the claim, which includes intake, rule processing and time in the delivery queue. [After raw receiver and claim ledger](../loadtest/results/w2-delivery-e2e-cc5bd7c/after/m11-11210326-bb859-r700-k1000-w4/observations.json.gz)
 
+#### Delivery batch 25 vs 50 · matched config-only trial
+
+Apple M4 Pro, 2026-11-21 07:00–07:08 CET, images from `dd9d483`. `backend/`, `docker-compose.yml`, `loadtest/*.py` and `fixtures/` are identical on `b4a32c2`. The workload, worker counts and schedule hash `5804a2c0…4be` matched the end-to-end trial above. Only `DELIVERY_BATCH` changed, set through the Compose environment, and `DELIVERY_CONCURRENCY` stayed 16. Each run recorded the worker's environment from the live container. The four runs alternated B25, A50, A50, B25, each with fresh volumes. **This host was busier than the original trial.** Two extra Alert Funnel Compose stacks (14 containers each) stayed idle throughout, and the 1-minute load average in the trial windows was 7.4–9.5. The matched batch-25 baseline therefore measured about 7 s, not 5.738 s, and candidate A is compared with that baseline. A first baseline run is excluded: an 11 s whole-pipeline pause overlapped another session's image build. [Method, gates and excluded run](../loadtest/results/p99-batch-dd9d483/summary.md) · [Per-run raw files and host records](../loadtest/results/p99-batch-dd9d483/summary.json)
+
+| Run, in order | Batch / concurrency | Normal p50 / p95 / p99 (ms), received / expected | Critical p50 / p95 / p99 (ms), received / expected | Slowest-20 normal median: processed → first claim / claim → receipt (ms) |
+| --- | --- | --- | --- | --- |
+| r2 | 25 / 16 | 4249 / 6978 / 7167 (2,000 / 2,000) | 210 / 304 / 347 (240 / 240) | 7003 / 21 |
+| r3 | 50 / 16 | 4066 / 7006 / 7426 (2,000 / 2,000) | 231 / 349 / 557 (240 / 240) | 7073 / 109 |
+| r4 | 50 / 16 | 4180 / 6844 / 7086 (2,000 / 2,000) | 229 / 333 / 638 (240 / 240) | 6762 / 111 |
+| r5 | 25 / 16 | 3866 / 6467 / 6722 (2,000 / 2,000) | 214 / 326 / 405 (240 / 240) | 6592 / 23 |
+
+Every run had zero duplicate or invalid receipts. All 42,120 confirmed events were processed, with nothing pending after the drain. Batch 50 **did not** lower normal p99: the two-run mean was 7.256 s against 6.945 s at batch 25 (×1.045). The wait before the first claim stayed the same, while claim → receipt rose about fivefold as each 50-row claim worked through 16 send slots. Critical p99 stayed below 1 s but rose from 0.35–0.41 s to 0.56–0.64 s. The results do not support the idea that the number of claim cycles sets the tail. Normal p99 <5 s remains **FAIL**, and the Compose default stays 25. Candidate 50/24 and a second delivery worker were **NOT_RUN**, because the pre-agreed rule ran them only if 50/16 helped. [Trial evidence](../loadtest/results/p99-batch-dd9d483/summary.md)
+
 ### Delivery batching · micro-benchmark
 
 The W2 micro-benchmark timed a pre-populated outbox on the same Mac with a 5 ms in-process SMS provider. Its mixed workload was one team and 2,000 due notifications. This measures the delivery worker and the database, with every notification available at the start. See the separate end-to-end trial above for the queue, rules and receiver path. [W2 method and raw results](https://github.com/yy31104/warsaw-hackathon-2026/pull/36)

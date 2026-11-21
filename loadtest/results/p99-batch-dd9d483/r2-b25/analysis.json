@@ -1,0 +1,238 @@
+{
+  "run_id": "m11-11210559-67f5d-r700-k1000-w4",
+  "trial_status": "PASS",
+  "measurement_errors": [],
+  "workload_sha256": "5804a2c054511b70324d863286d262bcbb02b3c8949b1a6feee529841dc5b4be",
+  "workers": {
+    "normal": 4,
+    "ingest": 2,
+    "delivery": 1
+  },
+  "receiver_latency": {
+    "normal": {
+      "n": 2000,
+      "p50_ms": 4249,
+      "p95_ms": 6978,
+      "p99_ms": 7167
+    },
+    "critical": {
+      "n": 240,
+      "p50_ms": 210,
+      "p95_ms": 304,
+      "p99_ms": 347
+    }
+  },
+  "receipts": {
+    "critical": {
+      "received": 240,
+      "expected": 240
+    },
+    "normal": {
+      "received": 2000,
+      "expected": 2000
+    }
+  },
+  "notifications_expected": 2240,
+  "notifications_verified": 2240,
+  "slots_without_verified_receipt": 0,
+  "duplicate_receipts": 0,
+  "duplicate_receipts_by_lane": {
+    "critical": 0,
+    "normal": 0
+  },
+  "invalid_receipts": 0,
+  "events": {
+    "scheduled": 42120,
+    "broker_confirmed": 42120,
+    "generator_dropped": 0,
+    "publish_errors": 0,
+    "accepted_after_drain": 42120,
+    "processed_after_drain": 42120,
+    "accepted_not_processed_after_drain": 0,
+    "confirmed_not_stored_at_snapshot": 0,
+    "final_processing_backlog": 0,
+    "final_delivery_backlog": 0,
+    "final_rabbit_ready": 0,
+    "final_failed": 0
+  },
+  "peak_delivery_backlog": 1652,
+  "peak_oldest_pending_s": 6.729176,
+  "postgres_docker_cpu_pct": {
+    "n": 12,
+    "mean": 61.839166666666664,
+    "peak": 131.35
+  },
+  "slowest20_normal": {
+    "n_breakdown_rows": 2000,
+    "n_unmatched_trigger": 0,
+    "median_ms": {
+      "e2e_ms": 7177.0,
+      "offer_to_ingest_ms": 7.7110595703125,
+      "ingest_to_processed_ms": 139.305908203125,
+      "processed_to_first_claim_ms": 7002.803955078125,
+      "claim_to_receipt_ms": 21.093994140625
+    },
+    "rows": [
+      {
+        "notification_id": "fe1e624b-1c8c-4965-93b1-4c95733a4c2b",
+        "e2e_ms": 7264,
+        "offer_to_ingest_ms": 4.9130859375,
+        "ingest_to_processed_ms": 322.43896484375,
+        "processed_to_first_claim_ms": 6922.553955078125,
+        "claim_to_receipt_ms": 14.093994140625
+      },
+      {
+        "notification_id": "ffd6bfdd-644b-4f3e-95ac-14f6c9388618",
+        "e2e_ms": 7258,
+        "offer_to_ingest_ms": 3.139892578125,
+        "ingest_to_processed_ms": 324.072998046875,
+        "processed_to_first_claim_ms": 6922.693115234375,
+        "claim_to_receipt_ms": 8.093994140625
+      },
+      {
+        "notification_id": "f9f1861d-4050-4967-91ea-689f5c8aba23",
+        "e2e_ms": 7257,
+        "offer_to_ingest_ms": 3.139892578125,
+        "ingest_to_processed_ms": 324.072998046875,
+        "processed_to_first_claim_ms": 6922.693115234375,
+        "claim_to_receipt_ms": 7.093994140625
+      },
+      {
+        "notification_id": "f2a4bfd5-7be0-4e13-ac04-8c334b089f39",
+        "e2e_ms": 7216,
+        "offer_to_ingest_ms": 4.751953125,
+        "ingest_to_processed_ms": 322.573974609375,
+        "processed_to_first_claim_ms": 6860.427978515625,
+        "claim_to_receipt_ms": 28.24609375
+      },
+      {
+        "notification_id": "ff92225f-7139-4654-b9b6-439fe4301578",
+        "e2e_ms": 7209,
+        "offer_to_ingest_ms": 6.4970703125,
+        "ingest_to_processed_ms": 271.324951171875,
+        "processed_to_first_claim_ms": 6922.083984375,
+        "claim_to_receipt_ms": 9.093994140625
+      },
+      {
+        "notification_id": "fe03b931-c230-4efe-8636-17703122ff6c",
+        "e2e_ms": 7208,
+        "offer_to_ingest_ms": 4.512939453125,
+        "ingest_to_processed_ms": 273.26806640625,
+        "processed_to_first_claim_ms": 6922.125,
+        "claim_to_receipt_ms": 8.093994140625
+      },
+      {
+        "notification_id": "dcab0b86-ed89-4e9a-868e-ecea6d3cf863",
+        "e2e_ms": 7205,
+        "offer_to_ingest_ms": 4.989990234375,
+        "ingest_to_processed_ms": 322.39501953125,
+        "processed_to_first_claim_ms": 6860.368896484375,
+        "claim_to_receipt_ms": 17.24609375
+      },
+      {
+        "notification_id": "d29f7b39-f4f8-440d-b1d5-0208d2be6c46",
+        "e2e_ms": 7200,
+        "offer_to_ingest_ms": 5.02294921875,
+        "ingest_to_processed_ms": 322.379150390625,
+        "processed_to_first_claim_ms": 6860.351806640625,
+        "claim_to_receipt_ms": 12.24609375
+      },
+      {
+        "notification_id": "da6c090b-b169-4f45-bf40-d3d22de37dae",
+        "e2e_ms": 7199,
+        "offer_to_ingest_ms": 4.989990234375,
+        "ingest_to_processed_ms": 322.39501953125,
+        "processed_to_first_claim_ms": 6860.368896484375,
+        "claim_to_receipt_ms": 11.24609375
+      },
+      {
+        "notification_id": "7432b254-850a-4eeb-83a2-e261a68d3ddd",
+        "e2e_ms": 7178,
+        "offer_to_ingest_ms": 8.1298828125,
+        "ingest_to_processed_ms": 138.961181640625,
+        "processed_to_first_claim_ms": 7002.81494140625,
+        "claim_to_receipt_ms": 28.093994140625
+      },
+      {
+        "notification_id": "3e14cb7b-0d0f-47e8-8d51-c19c068c97fd",
+        "e2e_ms": 7176,
+        "offer_to_ingest_ms": 7.715087890625,
+        "ingest_to_processed_ms": 139.298828125,
+        "processed_to_first_claim_ms": 7002.89208984375,
+        "claim_to_receipt_ms": 26.093994140625
+      },
+      {
+        "notification_id": "e67b2991-2d4a-4449-bf6e-33db0e7d59cf",
+        "e2e_ms": 7176,
+        "offer_to_ingest_ms": 7.903076171875,
+        "ingest_to_processed_ms": 139.15283203125,
+        "processed_to_first_claim_ms": 7002.85009765625,
+        "claim_to_receipt_ms": 26.093994140625
+      },
+      {
+        "notification_id": "5fc61ae2-7273-44f2-99de-e29ca581fbb6",
+        "e2e_ms": 7175,
+        "offer_to_ingest_ms": 7.716064453125,
+        "ingest_to_processed_ms": 139.31298828125,
+        "processed_to_first_claim_ms": 7002.876953125,
+        "claim_to_receipt_ms": 25.093994140625
+      },
+      {
+        "notification_id": "b4c1060a-ccad-4722-8892-8dad4e2008e8",
+        "e2e_ms": 7175,
+        "offer_to_ingest_ms": 8.132080078125,
+        "ingest_to_processed_ms": 138.969970703125,
+        "processed_to_first_claim_ms": 7002.803955078125,
+        "claim_to_receipt_ms": 25.093994140625
+      },
+      {
+        "notification_id": "9c4f08d4-4872-428d-8842-4136ef89614e",
+        "e2e_ms": 7174,
+        "offer_to_ingest_ms": 7.90087890625,
+        "ingest_to_processed_ms": 139.13818359375,
+        "processed_to_first_claim_ms": 7002.866943359375,
+        "claim_to_receipt_ms": 24.093994140625
+      },
+      {
+        "notification_id": "956b4347-29ad-4201-85da-33c24b371ccf",
+        "e2e_ms": 7174,
+        "offer_to_ingest_ms": 7.90087890625,
+        "ingest_to_processed_ms": 139.13818359375,
+        "processed_to_first_claim_ms": 7002.866943359375,
+        "claim_to_receipt_ms": 24.093994140625
+      },
+      {
+        "notification_id": "741b6eca-0fc0-4400-aac9-1fb6a6b4884d",
+        "e2e_ms": 7173,
+        "offer_to_ingest_ms": 7.905029296875,
+        "ingest_to_processed_ms": 139.161865234375,
+        "processed_to_first_claim_ms": 7002.839111328125,
+        "claim_to_receipt_ms": 23.093994140625
+      },
+      {
+        "notification_id": "85d996bf-1550-4dfc-b342-a5f02668fec9",
+        "e2e_ms": 7171,
+        "offer_to_ingest_ms": 7.70703125,
+        "ingest_to_processed_ms": 139.221923828125,
+        "processed_to_first_claim_ms": 7002.97705078125,
+        "claim_to_receipt_ms": 21.093994140625
+      },
+      {
+        "notification_id": "fa88b87b-928d-42f4-b4ef-7778dcc1d506",
+        "e2e_ms": 7171,
+        "offer_to_ingest_ms": 8.1298828125,
+        "ingest_to_processed_ms": 138.961181640625,
+        "processed_to_first_claim_ms": 7002.81494140625,
+        "claim_to_receipt_ms": 21.093994140625
+      },
+      {
+        "notification_id": "f8c1c700-0a5e-4525-9827-068c46cd1ac0",
+        "e2e_ms": 7168,
+        "offer_to_ingest_ms": 8.132080078125,
+        "ingest_to_processed_ms": 138.969970703125,
+        "processed_to_first_claim_ms": 7002.803955078125,
+        "claim_to_receipt_ms": 18.093994140625
+      }
+    ]
+  }
+}

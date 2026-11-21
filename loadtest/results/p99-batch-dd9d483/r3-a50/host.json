@@ -1,0 +1,170 @@
+{
+  "label": "r3-a50",
+  "requested": {
+    "DELIVERY_BATCH": 50,
+    "DELIVERY_CONCURRENCY": 16,
+    "delivery_workers": 1
+  },
+  "runner_exit_code": 0,
+  "reconstructed": true,
+  "note": "The wrapper's pre/post/5 s host snapshots and the delivery-worker env capture for this run were lost: a quoting bug in the wrapper (zsh echo un-escaped JSON) made its final step fail after the trial had finished. The trial itself (m11-* folder) is complete and untouched. Host load and Compose projects below come from a separate 30 s `docker compose ls` sampler that covered this window. The host was checked quiet (no pytest/playwright/golden/docker build or compose by others for 30 s, 1-min load < 9) immediately before the run; foreign processes were not sampled during it. DELIVERY_BATCH=50 / DELIVERY_CONCURRENCY=16 were exported to Compose exactly as in the other runs, whose captured worker env confirms the mechanism.",
+  "delivery_worker_env_observed": null,
+  "pre": {
+    "loadavg": "{ 6.47 8.79 9.71 }",
+    "containers": [],
+    "compose_projects": [
+      "alertfunnel",
+      "alertfunnel-demo",
+      "alertfunnel-local-review",
+      "<other>",
+      "m11-11210601-42882-r700-k1000-w4"
+    ]
+  },
+  "post": {
+    "loadavg": "{ 9.01 9.05 9.72 }"
+  },
+  "during_30s_compose_ls_samples": [
+    {
+      "local": "07:02:03",
+      "loadavg": "{ 6.47 8.79 9.71 }",
+      "projects": [
+        {
+          "Name": "alertfunnel",
+          "Status": "running(3)",
+          "ConfigFiles": "~/Desktop/Competitions/hackathons/gs-warsaw-hackathon-2026/warsaw-hackathon-2026/docker-compose.yml"
+        },
+        {
+          "Name": "alertfunnel-demo",
+          "Status": "running(14)",
+          "ConfigFiles": "/private/tmp/alertfunnel-demo.cPptG3/repo/docker-compose.yml,/private/tmp/alertfunnel-demo.cPptG3/compose.demo.yaml"
+        },
+        {
+          "Name": "alertfunnel-local-review",
+          "Status": "running(14)",
+          "ConfigFiles": "/private/tmp/alertfunnel-local-review.VKnZOb/docker-compose.yml,/private/tmp/alertfunnel-local-review.VKnZOb/compose.local-review.yml"
+        },
+        {
+          "Name": "<other>",
+          "Status": "running(2)",
+          "ConfigFiles": "<redacted>"
+        },
+        {
+          "Name": "m11-11210601-42882-r700-k1000-w4",
+          "Status": "running(14)",
+          "ConfigFiles": "<repo>/docker-compose.yml,<repo>/loadtest/results/p99-batch-dd9d483/r3-a50/compose.measurement.json"
+        }
+      ]
+    },
+    {
+      "local": "07:02:33",
+      "loadavg": "{ 8.17 8.98 9.75 }",
+      "projects": [
+        {
+          "Name": "alertfunnel",
+          "Status": "running(3)",
+          "ConfigFiles": "~/Desktop/Competitions/hackathons/gs-warsaw-hackathon-2026/warsaw-hackathon-2026/docker-compose.yml"
+        },
+        {
+          "Name": "alertfunnel-demo",
+          "Status": "running(14)",
+          "ConfigFiles": "/private/tmp/alertfunnel-demo.cPptG3/repo/docker-compose.yml,/private/tmp/alertfunnel-demo.cPptG3/compose.demo.yaml"
+        },
+        {
+          "Name": "alertfunnel-local-review",
+          "Status": "running(14)",
+          "ConfigFiles": "/private/tmp/alertfunnel-local-review.VKnZOb/docker-compose.yml,/private/tmp/alertfunnel-local-review.VKnZOb/compose.local-review.yml"
+        },
+        {
+          "Name": "<other>",
+          "Status": "running(2)",
+          "ConfigFiles": "<redacted>"
+        },
+        {
+          "Name": "m11-11210601-42882-r700-k1000-w4",
+          "Status": "running(15)",
+          "ConfigFiles": "<repo>/docker-compose.yml,<repo>/loadtest/results/p99-batch-dd9d483/r3-a50/compose.measurement.json"
+        }
+      ]
+    },
+    {
+      "local": "07:03:03",
+      "loadavg": "{ 8.62 8.99 9.72 }",
+      "projects": [
+        {
+          "Name": "alertfunnel",
+          "Status": "running(3)",
+          "ConfigFiles": "~/Desktop/Competitions/hackathons/gs-warsaw-hackathon-2026/warsaw-hackathon-2026/docker-compose.yml"
+        },
+        {
+          "Name": "alertfunnel-demo",
+          "Status": "running(14)",
+          "ConfigFiles": "/private/tmp/alertfunnel-demo.cPptG3/repo/docker-compose.yml,/private/tmp/alertfunnel-demo.cPptG3/compose.demo.yaml"
+        },
+        {
+          "Name": "alertfunnel-local-review",
+          "Status": "running(14)",
+          "ConfigFiles": "/private/tmp/alertfunnel-local-review.VKnZOb/docker-compose.yml,/private/tmp/alertfunnel-local-review.VKnZOb/compose.local-review.yml"
+        },
+        {
+          "Name": "<other>",
+          "Status": "running(2)",
+          "ConfigFiles": "<redacted>"
+        },
+        {
+          "Name": "m11-11210601-42882-r700-k1000-w4",
+          "Status": "running(15)",
+          "ConfigFiles": "<repo>/docker-compose.yml,<repo>/loadtest/results/p99-batch-dd9d483/r3-a50/compose.measurement.json"
+        }
+      ]
+    },
+    {
+      "local": "07:03:34",
+      "loadavg": "{ 9.01 9.05 9.72 }",
+      "projects": [
+        {
+          "Name": "alertfunnel",
+          "Status": "running(3)",
+          "ConfigFiles": "~/Desktop/Competitions/hackathons/gs-warsaw-hackathon-2026/warsaw-hackathon-2026/docker-compose.yml"
+        },
+        {
+          "Name": "alertfunnel-demo",
+          "Status": "running(14)",
+          "ConfigFiles": "/private/tmp/alertfunnel-demo.cPptG3/repo/docker-compose.yml,/private/tmp/alertfunnel-demo.cPptG3/compose.demo.yaml"
+        },
+        {
+          "Name": "alertfunnel-local-review",
+          "Status": "running(14)",
+          "ConfigFiles": "/private/tmp/alertfunnel-local-review.VKnZOb/docker-compose.yml,/private/tmp/alertfunnel-local-review.VKnZOb/compose.local-review.yml"
+        },
+        {
+          "Name": "<other>",
+          "Status": "running(2)",
+          "ConfigFiles": "<redacted>"
+        }
+      ]
+    }
+  ],
+  "during_5s_samples": [
+    {
+      "local": "07:02:03",
+      "loadavg": "{ 6.47 8.79 9.71 }",
+      "test_processes": []
+    },
+    {
+      "local": "07:02:33",
+      "loadavg": "{ 8.17 8.98 9.75 }",
+      "test_processes": []
+    },
+    {
+      "local": "07:03:03",
+      "loadavg": "{ 8.62 8.99 9.72 }",
+      "test_processes": []
+    },
+    {
+      "local": "07:03:34",
+      "loadavg": "{ 9.01 9.05 9.72 }",
+      "test_processes": []
+    }
+  ],
+  "foreign_processes_sampled_during_run": false
+}

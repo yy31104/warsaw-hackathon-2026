@@ -116,6 +116,9 @@ function Editor({book, onSaved}: {book: Book | null; onSaved: (book: Book) => vo
         || problems.length > 0 || (error instanceof RequestError && error.status === 422)}
         onClick={() => void perform(publish)}>Publish</button>
       {problems.length > 0 && <Chip tone="red">{problems.length} to fix</Chip>}
+      <small className="cf-meta">{book?.rules?.length ? `Shown on incidents from ${book.rules.join(', ')}.`
+        : book?.matches ? 'Shown on incidents whose events match this runbook.'
+        : 'Publishing saves it. Responders see it once a rule or an event match links it to an incident.'}</small>
     </div>}
   </div>;
 }

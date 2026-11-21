@@ -2,19 +2,20 @@ import {useEffect, useRef, useState, type CSSProperties} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {countLabel, Icon} from './ui';
 
-// One example night, start to finish. Each step names the page where you'd do it yourself.
+// The whole product in five steps, told with one example incident. Each step names the page where you'd do it.
 const story = [
-  {verb: 'Receive', value: '500', label: 'events', icon: 'sources', page: '/sources', place: 'Sources',
-    caption: 'Three systems report the same failure.', how: 'Check the fields of a new format, then publish it.'},
-  {verb: 'Read', value: '9', label: 'fields', icon: 'rules', page: '/rules', place: 'Rules',
-    caption: 'A format it hasn’t seen before. It suggests the fields; a person confirms.', how: 'Set what to match and who to notify.'},
-  {verb: 'Group', value: '1', label: 'incident', icon: 'funnel', page: '/', place: 'Now',
-    caption: '500 repeats. One incident.', how: 'Nothing to set up. It shows up on Now.'},
-  {verb: 'Page', value: '0.24 s', label: 'to Sam', icon: 'phone', page: '/oncall', place: 'On call',
-    caption: 'Sam gets a call and a text. If nobody acknowledges, Lee is next.', how: 'Check who is on call and how they’re reached.'},
-  {verb: 'Fix', value: '6m 40s', label: 'to fixed', icon: 'check', page: '/runbooks', place: 'Runbooks',
-    caption: 'One approved retry. Fixed, and every step is logged.', how: 'Ack it, run the step, close it.'},
+  {verb: 'Receive', value: '3 sources', label: 'API, queue, logs', icon: 'sources', page: '/health', place: 'Health',
+    caption: 'Events arrive from APIs, message queues and log files.', how: 'See what’s arriving and how fast it’s processed.'},
+  {verb: 'Verify', value: 'Mapped', label: 'a person confirms', icon: 'rules', page: '/sources', place: 'Sources',
+    caption: 'New formats are mapped, and a person confirms the fields before anything is routed.', how: 'Check the suggested fields, then publish.'},
+  {verb: 'Decide', value: '500', label: 'events → 1 incident', icon: 'funnel', page: '/rules', place: 'Rules',
+    caption: 'Rules decide what matters. 500 repeats become one incident; one critical event is enough to page.', how: 'Set what to match and who to notify.'},
+  {verb: 'Notify', value: 'Phone + SMS', label: 'to the on-call', icon: 'phone', page: '/oncall', place: 'On call',
+    caption: 'Sam is on call and gets a call and a text. If nobody acknowledges, Lee is next.', how: 'Check who is on call and how they’re reached.'},
+  {verb: 'Respond', value: 'Approved', label: 'before risky steps', icon: 'shield', page: '/', place: 'Now',
+    caption: 'Sam follows the runbook. A risky retry waits for Lee’s approval, and every step is logged.', how: 'Acknowledge, run the step, resolve.'},
 ] as const;
+const counted = 2; // the Decide step counts its events up when it plays
 const last = story.length - 1;
 const startMs = 350, stepMs = 1900, holdMs = 3600, countMs = 900;
 
@@ -73,8 +74,8 @@ export function Intro({close, tour}: {close: () => void; tour: () => void}) {
   }}>
     <div className="cf-story">
       <div className="cf-story-brand"><span className="cf-story-logo"><Icon name="funnel"/></span>Alert Funnel <span>Example</span></div>
-      <h1 id="cf-story-title">500 failures. <em>One phone call.</em></h1>
-      <p className="cf-story-sub">Here’s one bad night, start to finish.</p>
+      <h1 id="cf-story-title">Know what matters. <em>Know what to do.</em></h1>
+      <p className="cf-story-sub">Events from different systems, in one place. See what matters, reach the right person, and respond safely.</p>
       <div className="cf-story-track" data-started={step >= 0} style={{'--fill': shown / last * 100 + '%'} as CSSProperties}>
         <div className="cf-story-line" aria-hidden="true"><i/><b data-ok={step === last}/></div>
         <ol>
@@ -84,8 +85,8 @@ export function Intro({close, tour}: {close: () => void; tour: () => void}) {
               <Icon name={item.icon}/>
             </button>
             <span className="cf-story-verb">{item.verb}</span>
-            <strong>{index !== 0 ? item.value : step < 0 ? '0'
-              : <CountUp key={String(step === 0 && !manual)} to={500} run={step === 0 && !manual}/>}</strong>
+            <strong>{index !== counted ? item.value : step < counted ? '0'
+              : <CountUp key={String(step === counted && !manual)} to={500} run={step === counted && !manual}/>}</strong>
             <small>{item.label}</small>
           </li>)}
         </ol>

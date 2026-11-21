@@ -97,7 +97,7 @@ export function Now() {
     <Failure error={open.error || all.error || funnel.error || pending.error || acknowledge.error}/>
     {hero ? <Card className="cf-hero">
       <div className="cf-hero-copy">
-        <div className="cf-kicker"><span className="cf-state-dot"/>Priority incident</div>
+        <div className="cf-kicker"><span className="cf-state-dot"/>Waiting for acknowledgement</div>
         <h2>{hero.title}</h2>
         {heroDetail.data && <EscalationLede incident={heroDetail.data} directory={directory}/>}
         <IncidentChips alert={hero}/>
@@ -114,7 +114,8 @@ export function Now() {
         </div>
       </div>
     </Card> : open.isSuccess ? <Card className="cf-all-handled">
-      <Icon name="check"/><h2>{team ? `Nothing open for ${teamName(team, directory)}` : 'Nothing needs attention'}</h2>
+      <Icon name="check"/><div><h2>No incidents waiting for acknowledgement</h2>
+        <small>Acknowledged incidents stay open in <Link to="/incidents">Incidents</Link> until they’re resolved.</small></div>
     </Card> : <Card><p>{feedEnabled ? 'Loading incidents…' : 'Choose who you’re viewing as to see their team’s incidents.'}</p></Card>}
     <ResponseTiles team={team} enabled={feedEnabled}/>
     {funnel.data && <FunnelCard funnel={funnel.data}/>}

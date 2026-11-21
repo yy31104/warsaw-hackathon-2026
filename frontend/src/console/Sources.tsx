@@ -59,16 +59,16 @@ function rawLines(value: unknown, path = '', depth = 0, label = '', suffix = '')
   ];
 }
 
-function RawSample({raw, highlight}: {raw: Fields; highlight: Set<string>}) {
+function RawSample({raw, highlight, active, onActive}: {raw: Fields; highlight: Set<string>; active: string | null; onActive: (path: string | null) => void}) {
   return <pre className="cf-code" tabIndex={0} aria-label="Raw sample"><code>
-    {rawLines(raw).map((line, index) => <span key={index}>
+    {rawLines(raw).map((line, index) => <span key={index} tabIndex={line.path ? 0 : undefined} data-active={active === line.path} onMouseEnter={()=>onActive(line.path || null)} onMouseLeave={()=>onActive(null)} onFocus={()=>onActive(line.path || null)} onBlur={()=>onActive(null)}>
       {highlight.has(line.path) ? <mark>{line.text}</mark> : line.text}{'\n'}
     </span>)}
   </code></pre>;
 }
 
-function MappingRows({draft, raw, change, flagged}: {
-  draft: Draft; raw: Fields; change: (draft: Draft) => void; flagged: Set<string>;
+function MappingRows({draft, raw, change, flagged, active}: {
+  draft: Draft; raw: Fields; change: (draft: Draft) => void; flagged: Set<string>; active: string | null;
 }) {
   function mapField(path: string, role: string) {
     const aliases = {...draft.aliases};
@@ -86,7 +86,7 @@ function MappingRows({draft, raw, change, flagged}: {
       const transform = draft.transforms?.[path];
       const numeric = typeof value === 'number' || typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value));
       const severity = String(value);
-      return <div className="cf-map-row" data-flagged={flagged.has(path)} key={path + index}>
+      return <div className="cf-map-row" data-active={active === path} data-flagged={flagged.has(path)} key={path + index}>
         <div className="cf-map-path"><code>{path}</code><small>{JSON.stringify(value)}</small></div>
         <span aria-hidden="true">→</span>
         <div className="cf-map-answers">
@@ -192,6 +192,7 @@ function Review({issue, retain}: {issue: Issue; retain: () => void}) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [highlight, setHighlight] = useState<string[]>([]);
+  const [activeField, setActiveField] = useState<string|null>(null);
   const [quietFields, setQuietFields] = useState<string[]>([]);
   const quietInput = useRef<HTMLTextAreaElement>(null);
   const sample = useQuery({queryKey: ['event-sample', issue.sample_event_id], queryFn: () =>
@@ -282,7 +283,7 @@ function Review({issue, retain}: {issue: Issue; retain: () => void}) {
     <Failure error={sample.error}/>
     <div className="cf-grid">
       <Card title={issue.source_id} meta={`${issue.event_count} waiting · live`}>
-        {sample.data ? <RawSample raw={sample.data.raw} highlight={flagged}/> : <p>Loading sample…</p>}
+        {sample.data ? <RawSample raw={sample.data.raw} highlight={flagged} active={activeField} onActive={setActiveField}/> : <p>Loading sample…</p>}
         {flagged.size > 0 && <small>Highlighted fields need a person.</small>}
       </Card>
       <Card title="What it means" meta={suggestion
@@ -294,7 +295,7 @@ function Review({issue, retain}: {issue: Issue; retain: () => void}) {
             placeholder="Give this format a name people will recognize" onChange={event => {
               setDraft({...draft, name: event.target.value}); invalidateTest();
             }}/></label>
-          <MappingRows raw={sample.data.raw} draft={draft} flagged={flagged} change={next => {setDraft(next); invalidateTest();}}/>
+          <MappingRows raw={sample.data.raw} draft={draft} flagged={flagged} active={activeField} change={next => {setDraft(next); invalidateTest();}}/>
           <details className="cf-form-actions">
             <summary>Format detection</summary>
             <pre className="cf-code">{JSON.stringify(draft.detect, null, 2)}</pre>

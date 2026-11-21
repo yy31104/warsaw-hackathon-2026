@@ -1,0 +1,24 @@
+RUN ID m11-11210553-bbfa8-r700-k1000-w4
+2026-11-21T05:54:26.672028+00:00
+> docker compose --ansi never -p m11-11210553-bbfa8-r700-k1000-w4 -f <repo>/docker-compose.yml -f <repo>/loadtest/results/p99-batch-dd9d483/r1-b25/compose.measurement.json run --rm -T --no-deps --name m11-11210553-bbfa8-r700-k1000-w4-generator --volume <repo>/loadtest:/app/loadtest:ro --volume <repo>/fixtures:/app/fixtures:ro --volume <repo>/loadtest/results/p99-batch-dd9d483/r1-b25/m11-11210553-bbfa8-r700-k1000-w4:/bench-output rule-worker python -m loadtest.saturation_trial --output /bench-output --run-id m11-11210553-bbfa8-r700-k1000-w4 --tag m11-k1000-r700 --duration 60 --drain-seconds 20 --normal-workers 4 --normal-rate 700 --normal-keys 1000 --ingest-workers 2 --critical-rate 2 --max-in-flight 2000
+
+ Container m11-11210553-bbfa8-r700-k1000-w4-generator Creating 
+ Container m11-11210553-bbfa8-r700-k1000-w4-generator Created 
+RUN ID m11-11210553-bbfa8-r700-k1000-w4
+Offer 700 normal/s + 2/s critical for 60s | 4 normal workers | 1,000 normal keys
+Offer started. Backlog samples below are live.
+   0.0s | accepted       0  processed       0  broker ready       0  DB pending       0
+  10.2s | accepted   7,090  processed   7,019  broker ready       0  DB pending      71
+  20.3s | accepted  14,232  processed  14,134  broker ready       0  DB pending      98
+  30.5s | accepted  21,375  processed  21,270  broker ready       0  DB pending     105
+  40.8s | accepted  28,553  processed  28,536  broker ready       0  DB pending      17
+  51.0s | accepted  35,742  processed  35,696  broker ready       0  DB pending      46
+  70.1s | accepted  41,450  processed  40,737  broker ready     270  DB pending     713
+RUN ID m11-11210553-bbfa8-r700-k1000-w4 | PASS measurement
+Inside offer: 691.7 ingested/s, 679.0 processed/s.
+Confirmed 42,120/42,120 | dropped 0 | publish errors 0 | rejected 0
+Pipeline backlog no sustained growth | peak 983 | verified phone/SMS 2,240/2,240
+Normal p50/p95/p99 (ms): 6716/10637/10826  N=2000
+Critical p50/p95/p99 (ms): 230/489/15411  N=240
+
+Exit code 0

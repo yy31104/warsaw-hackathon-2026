@@ -15,7 +15,7 @@
 
 ## W2 delivery batching result
 
-**Normal receiver p99 <5 s · FAIL.** On the pre-registered Apple M4 Pro workload and the same workload hash, normal receiver p99 was 27.424 s before batching (2,000 received / 2,000 expected) and 5.738 s after batching (2,000 / 2,000). Critical receiver p99 was 0.547 s before (240 / 240) and 0.356 s after (240 / 240), meeting the <1 s target. [Paired end-to-end trials](SCALING.md#delivery-batching--end-to-end)
+**Normal receiver p99 <5 s · FAIL.** On the pre-registered Apple M4 Pro workload and the same workload hash, normal receiver p99 was 27.424 s before batching (2,000 received / 2,000 expected) and 5.738 s after batching (2,000 / 2,000). Critical receiver p99 was 0.547 s before (240 / 240) and 0.356 s after (240 / 240), meeting the <1 s target. [Paired end-to-end trials](SCALING.md#delivery-batching--end-to-end) A later config-only trial on the same workload and hash alternated batch 25 and batch 50 with concurrency 16 on a busier host. Normal p99 was 7.167 and 6.722 s at batch 25 and 7.426 and 7.086 s at batch 50, with 2,000 / 2,000 received in every run. Critical p99 was 0.347–0.638 s (240 / 240). There were no duplicates. Batch 50 neither met the target nor beat the matched baseline, so the default stays 25. [Matched batch trial](SCALING.md#delivery-batch-25-vs-50--matched-config-only-trial)
 
 ## Decision stability result
 
