@@ -2,7 +2,60 @@ import {describe, expect, it} from 'vitest';
 import {applyRulePathSuggestion, canReview, orderOpenAlerts, representativeExplainPath} from './data';
 import {channelsAt, daySegments, toMinutes} from './preferences';
 import {readSteps} from './runbookDraft';
+import {sampleFieldRange} from './schemaSample';
+import {timelineRows} from './timeline';
+import type {Directory} from '../types';
 import alerts from '../../../fixtures/api/alerts.json';
+
+const directory: Directory = {
+  default_preferences: [], users: [{id: 'sam', name: 'Sam (on-call)', timezone: 'Europe/Warsaw'}], teams: [],
+};
+const ts = '2026-11-20T08:03:00Z';
+
+describe('plain timeline', () => {
+  it('keeps one row per notification and takes the successful call timing', () => {
+    const notification = (text: string) => ({ts, kind: 'notification', text});
+    const rows = timelineRows([
+      {ts, kind: 'decision', text: 'settle-internal → NEW_ALERT'},
+      notification('sms → sam: delivered'),
+      notification('sms → sam: delivered (attempt 1)'),
+      notification('phone → sam: retryable (attempt 1)'),
+      notification('phone → sam: delivered'),
+      notification('phone → sam: delivered (attempt 2)'),
+    ], [{channel: 'phone', recipient: 'sam', state: 'delivered',
+      attempt_log: [{outcome: 'retryable', latency_ms: 5}, {outcome: 'delivered', latency_ms: 310}]}],
+      [{id: 'settle-internal', name: 'Settlement timeouts'}], directory);
+    expect(rows.map(row => row.text)).toEqual([
+      'Call to Sam · delivered in 0.31 s', 'SMS to Sam · delivered', 'Opened by rule Settlement timeouts',
+    ]);
+  });
+
+  it('keeps distinct deliveries when timestamps cannot be paired and hides unknown codes', () => {
+    const delivery = {ts, kind: 'notification', text: 'phone → old-user: delivered'};
+    const rows = timelineRows([
+      delivery, {...delivery, ts: '2026-11-20T08:04:00Z'},
+      {ts, kind: 'decision', text: 'rule-42 → NEW_ALERT'},
+      {ts, kind: 'audit', text: 'old-user action.unfamiliar'},
+    ], [{channel: 'phone', recipient: 'old-user', state: 'delivered',
+      attempt_log: [{outcome: 'delivered', latency_ms: 31}]}], [], directory);
+    expect(rows.map(row => row.text)).toEqual([
+      'Incident updated', 'Opened by a rule', 'Call · delivered', 'Call · delivered',
+    ]);
+  });
+});
+
+it('selects only the indicated quiet JSON value, including nested and dotted keys', () => {
+  const raw = '{"unrelated":12,"payload":[{"a.b":12}],"a.b":"keep"}';
+  const selection = (path: string) => {
+    const range = sampleFieldRange(raw, path);
+    return range && raw.slice(...range);
+  };
+  expect(selection('payload.0.a.b')).toBe('12');
+  expect(sampleFieldRange(raw, 'payload.0.a.b')?.[0]).toBe(raw.lastIndexOf('12'));
+  expect(selection('a.b')).toBe('"keep"');
+  expect(selection('missing')).toBeUndefined();
+  expect(sampleFieldRange('{"amount":}', 'amount')).toBeUndefined();
+});
 
 describe('console decisions', () => {
   it('orders the hero by severity and then by earliest opening time', () => {
