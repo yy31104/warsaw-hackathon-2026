@@ -1,0 +1,35 @@
+{
+  "heuristic": {
+    "steps": 9,
+    "required": 5,
+    "missing_before": 1,
+    "missing_after": 0,
+    "added_reviews": 4,
+    "missing_steps": 0,
+    "exact_steps_after": 5,
+    "expected_steps": 9,
+    "unnecessary_reviews_after": 3
+  },
+  "gpt-6-luna": {
+    "steps": 9,
+    "required": 5,
+    "missing_before": 0,
+    "missing_after": 0,
+    "added_reviews": 2,
+    "missing_steps": 0,
+    "exact_steps_after": 7,
+    "expected_steps": 9,
+    "unnecessary_reviews_after": 2
+  },
+  "gpt-6.2-sol": {
+    "steps": 9,
+    "required": 5,
+    "missing_before": 0,
+    "missing_after": 0,
+    "added_reviews": 2,
+    "missing_steps": 0,
+    "exact_steps_after": 7,
+    "expected_steps": 9,
+    "unnecessary_reviews_after": 2
+  }
+}

@@ -1,0 +1,326 @@
+{
+  "phase": "baseline",
+  "split": "dev",
+  "n_cases": 15,
+  "modes": {
+    "heuristic": {
+      "case_status": {
+        "PASS": 8,
+        "FAIL": 7
+      },
+      "reasons": {},
+      "attribution": {
+        "heuristic": 15
+      },
+      "product": {
+        "fields": [
+          23,
+          38
+        ],
+        "expected_fields": 37,
+        "unexpected_aliases": 1,
+        "exact_alias_sets": [
+          3,
+          8
+        ],
+        "service": [
+          5,
+          8
+        ],
+        "severity": [
+          6,
+          8
+        ],
+        "time_format": [
+          4,
+          8
+        ],
+        "occurred_at": [
+          4,
+          8
+        ],
+        "transforms": [
+          0,
+          1
+        ],
+        "recognized": [
+          8,
+          8
+        ],
+        "steps": [
+          14,
+          16
+        ],
+        "invented_parameters": 0,
+        "risky_without_approval": 0,
+        "missing_risky_steps": 0,
+        "unsafe_executable_steps": 0
+      },
+      "provider_only": {},
+      "provider_scored_cases": {},
+      "provider_outcomes": {},
+      "served_models": {},
+      "endpoint_latency": {
+        "n": 15,
+        "p50_ms": 0.273,
+        "p95_ms": 1.094
+      },
+      "provider_latency": {
+        "n": 0,
+        "p50_ms": null,
+        "p95_ms": null
+      },
+      "calls": 0,
+      "costed_calls": 0,
+      "usage_basis": {},
+      "reported_input_tokens": {
+        "n": 0,
+        "total": 0,
+        "mean": null
+      },
+      "reported_output_tokens": {
+        "n": 0,
+        "total": 0,
+        "mean": null
+      },
+      "estimated_total_usd_known_calls": null,
+      "mean_estimated_usd_per_costed_call": null
+    },
+    "gpt-6-luna": {
+      "case_status": {
+        "PASS": 11,
+        "FAIL": 4
+      },
+      "reasons": {},
+      "attribution": {
+        "local_only": 1,
+        "validated_no_contribution": 9,
+        "model_contributed": 5
+      },
+      "product": {
+        "fields": [
+          35,
+          38
+        ],
+        "expected_fields": 37,
+        "unexpected_aliases": 1,
+        "exact_alias_sets": [
+          5,
+          8
+        ],
+        "service": [
+          8,
+          8
+        ],
+        "severity": [
+          7,
+          8
+        ],
+        "time_format": [
+          6,
+          8
+        ],
+        "occurred_at": [
+          6,
+          8
+        ],
+        "transforms": [
+          0,
+          1
+        ],
+        "recognized": [
+          8,
+          8
+        ],
+        "steps": [
+          16,
+          16
+        ],
+        "invented_parameters": 0,
+        "risky_without_approval": 0,
+        "missing_risky_steps": 0,
+        "unsafe_executable_steps": 0
+      },
+      "provider_only": {
+        "fields": [
+          12,
+          13
+        ],
+        "expected_fields": 13,
+        "unexpected_aliases": 0,
+        "exact_alias_sets": [
+          6,
+          7
+        ],
+        "candidate_steps": [
+          16,
+          16
+        ],
+        "manual_abstentions": [
+          8,
+          8
+        ],
+        "invented_parameters": 0,
+        "unsafe_candidates": 0
+      },
+      "provider_scored_cases": {
+        "schema": 7,
+        "runbook": 7
+      },
+      "provider_outcomes": {
+        "success": 14
+      },
+      "served_models": {
+        "gpt-6-luna": 14
+      },
+      "endpoint_latency": {
+        "n": 15,
+        "p50_ms": 1553.884,
+        "p95_ms": 2633.594
+      },
+      "provider_latency": {
+        "n": 14,
+        "p50_ms": 1550.451,
+        "p95_ms": 2630.329
+      },
+      "calls": 14,
+      "costed_calls": 14,
+      "usage_basis": {
+        "observed_mix": 14
+      },
+      "reported_input_tokens": {
+        "n": 14,
+        "total": 4059,
+        "mean": 289.92857142857144
+      },
+      "reported_output_tokens": {
+        "n": 14,
+        "total": 1283,
+        "mean": 91.64285714285714
+      },
+      "estimated_total_usd_known_calls": "0.0010474",
+      "mean_estimated_usd_per_costed_call": "0.00007481428571428571428571428571"
+    },
+    "gpt-6.2-sol": {
+      "case_status": {
+        "PASS": 11,
+        "FAIL": 4
+      },
+      "reasons": {},
+      "attribution": {
+        "local_only": 1,
+        "validated_no_contribution": 9,
+        "model_contributed": 5
+      },
+      "product": {
+        "fields": [
+          35,
+          38
+        ],
+        "expected_fields": 37,
+        "unexpected_aliases": 1,
+        "exact_alias_sets": [
+          5,
+          8
+        ],
+        "service": [
+          8,
+          8
+        ],
+        "severity": [
+          7,
+          8
+        ],
+        "time_format": [
+          6,
+          8
+        ],
+        "occurred_at": [
+          6,
+          8
+        ],
+        "transforms": [
+          0,
+          1
+        ],
+        "recognized": [
+          8,
+          8
+        ],
+        "steps": [
+          16,
+          16
+        ],
+        "invented_parameters": 0,
+        "risky_without_approval": 0,
+        "missing_risky_steps": 0,
+        "unsafe_executable_steps": 0
+      },
+      "provider_only": {
+        "fields": [
+          12,
+          13
+        ],
+        "expected_fields": 13,
+        "unexpected_aliases": 0,
+        "exact_alias_sets": [
+          6,
+          7
+        ],
+        "candidate_steps": [
+          16,
+          16
+        ],
+        "manual_abstentions": [
+          8,
+          8
+        ],
+        "invented_parameters": 0,
+        "unsafe_candidates": 0
+      },
+      "provider_scored_cases": {
+        "schema": 7,
+        "runbook": 7
+      },
+      "provider_outcomes": {
+        "success": 14
+      },
+      "served_models": {
+        "gpt-6.2-sol": 14
+      },
+      "endpoint_latency": {
+        "n": 15,
+        "p50_ms": 1487.205,
+        "p95_ms": 2958.625
+      },
+      "provider_latency": {
+        "n": 14,
+        "p50_ms": 1485.161,
+        "p95_ms": 2956.589
+      },
+      "calls": 14,
+      "costed_calls": 14,
+      "usage_basis": {
+        "observed_mix": 14
+      },
+      "reported_input_tokens": {
+        "n": 14,
+        "total": 4661,
+        "mean": 332.92857142857144
+      },
+      "reported_output_tokens": {
+        "n": 14,
+        "total": 692,
+        "mean": 49.42857142857143
+      },
+      "estimated_total_usd_known_calls": "0.016242",
+      "mean_estimated_usd_per_costed_call": "0.001160142857142857142857142857"
+    }
+  },
+  "selection": {
+    "status": "PASS",
+    "model": "gpt-6-luna",
+    "reason": "safe development result ranked by mean field/step accuracy, then cost and endpoint p95"
+  },
+  "campaign_exposure_usd": "0.0172894"
+}
