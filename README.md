@@ -1,10 +1,32 @@
 # Alert Funnel
 
-**Know what matters. Know what to do.**
+<p align="center">
+  <img
+    src="https://readme-typing-svg.demolab.com?font=Fira+Code&amp;size=30&amp;duration=3000&amp;pause=1200&amp;color=C6613F&amp;center=true&amp;vCenter=true&amp;width=720&amp;height=64&amp;lines=Alert+Funnel;Know+what+matters.;Know+what+to+do."
+    alt="Alert Funnel — Know what matters. Know what to do."
+    width="720"
+    height="64"
+  />
+</p>
 
-Alert Funnel takes events from many systems and formats, decides which ones matter, notifies the right person on the channel they prefer, and guides a safe response. It was built in 18 hours for the Goldman Sachs Warsaw Hackathon 2026 (*Flexible Alerting & Notification Service*).
+[![Run](https://img.shields.io/badge/Run-docker_compose_up-C6613F?style=flat-square&labelColor=141D1A)](#try-it-in-three-steps)
+[![Console](https://img.shields.io/badge/Console-React_%2B_TypeScript-C6613F?style=flat-square&labelColor=141D1A)](frontend/)
+[![API](https://img.shields.io/badge/API-FastAPI_%2B_Python-C6613F?style=flat-square&labelColor=141D1A)](docs/CONTRACT.md)
+[![Pipeline](https://img.shields.io/badge/Pipeline-PostgreSQL_%2B_RabbitMQ-C6613F?style=flat-square&labelColor=141D1A)](docs/SCALING.md)
+[![Critical p99](https://img.shields.io/badge/Critical_p99-0.356_s-C6613F?style=flat-square&labelColor=141D1A)](docs/SCORECARD.md)
+[![Tests](https://img.shields.io/badge/Tests-798_%C2%B7_19_%C2%B7_32_golden-C6613F?style=flat-square&labelColor=141D1A)](docs/GATES.md)
 
-Everything here runs locally with Docker. Phone, SMS, email and operational actions go to simulators, never to real people or systems.
+500 repeated warnings shouldn't wake anyone up 500 times. One critical failure should never be missed.
+
+Alert Funnel takes events from many systems and formats, decides which ones matter, notifies the right person on the channel they prefer, and guides a safe response. It was built in 18 hours for the Goldman Sachs Warsaw Hackathon 2026 (*Flexible Alerting & Notification Service*). Phone, SMS, email and operational actions go to local simulators, never to real people or systems.
+
+[Try it](#try-it-in-three-steps) · [Bring your own event](#bring-your-own-event-or-runbook) · [What we added](#three-things-we-added) · [Results](#measured-not-estimated) · [How it works](#how-it-works)
+
+<p align="center">
+  <img src="loadtest/results/w0-round3/final-1b82645640-release-final/browser/desktop-light/incident.jpg" alt="An incident in the Alert Funnel console: why Sam was notified, when Lee is paged next, the runbook and the timeline" width="900" />
+  <br />
+  <sub>An incident in the console: why Sam was notified, when Lee is paged next, the runbook and the timeline.</sub>
+</p>
 
 ---
 
