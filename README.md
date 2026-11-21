@@ -91,7 +91,7 @@ Other inputs: HTTP also accepts NDJSON, CSV with a header row, YAML, XML and pla
 
 **A new runbook**
 
-1. Open **Runbooks**, choose **New runbook** and paste the instructions as written (Markdown, a checklist, plain text or a link).
+1. Open **Runbooks**, choose **Create runbook** and paste the instructions as written (Markdown, a checklist, plain text or a link).
 2. **Turn into steps** converts them into typed steps. Anything unsafe or unclear (a missing target, a risky step without approval) is flagged and must be fixed before **Publish**.
 3. A runbook shows up on incidents from the rules it names. Risky steps wait for a second person to approve, and every run is audited.
 

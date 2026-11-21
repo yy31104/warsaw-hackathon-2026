@@ -375,7 +375,7 @@ try {
 
   await test('E · structured runbook validation blocks publish until fixed', async () => {
     await navigate(sam, 'Runbooks');
-    await button(sam, 'New runbook').click();
+    await button(sam, 'Create runbook').click();
     await sam.getByLabel('Runbook ID', {exact: true}).fill('console-lint-' + tag);
     await sam.getByLabel('Original text', {exact: true}).fill('1. Restart service settlement-engine\n2. If the restart does not help, check the dashboard.');
     await button(sam, 'Turn into steps').click();
