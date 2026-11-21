@@ -131,7 +131,7 @@ Delivery states: `pending → sending → delivered | retrying | unknown | faile
 
 | Method & path | Purpose | Owner |
 |---|---|---|
-| `POST /events/{source_id}` | Body = one object or array. Headers: `X-Api-Key`, optional `Idempotency-Key`, `X-Gen-Sent-At` (epoch ms), `X-Demo-Clock`. → `202 {accepted, duplicates, conflicts, rejected:[{index, reason}], event_ids}` | DEV2 daizhongtian |
+| `POST /events/{source_id}` | Body = one JSON object or array, NDJSON, CSV with a header row, YAML or XML (by `Content-Type`; sniffed when missing; XML through a safe parser). Headers: `X-Api-Key`, optional `Idempotency-Key`, `X-Gen-Sent-At` (epoch ms), `X-Demo-Clock`. → `202 {accepted, duplicates, conflicts, rejected:[{index, reason}], event_ids}` | DEV2 daizhongtian |
 | `GET /events?source=&schema=&status=&field=&value=` · `GET /events/{id}` | Query/inspect stored events (raw + flattened, GIN-indexed) | DEV2 daizhongtian |
 | `GET /events/{id}/explain` | Decision trace (schema detection, each rule's match trace, incident op, notifications planned) | DEV1 Yi |
 | `GET /sources` · `GET/POST /schemas` · `GET /schema-issues` · `POST /schemas/suggest {sample}` | Registry and onboarding (`suggest` = heuristic + LLM, returns a draft) | DEV2 daizhongtian |
@@ -145,9 +145,14 @@ Delivery states: `pending → sending → delivered | retrying | unknown | faile
 | `GET/PUT /teams` · `GET/PUT /users/{id}/preferences` | Directory and preferences (config CRUD) | DEV2 daizhongtian |
 | `GET /stream?team=` (SSE) | Live events, §10 | DEV2 daizhongtian |
 | `GET /stats/funnel?window=15m` · `GET /health` · `GET /metrics` (Prometheus text) · `POST /debug/reset` (DEMO_MODE) | Dashboard + ops | DEV2 daizhongtian |
-
+| `GET /assist/status` | `{enabled, provider, model}`; the UI shows "AI on" or "AI off (rules only)" | DEV1 Yi |
+| `GET /alerts/{id}` additions | `pending_actions:[{run_id, action, requested_by, approvers, status, created_at}]` and `next_escalation:{at, level, targets, channels}` or `null` | DEV1 Yi |
+| `POST /schemas/{id}/restore {version}` · `POST /rules/{id}/restore {version}` · `POST /runbooks/{id}/restore {version}` | Republish an old version as a new version (audited); list endpoints show at least the last 5 versions | DEV2 daizhongtian |
+| `GET /stats/response?window=24h&team=` | `{n_alerts, mtta_s, mttr_s, ack_rate, interruptions:[{user, count}]}`; MTTA excludes unacknowledged alerts, MTTR excludes unresolved ones | DEV2 daizhongtian |
 | `POST /rules/check {rule}` | Rule Safety Checker → `{scenarios_checked:[...], violations:[{scenario, requirement, problem, trace}]}` (pure function `rules.safety.check` by Yi). It checks against the rule's declared channels and the team's optional `required_channels`; it never flags a declared UI-only rule | DEV2 daizhongtian (route) |
 | `POST /schemas/verify {schema, samples:[{event, expect: "notify"\|"quiet"\|{recipients:[...], channels:[...]}, note?}]}` | Sample-based verification → per sample: actual vs expected recipients and channels, deciding fields, pass/fail, unit warnings (uses Yi's engine + plan, no side effects) | DEV2 daizhongtian |
+
+**Problems and fixes, one shape everywhere.** `rules/check`, `schemas/verify`, `runbooks/structure` (for each manual step) and the runbook publish lint return problems as `{code, message, fix_example?, path?, suggestions?: [path]}`. `code` is a stable name: `missing_target`, `conditional`, `unknown_action`, `combined_steps`, `masked_value`, `unknown_field`, `no_timezone`, `unit_unclear`, `unmapped_severity`, `ambiguous_schema`, `unknown_recipient`, `no_manual_fallback`. `message` and `fix_example` are deterministic, so they work without an LLM. With assist on, the LLM may add `plain`: one plain-language sentence.
 
 `POST /inbound/{channel}` requires the header `X-Provider-Secret` (shared secret `INBOUND_SECRET` in `.env`, sent by fake-telecom); a missing or wrong secret → 401. Failed code attempts are persisted per sender: 5 failures in 15 min → 429, audited.
 
@@ -163,7 +168,8 @@ Actor identity (demo-grade): header `X-User: <user id>` on mutating calls, check
 
 ## 11. LLM usage (shared helper `backend/alerting/llm.py`)
 
-- Model `claude-opus-5-5` via the official `anthropic` SDK, `messages.parse(output_format=PydanticModel)` (structured output, validated). 20 s timeout, 1 retry.
+- **Provider** from `ASSIST_PROVIDER` (`openai` for this team; `anthropic` stays supported), **model** from `ASSIST_MODEL`. Keys (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`) live only in the local `.env`. Output is structured and validated into a Pydantic model. Interactive endpoints use an 8 s timeout and then return the heuristic result. Every LLM result records `source: llm` and `model`.
+- **Measured, not assumed:** `loadtest/results/llm-eval-<commit>/` reports n/N accuracy, invented parameters, risky steps without approval (must be 0), latency and cost per model. Eval cases are synthetic and written by us; never the private holdout.
 - **Never on the alert path.** Only onboarding, runbook structuring, rule drafts, fix proposals and summaries. On `None` (timeout/error/refusal) the endpoint returns the deterministic suggestion with `"source": "heuristic"`.
 - **What to send for an event:** `json.dumps(llm.describe_sample(fields))` (path, type, redacted example). Never a raw JSON string: `redact()` on raw JSON can mask numbers such as epoch-ms timestamps and break the JSON. Use `redact()` only on free text.
 - **Before sending:** redact emails, phone numbers, card-like digit runs, `Bearer`/`token=`/`password=` values, and truncate samples to 8 KB. Send at most 3 samples. Cache by schema fingerprint or text hash.

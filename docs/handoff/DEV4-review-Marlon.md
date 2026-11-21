@@ -90,3 +90,8 @@ An implementer never changes an expected value.
 - ☐ Tasks 1–6 above.
 - ☐ Adversarial checks 1–9 above.
 - ☐ For every Tier 0–3 item marked done in a handoff, run its acceptance check from [IMPROVEMENTS.md](../IMPROVEMENTS.md) and record PASS / FAIL / NOT_RUN with evidence in GATES.md.
+
+## Round 3 (Sat 01:00) — mentor feedback
+- Build the video around the three pillars named by the mentor (BRIEF §7 and §9): flexibility, scalability, throughput/latency. Say the words.
+- Audit `docs/SCALING.md` and the LLM eval (M3, M12): every number cites a file, or the claim is removed.
+- Record LLM-suggested vs correct (n/N) in the holdout rows, and add the forgiveness matrix (M16) to the README.
