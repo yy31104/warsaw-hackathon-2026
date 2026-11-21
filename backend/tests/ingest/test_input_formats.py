@@ -232,14 +232,28 @@ async def test_json_array_keeps_batch_identity_under_curl_and_plain_text_headers
     assert retry.json()["duplicates"] == 2 and retry.json()["event_ids"] == first.json()["event_ids"]
 
 
-async def test_explicit_yaml_takes_precedence_for_a_body_that_also_parses_as_json(client):
-    payload = {"alerts": [{"message": "one"}, {"message": "two"}]}
-    response = await client.post("/v1/events/alertmanager", content=json.dumps(payload),
-                                 headers={"X-Api-Key": "demo-alertmanager-key", "Content-Type": "application/yaml"})
+async def test_alertmanager_json_wrapper_keeps_its_batch_with_yaml_media_type(live_http):
+    events = [{"message": "one"}, {"message": "two"}]
+    body = json.dumps({"alerts": events})
+    url = "/v1/events/alertmanager"
+    headers = {"X-Api-Key": "demo-alertmanager-key", "Idempotency-Key": "labelled-yaml"}
+    response = await live_http.post(url, content=body, headers={**headers, "Content-Type": "application/yaml"})
     assert response.status_code == 202, response.text
-    (event_id,) = response.json()["event_ids"]
-    event = (await client.get(f"/v1/events/{event_id}")).json()
-    assert event["raw"] == payload  # YAML keeps this wrapper. The JSON source splits it.
+    result = response.json()
+    assert result["accepted"] == 2 and result["rejected"] == [], result
+    for index, (event_id, raw) in enumerate(zip(result["event_ids"], events, strict=True)):
+        event = (await live_http.get(f"/v1/events/{event_id}")).json()
+        assert event["raw"] == raw and event["source_event_id"] == f"http-batch:{index}:labelled-yaml"
+
+    retry = await live_http.post(url, content=body, headers={**headers, "Content-Type": "application/json"})
+    assert retry.status_code == 202
+    assert retry.json()["duplicates"] == 2 and retry.json()["event_ids"] == result["event_ids"]
+
+    invalid = await live_http.post(
+        url, content='{"alerts":{}}', headers={**headers, "Content-Type": "application/yaml"},
+    )
+    assert invalid.status_code == 400
+    assert "split_path must contain an array" in invalid.json()["detail"]
 
 
 async def test_plain_text_uses_ndjson_only_when_all_nonempty_lines_are_objects(client):

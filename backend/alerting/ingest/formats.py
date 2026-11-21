@@ -308,12 +308,16 @@ def decode_body(body, content_type, source):
         return _json_body(_read_json(body), source)
 
     # Legacy clients send JSON with arbitrary headers, including curl's default.
-    # A successfully decoded, explicitly declared CSV/XML/YAML body takes precedence.
     try:
         payload = decode_json(body)
     except InvalidEvent:
         payload = None
     if isinstance(payload, (dict, list)):
+        json_body = _json_body(payload, source)
+        # A configured JSON envelope keeps its batch semantics under any header.
+        if isinstance(payload, dict) and json_body.batch:
+            return json_body
+        # Otherwise a valid, explicitly declared CSV/XML/YAML body takes precedence.
         if format in {"csv", "xml", "yaml"}:
             try:
                 declared = _decode_declared(body, format, source)
@@ -322,7 +326,7 @@ def decode_body(body, content_type, source):
             else:
                 if all(row.reason is None for row in declared.rows):
                     return declared
-        return _json_body(payload, source)
+        return json_body
 
     if not content_type or not content_type.strip():
         return _sniff(body)
