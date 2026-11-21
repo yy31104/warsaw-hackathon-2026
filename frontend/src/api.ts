@@ -4,11 +4,11 @@ import {session,startReplay,applyStream,mockTransition,mockRunbook,resetScenario
 import runbook from '../../fixtures/api/runbook.json';
 import replay from '../../fixtures/api/stream.ndjson?raw';
 import {type Alert,type StreamMessage} from './model';
-export const MOCK_MODE=import.meta.env.VITE_MOCK!=='0';
+export const MOCK_MODE=import.meta.env.VITE_MOCK==='1';
 const base=(import.meta.env.VITE_API_BASE??'').replace(/\/$/,'');
 
 export class RequestError extends Error {
- constructor(readonly status:number,message:string){super(`${status} ${message}`);}
+ constructor(readonly status:number,message:string,readonly detail?:unknown){super(`${status} ${message}`);}
 }
 
 export async function request<T>(path:string,actor?:string,body?:unknown,method?:'GET'|'POST'|'PUT'):Promise<T>{
@@ -18,14 +18,18 @@ export async function request<T>(path:string,actor?:string,body?:unknown,method?
   const result=await response.json().catch(()=>null);
   const detail=result?.detail;
   const message=typeof detail==='string'?detail:detail?.message;
-  throw new RequestError(response.status,message??`${response.statusText} — ${path}`);
+  throw new RequestError(response.status,message??`${response.statusText} — ${path}`,detail);
  }
  return response.status===204?undefined as T:response.json();
 }
 export const api={
- alerts:async(team:string)=>ALERTS_MOCK
-  ?structuredClone(session.alerts.filter(alert=>!team||alert.team_id===team))
-  :(await request<{items:Alert[]}>(team?`/alerts?team=${encodeURIComponent(team)}`:'/alerts')).items,
+ alerts:async(team:string,status?:string)=>{
+  if(ALERTS_MOCK)return structuredClone(session.alerts.filter(alert=>(!team||alert.team_id===team)&&(!status||alert.status===status)));
+  const search=new URLSearchParams();
+  if(team)search.set('team',team);
+  if(status)search.set('status',status);
+  return (await request<{items:Alert[]}>(`/alerts${search.size?`?${search}`:''}`)).items;
+ },
  detail:async(id:number)=>{if(!ALERTS_MOCK)return request<typeof detailFixture>(`/alerts/${id}`);const item=session.alerts.find(a=>a.id===id);if(!item)throw new Error('Incident not found');return {...structuredClone(item),occurrences:id===101?detailFixture.occurrences:[],timeline:structuredClone(session.timelines[id]??[])};},
  notifications:async(id:number)=>ALERTS_MOCK?(session.notifications.filter(n=>n.alert_id===id)):(await request<typeof notifications>(`/alerts/${id}/notifications`)).items,
  runbook:async(id:number)=>{
@@ -35,8 +39,8 @@ export const api={
  },
  transition:async(id:number,action:'ack'|'resolve',actor:string)=>{if(!ALERTS_MOCK)return request(`/alerts/${id}/${action}`,actor,{});mockTransition(id,action,actor);},
 };
-export function alertListQuery(team:string,enabled=true){
- return {queryKey:['alerts','list',team],queryFn:()=>api.alerts(team),enabled};
+export function alertListQuery(team:string,enabled=true,status?:string){
+ return {queryKey:['alerts','list',team,status],queryFn:()=>api.alerts(team,status),enabled};
 }
 let replayIndex=0;
 export function subscribe(onMessage:(message:StreamMessage)=>void,onState:(state:string)=>void,team=''){
@@ -57,4 +61,4 @@ export function subscribe(onMessage:(message:StreamMessage)=>void,onState:(state
 export function replayDemo(){replayIndex=0;resetScenario();}
 export function toggleReplay(){session.replayRunning=!session.replayRunning;changed();}
 export function setReplaySpeed(delay:number){session.replayDelay=delay;changed();}
-export const ALERTS_MOCK=import.meta.env.VITE_ALERTS_MODE==='api'?false:import.meta.env.VITE_ALERTS_MODE==='mock'?true:MOCK_MODE;
+export const ALERTS_MOCK=MOCK_MODE&&import.meta.env.VITE_ALERTS_MODE!=='api';
