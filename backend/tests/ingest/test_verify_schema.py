@@ -43,13 +43,13 @@ def test_review_verification_and_ingest_project_the_same_fields():
     assert ingested.fields["data.level.raw"] == "200"
     assert ingested.fields["data.at.raw"] == 5000
     assert ingested.fields["$time"] == "1970-01-01T00:00:05+00:00"
-    assert ingested.fields["$episode"] == ingested.source_event_id == "sensor|5"
+    assert ingested.fields["$episode"] == ingested.source_event_id == "sensor|5000"
     assert ingested.raw == replayed.raw == sample
     assert ingested.payload_hash == replayed.payload_hash
     assert ingested.schema_name == "reading.2" and ingested.severity == "warning"
     assert replayed.source_event_id == "transport-id"
 
-    rule = {"id": "test", "match": {"$episode": "sensor|5"}, "route": [
+    rule = {"id": "test", "match": {"$episode": "sensor|5000"}, "route": [
         {"to": "user:anna", "channels": ["ui"]},
     ]}
     checked = verify(DRAFT, [{"event": sample, "expect": "notify", "source": SOURCE["id"]}],
@@ -106,7 +106,7 @@ async def test_verify_unit_change_contract_without_database_writes(client, inbox
 
 
 async def test_verified_fields_are_used_in_persisted_replay_and_new_ingest(client, inbox_pool):
-    rule = {"id": "verify-live-rule", "match": {"$episode": "sensor|5", "data.level": 2},
+    rule = {"id": "verify-live-rule", "match": {"$episode": "sensor|5000", "data.level": 2},
             "route": [{"to": "user:ops", "channels": ["ui"]}]}
     async with inbox_pool.connection() as conn:
         await conn.execute("""

@@ -87,7 +87,10 @@ async def test_metrics_reflect_outbox_and_inbox(client, activity, monkeypatch):
 async def test_debug_reset_classifies_every_migrated_table(inbox_pool):
     runtime = set(RESET_RUNTIME_TABLES)
     async with inbox_pool.connection() as conn:
-        tables = await conn.execute("SELECT tablename FROM pg_tables WHERE schemaname = current_schema()")
+        tables = await conn.execute("""
+            SELECT table_name FROM information_schema.tables
+            WHERE table_schema = current_schema() AND table_type = 'BASE TABLE'
+        """)
         migrated = {name for name, in await tables.fetchall()}
         assert runtime.isdisjoint(PRESERVED_TABLES)
         assert migrated == runtime | PRESERVED_TABLES
