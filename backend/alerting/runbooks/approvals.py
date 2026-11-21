@@ -2,6 +2,7 @@
 
 from datetime import timedelta
 from secrets import randbelow
+from typing import Literal
 
 import httpx
 from fastapi import HTTPException
@@ -72,7 +73,7 @@ async def runbook_for(cur, alert, settings):
     await cur.execute("select fields from events where id=%s", (alert["representative_event_id"],))
     event = await cur.fetchone()
     await cur.execute(
-        """select r.id as run_id, r.step_index, r.action,
+        """select r.id as run_id, r.step_index, r.action, r.requested_by,
                   case when r.state='pending_approval' and r.approval_expires_at<=%s
                        then 'expired' else r.state end as state,
                   case when r.state <> 'rejected' then r.approved_by end as approved_by,
@@ -271,7 +272,7 @@ async def resolve_on_success(cur, result, run, alert):
             await alert_changed(cur, updated)
 
 
-async def verify_run(db, run_id, actor, retry):
+async def verify_run(db, run_id, actor, *, operation: Literal["check", "reconcile", "retry"]):
     from alerting.api.routes_alerts import require_member
     from alerting.rules.storage import get_settings
 
@@ -283,10 +284,21 @@ async def verify_run(db, run_id, actor, retry):
             raise HTTPException(404, "Run not found")
         await cur.execute("select * from alerts where id=%s", (run["alert_id"],))
         alert = await cur.fetchone()
-        require_member(alert, actor, settings)
+        unknown = run["state"] == "unknown"
+        reconciling = operation == "reconcile" or (operation == "check" and unknown)
+        if reconciling:
+            team = by_id(settings.directory["teams"]).get(alert["team_id"], {})
+            if actor != run["requested_by"] and actor not in team.get("approvers", []):
+                raise HTTPException(403, "The action requester or a team approver is required")
+            if not unknown:
+                raise HTTPException(409, "Only an unknown run can be reconciled")
+        else:
+            require_member(alert, actor, settings)
+            if unknown:
+                raise HTTPException(409, "Reconcile the unknown action before retrying")
         if run["state"] not in {"unknown", "failed", "succeeded"}:
             raise HTTPException(409, "Run is not ready for verification")
-    if run["action"] == "escalate":
+    if run["action"] == "escalate" and not reconciling:
         # This internal action completes in the same transaction as its notification outbox.
         return public(run)
     try:
@@ -301,16 +313,23 @@ async def verify_run(db, run_id, actor, retry):
             (alert["id"], run["runbook_id"], run["step_index"]),
         )
         latest = await cur.fetchone()
-        if latest["id"] != run_id or latest["updated_at"] != run["updated_at"]:
+        if not latest or latest["id"] != run_id or latest["updated_at"] != run["updated_at"]:
             raise HTTPException(409, "Run changed; check the latest result")
+        receiver_state = receipt["state"] if receipt else "not_found"
         await audit(
             cur,
             actor,
-            "action.verify",
+            "action.reconcile" if reconciling else "action.verify",
             "alert",
             alert["id"],
-            {"run_id": run_id, "receiver_state": receipt["state"] if receipt else "not_found"},
+            {"run_id": run_id, "receiver_state": receiver_state},
         )
+        if reconciling and receiver_state not in ("succeeded", "failed"):
+            message = (
+                f"The receiver has no receipt for action-{run_id}."
+                if receipt is None else f"The receipt for action-{run_id} reports {receiver_state}."
+            )
+            return {**public(run), "message": f"{message} The outcome is still unknown."}
         if receipt:
             state = receipt["state"]
             if state not in ("succeeded", "failed"):
@@ -327,26 +346,19 @@ async def verify_run(db, run_id, actor, retry):
             await changed(cur, current, alert["team_id"])
         else:
             state, current = run["state"], run
-        if not retry or state == "succeeded":
+        if operation != "retry" or state == "succeeded":
             return public(current)
-        if state == "unknown":
-            # Receiver did not record this execution. Reuse its original idempotency key.
-            await cur.execute(
-                "update action_runs set state='requested',updated_at=now() where id=%s", (run_id,)
-            )
-            next_id = run_id
-        else:
-            step = {
-                "index": run["step_index"],
-                "action": run["action"],
-                "params": run["params"],
-                "approval": run["approval"],
-                "resolves_alert": run["resolves_alert"],
-            }
-            new = await request_run(cur, alert, step, actor, settings)
-            if new["state"] == "pending_approval":
-                return new
-            next_id = new["id"]
+        step = {
+            "index": run["step_index"],
+            "action": run["action"],
+            "params": run["params"],
+            "approval": run["approval"],
+            "resolves_alert": run["resolves_alert"],
+        }
+        new = await request_run(cur, alert, step, actor, settings)
+        if new["state"] == "pending_approval":
+            return new
+        next_id = new["id"]
         await audit(
             cur,
             actor,

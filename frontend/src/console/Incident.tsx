@@ -3,6 +3,7 @@ import {useLocation, useParams} from 'react-router-dom';
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useApp} from '../App';
 import {api, request} from '../api';
+import {CheckReceipt} from '../CheckReceipt';
 import {inTeam} from '../permissions';
 import {canReview, detailQuery, representativeExplainPath, type IncidentDetail} from './data';
 import {Card, Chip, EscalationLede, EscalationRing, Failure, humanize, Icon, LegacyLink,
@@ -103,7 +104,7 @@ function IncidentRunbook({incident, canAct}: {incident: IncidentDetail; canAct: 
         const readOnly = step.kind === 'check' || step.action === 'http_get';
         const kind = step.approval === 'required' ? 'Needs approval' : readOnly ? 'Read-only'
           : step.kind === 'manual' ? 'Manual' : step.kind === 'link' ? 'Fallback' : 'Action';
-        const state = step.state === 'unknown' ? 'Unknown, check before retrying' : step.state ? humanize(step.state) : null;
+        const state = step.state === 'unknown' ? 'Unknown · retry locked' : step.state ? humanize(step.state) : null;
         const runnable = Boolean(step.action) && (!step.state || ['expired', 'rejected'].includes(step.state));
         const url = step.kind === 'link' && 'url' in step && typeof step.url === 'string' && /^https?:\/\//i.test(step.url)
           ? step.url : undefined;
@@ -129,7 +130,8 @@ function IncidentRunbook({incident, canAct}: {incident: IncidentDetail; canAct: 
               <button className="cf-btn" disabled={action.isPending}
                 onClick={() => action.mutate({path: `/action-runs/${pending.run_id}/reject`})}>Reject</button>
             </>}
-            {canAct && step.run_id && ['unknown', 'failed'].includes(step.state ?? '') && <button className="cf-btn"
+            {step.state === 'unknown' && <CheckReceipt key={`${actor}-${step.run_id}`} step={step} actor={actor}/>}
+            {canAct && step.run_id && step.state === 'failed' && <button className="cf-btn"
               disabled={action.isPending} onClick={() => action.mutate({path: `/action-runs/${step.run_id}/check-result`})}>Check result</button>}
           </div>
         </div>;
