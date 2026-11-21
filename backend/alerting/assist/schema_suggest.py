@@ -60,12 +60,11 @@ def _model_sample(descriptions):
     parts, paths = [], set()
     size = 2
     for row in descriptions:
-        value = row["example"]
-        # The configured LLM helper also redacts free text immediately before sending.
-        # Keep large numeric masks inside JSON quotes while retaining the explicit type.
-        if isinstance(value, (int, float)) and llm.redact(str(value)) != str(value):
-            row = {**row, "example": llm.redact(str(value))}
         part = json.dumps(row, ensure_ascii=True)
+        # The final free-text pass must leave each JSON record intact. A digit run or
+        # a trailing token=<redacted> could otherwise consume a value or its closing quote.
+        if llm.redact(part) != part:
+            part = json.dumps({**row, "example": "<redacted>"}, ensure_ascii=True)
         if size + len(part) + 1 <= llm.MAX_INPUT_CHARS:
             parts.append(part)
             paths.add(row["path"])
@@ -107,7 +106,9 @@ async def suggest(event: CanonicalEvent) -> dict:
     shape = fingerprint(event.raw)
     layout = [(r["path"], r["type"]) for r in descriptions]
     signature = hashlib.sha256(json.dumps([shape, layout]).encode()).hexdigest()
-    hints = await _fill_gaps(descriptions, NAMES.keys() - aliases.keys(), (llm.MODEL, event.source_id, shape, signature))
+    provider, model = llm.selection()
+    key = (provider, model, event.source_id, shape, signature)
+    hints = await _fill_gaps(descriptions, NAMES.keys() - aliases.keys(), key)
     aliases.update(hints)
     rationale.update({key: f"Model proposed {path}; verify the example" for key, path in hints.items()})
 
@@ -131,5 +132,5 @@ async def suggest(event: CanonicalEvent) -> dict:
             draft["time_format"] = "epoch_ms" if abs(float(value)) >= 10_000_000_000 else "epoch_s"
         except (TypeError, ValueError, OverflowError):
             draft["time_format"] = "iso"
-    return {"draft": SchemaDraft.model_validate(draft).spec(),
-            "source": "llm" if hints else "heuristic", "rationale": rationale}
+    source = {"source": "llm", "model": model} if hints else {"source": "heuristic"}
+    return {"draft": SchemaDraft.model_validate(draft).spec(), **source, "rationale": rationale}

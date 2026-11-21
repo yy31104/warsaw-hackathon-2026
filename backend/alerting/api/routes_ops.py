@@ -9,6 +9,7 @@ from fastapi.responses import PlainTextResponse
 from psycopg import sql
 from psycopg.errors import DeadlockDetected, LockNotAvailable
 
+from alerting import llm
 from alerting.api.routes_stream import stream_stats
 from alerting.clock import demo_mode
 from alerting.db import pool
@@ -27,6 +28,11 @@ RESET_RUNTIME_TABLES = (
 RESET_SQL = sql.SQL("TRUNCATE TABLE {} RESTART IDENTITY RESTRICT").format(
     sql.SQL(", ").join(map(sql.Identifier, RESET_RUNTIME_TABLES))
 )
+
+
+@router.get("/v1/assist/status")
+async def assist_status():
+    return llm.status()
 
 
 @router.get("/health")
