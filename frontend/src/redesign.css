@@ -393,6 +393,17 @@ body,.horizontal-shell,.horizontal-shell button,.horizontal-shell input,.horizon
 .continuous-overview .scene-background-waves{display:block;opacity:.3}
 .scene-ambient{inset:0 -30px;overflow:hidden}
 /* One-time section reveal; keyboard focus and reduced motion remain accessible. */
-.scroll-reveal{opacity:1;transform:translateY(0);transition:opacity 1s ease,transform 1s cubic-bezier(.16,.7,.25,1)}
+.scroll-reveal{opacity:1;transform:translateY(0);transition:opacity 1.5s ease,transform 1.5s cubic-bezier(.16,.7,.25,1)}
 .scroll-reveal.reveal-pending{opacity:0;transform:translateY(64px) scale(.98)}
 @media(prefers-reduced-motion:reduce){.scroll-reveal,.scroll-reveal.reveal-pending{opacity:1;transform:none;transition:none}}
+/* Observe each module separately rather than animating page-sized wrappers. */
+.reveal-container{display:contents}.reveal-part{opacity:1;transition:opacity 1.5s ease,translate 1.5s cubic-bezier(.16,.7,.25,1)}.reveal-part.reveal-pending{opacity:0;translate:0 40px}
+.scene-source.reveal-pending,.scene-core.reveal-pending,.scene-group.reveal-pending{translate:0 0}
+@media(prefers-reduced-motion:reduce){.reveal-part,.reveal-part.reveal-pending{opacity:1;translate:0 0;transition:none}}
+/* One alert per popover viewport; additional alerts remain scrollable. */
+.scene-detail-list{height:auto;max-height:166px;overflow-y:auto;overscroll-behavior:contain;scroll-snap-type:y proximity;scrollbar-width:thin;padding-right:8px}
+.scene-detail-list a{box-sizing:border-box;min-height:166px;scroll-snap-align:start;justify-content:center;padding:16px 0}
+.scene-detail-list a strong{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.scene-detail-list>p{margin:12px 0}
+
+.scene-scroll-hint{display:flex;justify-content:flex-end;align-items:center;gap:12px;font-size:11px;color:var(--secondary);padding:0 2px 8px;border-bottom:1px solid var(--line)}.scene-scroll-hint>span:last-child{color:var(--accent)}
