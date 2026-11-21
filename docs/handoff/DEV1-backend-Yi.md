@@ -224,3 +224,7 @@ All 394 backend tests passed on `b6e14a9` with live PostgreSQL, RabbitMQ and the
 | #19, #20, #22 | PASS | `uv run pytest -q tests/processing/test_scoring.py tests/processing/test_worker_scoring_integration.py tests/tools/test_memory_api.py tests/processing/test_fair_sources.py tests/processing/test_fair_delivery.py` |
 
 W0 merged the assigned windows in the agreed order, W3 [#11](https://github.com/yy31104/warsaw-hackathon-2026/pull/11), W1 [#10](https://github.com/yy31104/warsaw-hackathon-2026/pull/10), W2 [#12](https://github.com/yy31104/warsaw-hackathon-2026/pull/12). The broader teammate integration item remains ongoing.
+
+## Round 3 (Sat 01:00) — mentor feedback; PRs open by 06:00
+Your items in [IMPROVEMENTS.md](../IMPROVEMENTS.md) Round 3, in order: **M1** cross-person approval (backend), **M2** OpenAI provider adapter + `/assist/status`, **M3** LLM eval, **M4** "did you mean", **M5** "what happens next", **M12** `SCALING.md` (after daizhongtian's M11 lands), **M16** forgiveness matrix (W0, on final `main`).
+Suggested windows: W2 → M1 · W3 → M2, then M3 · W1 → M4, then M5 · W0 → merges, then M12 and M16.

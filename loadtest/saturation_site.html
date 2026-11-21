@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alert Funnel | Saturation benchmark</title>
+<style>
+  :root{color-scheme:light;--ink:#13212c;--muted:#4e606b;--border:#d9e3e7;--paper:#fff;--surface:#f3f7f8;--accent:#0f6159;--alert:#a34920}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--surface);color:var(--ink);font:16px/1.5 Inter,Geist,"Segoe UI",sans-serif}
+  a{color:var(--accent);text-underline-offset:.18em}
+  a:focus-visible,button:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid #166fa7;outline-offset:3px}
+  header{background:#122c31;color:#f3fcfa}
+  .wrap{width:min(1216px,100%);margin:auto;padding-inline:clamp(16px,4vw,48px)}
+  .top{padding-block:32px 38px}
+  .topline{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:.88rem}
+  .topline a{color:#acf4df}
+  .brand{font-weight:750;letter-spacing:.015em}
+  h1{font-size:clamp(2rem,4vw,3.8rem);line-height:1.04;letter-spacing:-.05em;margin:28px 0 12px}
+  .top p{margin:0;color:#d0e6e3;max-width:64ch}
+  code{font: .92em Consolas,"IBM Plex Mono",monospace;overflow-wrap:anywhere}
+  main{padding-block:24px 44px}
+  .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .stat{padding:18px 19px;background:var(--paper);border:1px solid var(--border);border-radius:11px}
+  .stat strong{font-size:clamp(1.35rem,3vw,2.1rem);letter-spacing:-.04em;display:block;font-variant-numeric:tabular-nums}
+  .stat span,.help{color:var(--muted);font-size:.87rem}
+  .section{margin-top:22px;border:1px solid var(--border);border-radius:12px;background:var(--paper);padding:clamp(14px,3vw,26px)}
+  h2{margin:0 0 6px;font-size:clamp(1.25rem,2.4vw,1.63rem);letter-spacing:-.026em}
+  p{margin:0 0 12px}
+  figure{margin:12px 0 0}
+  img{display:block;width:100%;height:auto}
+  figcaption{font-size:.88rem;color:var(--muted);margin-top:9px}
+  .key{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0 0}
+  .key p{padding:12px 14px;background:#eef6f5;border-left:3px solid #4b9b8e;margin:0;font-size:.91rem}
+  .finding{margin:12px 0;padding:13px 15px;background:#eef6f5;border-left:3px solid #4b9b8e}
+  .filters{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:14px 0}
+  .filters label{font-size:.86rem;font-weight:650}
+  select{font:inherit;margin-left:4px;padding:.42rem .6rem;border:1px solid #b5c8ce;background:#fff;color:var(--ink);border-radius:6px}
+  .scroll{overflow:auto;max-height:34rem;border:1px solid var(--border);border-radius:7px}
+  table{border-collapse:collapse;min-width:925px;width:100%;font-size:.84rem;font-variant-numeric:tabular-nums}
+  th,td{padding:11px 9px;border-bottom:1px solid #e8eef0;text-align:right;white-space:nowrap}
+  th:first-child,td:first-child,th:last-child,td:last-child{text-align:left}
+  th{position:sticky;top:0;background:#eaf2f4;color:#283e4a}
+  tr:nth-child(even) td{background:#f8fbfb}
+  tbody tr:last-child td{border-bottom:0}
+  .growing{font-weight:650;color:var(--alert)}
+  .evidence{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .evidence img{border-radius:8px;background:#11202c}
+  .evidence a{display:block}
+  details{margin-top:12px}
+  summary{cursor:pointer;font-weight:700}
+  details p{margin-top:8px}
+  footer{padding-bottom:30px;color:var(--muted);font-size:.85rem}
+  @media(max-width:720px){.top{padding-block:22px 26px}.stats{grid-template-columns:1fr}.stat{padding:11px 14px}.key,.evidence{grid-template-columns:1fr}.filters label{width:100%}}
+  @media print{body{background:white}header{color:var(--ink);background:white}.top p,.topline a{color:var(--muted)}.section{break-inside:avoid}.scroll{max-height:none;overflow:visible}.filters{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap top">
+    <div class="topline"><span class="brand">Alert Funnel</span><a id="download" download="saturation-runs.csv" href="data:text/csv;charset=utf-8;base64,@@CSV@@">Download results CSV</a></div>
+    <h1>How far does the alert pipeline scale?</h1>
+    <p>Measured on a local Docker stack, from RabbitMQ intake through rule evaluation to the simulated SMS and phone receiver.</p>
+    <p id="build" class="help"></p>
+  </div>
+</header>
+<main class="wrap">
+  <section class="stats" aria-label="Benchmark summary">
+    <div class="stat"><strong id="valid">—</strong><span>Runs with verified measurements</span></div>
+    <div class="stat"><strong id="peak">—</strong><span>Highest sustained processing, events/s</span></div>
+    <div class="stat"><strong id="knee">—</strong><span>Earliest measured backlog growth, normal events/s offered</span></div>
+  </section>
+  <section class="section" aria-labelledby="throughput-title">
+    <h2 id="throughput-title">Offered load vs sustained processing</h2>
+    <div class="key"><p id="hot-summary"></p><p id="spread-summary"></p></div>
+    <figure>
+      <img src="data:image/png;base64,@@THROUGHPUT@@" alt="Two line charts showing sustained events processed per second at each offered rate, split by normal alert keys and worker count. Markers flag growing backlogs. The measured values are also in the table.">
+      <figcaption>The dashed reference shows the rate required to keep pace, including the two critical events per second. A hollow marker shows sustained growth in the measured pipeline backlog.</figcaption>
+    </figure>
+    <details><summary>How the knee is measured</summary><p class="help">We add the messages ready in RabbitMQ to the pending inbox rows in PostgreSQL. After warm-up, we compare the median count in three consecutive parts of the offer window. Growth in both steps flags that rate. The first flagged rate is the observed knee for that worker count and key shape.</p></details>
+  </section>
+  <section class="section" aria-labelledby="backlog-title">
+    <h2 id="backlog-title">Where did events queue up?</h2>
+    <p class="finding" id="finding" hidden></p>
+    <p class="help" id="stage-summary"></p>
+    <figure>
+      <img src="data:image/png;base64,@@BACKLOG@@" alt="Measured counts over time for available messages in RabbitMQ, pending PostgreSQL inbox rows, and pending deliveries.">
+      <figcaption>The shaded region is the offer window. The lines show where pending work accumulated during the run.</figcaption>
+    </figure>
+  </section>
+  <section class="section" aria-labelledby="results-title">
+    <h2 id="results-title">Run results</h2>
+    <p class="help">p99 uses the observed SMS and phone receipts. <em>N</em> is the number of receipts in that lane.</p>
+    <div class="filters">
+      <label>Normal alert keys <select id="shape"><option value="all">All shapes</option><option value="1">One hot key</option><option value="1000">1,000 keys</option></select></label>
+      <label>Normal workers <select id="workers"><option value="all">All worker counts</option><option value="1">1</option><option value="2">2</option><option value="4">4</option></select></label>
+      <span class="help" id="row-count" aria-live="polite"></span>
+    </div>
+    <div class="scroll" tabindex="0" role="region" aria-label="Measured runs table">
+      <table id="runs">
+        <thead><tr><th>Shape</th><th>Workers</th><th>Offered/s</th><th>Ingested/s</th><th>Processed/s</th><th>Normal p99</th><th>Critical p99</th><th>Postgres CPU</th><th>Backlog</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+  <section class="section" aria-labelledby="evidence-title">
+    <h2 id="evidence-title">One run, two pieces of evidence</h2>
+    <p class="help">Both images show captured terminal output from <code id="selected-run"></code>.</p>
+    <div class="evidence">
+      <figure><a href="data:image/png;base64,@@COMPOSE@@" download="compose-ps.png"><img src="data:image/png;base64,@@COMPOSE@@" alt="Recorded docker compose ps output showing the running worker replicas and matching run ID"></a><figcaption>Docker Compose service status</figcaption></figure>
+      <figure><a href="data:image/png;base64,@@TERMINAL@@" download="benchmark-terminal.png"><img src="data:image/png;base64,@@TERMINAL@@" alt="Recorded benchmark terminal output showing observed throughput, backlog and notification percentiles for the same run"></a><figcaption>Benchmark output and measured results</figcaption></figure>
+    </div>
+  </section>
+</main>
+<footer class="wrap" id="foot"></footer>
+<script type="application/json" id="bench-data">@@DATA@@</script>
+<script>
+  "use strict";
+  const data = JSON.parse(document.getElementById("bench-data").textContent);
+  const number = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
+  const show = (x) => x == null ? "—" : number.format(x);
+  const write = (id, value) => document.getElementById(id).textContent = value;
+  const ranked = data.runs.filter(run => run.status === "PASS");
+  const best = ranked.reduce((top, row) => Math.max(top, row.steady), 0);
+  const knees = Object.values(data.knees).flatMap(Object.values).filter(x => x != null);
+  write("build", data.commit + " · " + data.batchId + " · 60-second offers");
+  write("valid", ranked.length + " / " + data.planned);
+  write("peak", ranked.length ? show(best) : "—");
+  write("knee", knees.length ? show(Math.min(...knees)) : "Outside tested rates");
+  for (const [id, label, key] of [["hot-summary", "One hot key", "1"], ["spread-summary", "1,000 keys", "1000"]]) {
+    const rates = Object.entries(data.knees[key])
+      .map(([workers, rate]) => workers + " worker" + (workers === "1" ? "" : "s") + " " + (rate == null ? "—" : show(rate) + "/s"));
+    write(id, label + " · First rising backlog: " + rates.join(", "));
+  }
+  write("selected-run", data.selected);
+  const finding = document.getElementById("finding");
+  finding.textContent = data.finding;
+  finding.hidden = !data.finding;
+  const stage = data.stages;
+  write("stage-summary", show(stage.offer) + " normal and " + show(stage.critical) + " critical events/s offered · "
+    + show(stage.workers) + " normal workers · " + show(stage.keys) + " normal alert keys. Median pending items "
+    + "in the last steady block: RabbitMQ " + show(stage.rabbit) + ", PostgreSQL inbox " + show(stage.inbox)
+    + ", delivery " + show(stage.delivery) + ".");
+  write("foot", data.machine + " · Synthetic event input and independently recorded simulated deliveries.");
+  const shape = document.getElementById("shape");
+  const workers = document.getElementById("workers");
+  const table = document.querySelector("#runs tbody");
+  function latency(p99, n) {
+    return p99 == null ? "—" : show(p99) + " ms (N=" + show(n) + ")";
+  }
+  function refresh() {
+    const visible = data.runs.filter(row =>
+      (shape.value === "all" || Number(shape.value) === row.keys)
+      && (workers.value === "all" || Number(workers.value) === row.workers));
+    table.replaceChildren();
+    for (const row of visible) {
+      const tr = table.insertRow();
+      const values = [row.keys === 1 ? "One hot key" : show(row.keys) + " keys", show(row.workers),
+        show(row.offer), show(row.ingested), show(row.steady), latency(row.normalP99, row.normalN),
+        latency(row.criticalP99, row.criticalN), row.cpu == null ? "—" : show(row.cpu) + "%",
+        row.status === "PASS" ? row.trend : row.status];
+      values.forEach((value, i) => {
+        const cell = tr.insertCell();
+        cell.textContent = value;
+        if (i === 8 && value === "growing") cell.className = "growing";
+      });
+    }
+    write("row-count", visible.length + (visible.length === 1 ? " run" : " runs"));
+  }
+  shape.addEventListener("change", refresh);
+  workers.addEventListener("change", refresh);
+  refresh();
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+RUN ID m11-11210120-1d623-r700-k1-w4
+2026-11-21T01:23:51.778786+00:00
+> docker compose --ansi never -p m11-11210120-1d623-r700-k1-w4 -f "D:\my project\高盛\dev2-m11-saturation\docker-compose.yml" -f "D:\my project\高盛\dev2-m11-saturation\loadtest\results\saturation-ae69a28\compose.measurement.json" run --rm -T --no-deps --name m11-11210120-1d623-r700-k1-w4-generator --volume "D:\my project\高盛\dev2-m11-saturation\loadtest:/app/loadtest:ro" --volume "D:\my project\高盛\dev2-m11-saturation\fixtures:/app/fixtures:ro" --volume "D:\my project\高盛\dev2-m11-saturation\loadtest\results\saturation-ae69a28\m11-11210120-1d623-r700-k1-w4:/bench-output" rule-worker python -m loadtest.saturation_trial --output /bench-output --run-id m11-11210120-1d623-r700-k1-w4 --tag m11-k1-r700 --duration 60 --drain-seconds 20 --normal-workers 4 --normal-rate 700 --normal-keys 1 --ingest-workers 1 --critical-rate 2 --max-in-flight 2000
+
+ Container m11-11210120-1d623-r700-k1-w4-generator Creating 
+ Container m11-11210120-1d623-r700-k1-w4-generator Created 
+RUN ID m11-11210120-1d623-r700-k1-w4
+Offer 700 normal/s + 2/s critical for 60s | 4 normal workers | 1 normal keys
+Offer started. Backlog samples below are live.
+   0.0s | accepted       0  processed       0  broker ready       0  DB pending       0
+  10.0s | accepted   7,021  processed   6,984  broker ready       0  DB pending      37
+  20.1s | accepted  14,075  processed  13,969  broker ready       0  DB pending     106
+  30.1s | accepted  21,130  processed  21,059  broker ready       0  DB pending      71
+  40.2s | accepted  28,222  processed  28,115  broker ready       0  DB pending     107
+  50.3s | accepted  35,289  processed  35,170  broker ready       0  DB pending     119
+  60.4s | accepted  42,120  processed  42,120  broker ready       0  DB pending       0
+RUN ID m11-11210120-1d623-r700-k1-w4 | PASS measurement
+Inside offer: 702.0 ingested/s, 700.2 processed/s.
+Confirmed 42,120/42,120 | dropped 0 | publish errors 0 | rejected 0
+Pipeline backlog no sustained growth | peak 119 | verified phone/SMS 242/242
+Normal p50/p95/p99 (ms): 226/239/239  N=2
+Critical p50/p95/p99 (ms): 236/347/372  N=240
+
+Exit code 0

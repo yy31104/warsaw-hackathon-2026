@@ -1,0 +1,67 @@
+{
+  "captured_at_utc": "2026-11-21T02:08:58.141780+00:00",
+  "git_commit": "ae69a2829f7ead5c42107375fb5346046250ec7c",
+  "host_os": "Windows-11-10.0.26300-SP0",
+  "host_cpu": "Intel(R) Core(TM) Ultra 9 275HX",
+  "host_logical_cpus": 24,
+  "docker": {
+    "ServerVersion": "29.9.2",
+    "OSVersion": "",
+    "OperatingSystem": "Docker Desktop",
+    "Architecture": "x86_64",
+    "KernelVersion": "6.6.87.2-microsoft-standard-WSL2",
+    "NCPU": 24,
+    "MemTotal": 33353244672,
+    "CgroupVersion": "2",
+    "Driver": "overlayfs"
+  },
+  "compose_version": "Docker Compose version v5.6.1",
+  "images": {
+    "backend": {
+      "tag": "m11satbuild-ae69a28-backend:local",
+      "id": "sha256:4d9c3e8e7beca2bade258666cb3a5196d85700f175e13ddc0c2d135b506e7de0"
+    },
+    "fake-telecom": {
+      "tag": "m11satbuild-ae69a28-fake-telecom",
+      "id": "sha256:498cf372e9691e3acf82b02ab5dd117c37a2b3792db51e620b32d905d2c9b267"
+    },
+    "postgres": {
+      "tag": "postgres:16-alpine",
+      "id": "sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb"
+    },
+    "rabbitmq": {
+      "tag": "rabbitmq:3.13-management-alpine",
+      "id": "sha256:606d8c0d6b3c18d1da9afc53bc7cdb2a8d5486df91b5a9830e9e07626c9ae281"
+    },
+    "mailpit": {
+      "tag": "axllent/mailpit:latest",
+      "id": "sha256:23a2ef85bc50853ab3093645d1d64679afd8887e89da5e48a88940c172591a4e"
+    }
+  },
+  "settings": {
+    "output": "D:\\my project\\高盛\\dev2-m11-saturation\\loadtest\\results\\saturation-ae69a28\\diagnostic-delivery4",
+    "rates": [
+      700
+    ],
+    "workers": [
+      4
+    ],
+    "keys": [
+      1000
+    ],
+    "duration": 60,
+    "drain_seconds": 20,
+    "critical_rate": 2,
+    "ingest_workers": 1,
+    "delivery_workers": 4,
+    "max_in_flight": 2000,
+    "image_project": "m11satbuild-ae69a28"
+  },
+  "workload_fixture_sha256": "70a31496a1491c464947472a29c557f9ba53d3d47dcfe38674a6d5b329450342",
+  "measurement_scripts_sha256": {
+    "run_saturation.py": "49d62b5d731530e438f64923926767777a61a02ee78ac38d4afb50326c21bd2e",
+    "saturation_trial.py": "3c1d5fd59b073a36bf439087496b020f97673db9e1a75a50b95f7c260da9cc3f",
+    "bench_generate.py": "d954dbbea67e4a896dedd4e85f118547d9971d81a79f6e213a450a03e9ae2a15",
+    "bench_collect.py": "22e3084d2c88f2c15d9fe4ac50573298b56ce7a992ea2e486b1f8a0d82cf312e"
+  }
+}
