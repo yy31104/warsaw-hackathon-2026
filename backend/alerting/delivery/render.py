@@ -73,7 +73,13 @@ def mask_external(value, event_fields, sensitive_paths):
             for child in item:
                 collect(child)
         elif item is not None and str(item):
-            replacements[str(item)] = mask_value(item)
+            masked = mask_value(item)
+            replacements[str(item)] = masked
+            # Template substitutions of whole lists or dicts quote and escape their strings.
+            if isinstance(item, str):
+                quoted = repr(item)
+                if quoted[1:-1] != item:
+                    replacements[quoted] = repr(masked)
 
     for path in paths:
         collect(lookup(event_fields, path))

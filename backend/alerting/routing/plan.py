@@ -3,6 +3,7 @@ from alerting.delivery.render import mask_external
 from alerting.routing.directory import by_id, preferences, target_people, team_for
 from alerting.routing.ladder import explicit_targets, initial_routes
 from alerting.runbooks.match import match
+from alerting.templates import render
 
 KINDS = {
     "created": "initial",
@@ -97,18 +98,22 @@ def plan(alert, transition, rule, event_fields, directory, runbooks, recent_send
         body = f"{alert.count_since_notify} occurrences since last digest. {body}".strip()
     epoch = str(alert.occurrence_count) if kind == "initial" else clock.now().isoformat()
     first_notice = kind == "initial" or (kind == "digest" and alert.last_notified_at is None)
+    render_fields = {**alert.fields, **event_fields}
+    excerpt = None
+    if book and any(channel in ("email", "ui") for _, channel in destinations):
+        excerpt = render(book["content"], render_fields)
     for (recipient, channel), (contact, ladder) in destinations.items():
         first_step = first_notice and ladder
         intent_kind = "ladder_step" if first_step else kind
         message = render_message(
-            channel, title, body, alert.fields, book["content"] if book else None, link, alert.color,
+            channel, title, body, alert.fields, excerpt, link, alert.color,
             {
                 "alert_id": alert.id,
                 "rule_id": rule["id"],
                 "gen_sent_at": event_fields.get("gen_sent_at"),
                 **({"ladder_stage": 0, "requires_open_alert": True} if first_step else {}),
             },
-            event_fields, sensitive_paths,
+            render_fields, sensitive_paths,
         )
         result.intents.append(
             NotificationIntent(
