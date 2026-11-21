@@ -1,0 +1,48 @@
+# Synthetic reconciliation queue alerts. The labels specify the recipient and channel
+# needed for each independent warning episode. The repeated history is used for cost replay.
+rule_id: optimizer-demo-warning
+rule:
+  id: optimizer-demo-warning
+  owner: team:rates
+  description: Page the rates operator when reconciliation queue age reaches 250 ms.
+  match:
+    all:
+      - {$schema: optimizer.queue_age, $severity: warning}
+      - {field: queue.age_ms, op: gte, value: 250}
+  route:
+    - {to: "user:rita", channels: [sms]}
+  group:
+    by: [queue.partition]
+    mode: immediate
+    cooldown: 5m
+  present:
+    title: "Reconciliation queue {{queue.partition}} is lagging"
+    fields: [queue.partition, queue.age_ms]
+
+history:
+  first_at: "2026-01-15T21:00:00Z"
+  every_s: 360
+  count: 18
+  fields: {$schema: optimizer.queue_age, $severity: warning, queue.partition: orders, queue.age_ms: 290}
+
+episodes:
+  - episode_id: warning-at-threshold
+    note: The first orders lag at the configured threshold requires an SMS to the rates operator.
+    at: "2026-01-15T08:00:00+01:00"
+    fields: {$schema: optimizer.queue_age, $severity: warning, queue.partition: orders, queue.age_ms: 250}
+    protect: [{recipient: rita, channel: sms}]
+  - episode_id: warning-after-hours
+    note: Late-night lag in the trades partition still requires the declared SMS.
+    at: "2026-01-15T23:10:00+01:00"
+    fields: {$schema: optimizer.queue_age, $severity: warning, queue.partition: trades, queue.age_ms: 285}
+    protect: [{recipient: rita, channel: sms}]
+  - episode_id: warning-during-handoff
+    note: The rates operator should get the first reconciliation warning during handoff.
+    at: "2026-01-15T20:00:00+01:00"
+    fields: {$schema: optimizer.queue_age, $severity: warning, queue.partition: reconciliation, queue.age_ms: 310}
+    protect: [{recipient: rita, channel: sms}]
+  - episode_id: warning-new-partition
+    note: An independently affected partition needs an SMS for its first warning.
+    at: "2026-01-15T13:00:00+01:00"
+    fields: {$schema: optimizer.queue_age, $severity: warning, queue.partition: confirmations, queue.age_ms: 275}
+    protect: [{recipient: rita, channel: sms}]
