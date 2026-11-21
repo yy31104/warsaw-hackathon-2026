@@ -33,6 +33,11 @@ For #19, the first run used the shared development database. Its team-scoped SSE
 | [#30](https://github.com/yy31104/warsaw-hackathon-2026/pull/30) | `87ddbe5` | PASS | 731 passed in 130.64s (0:02:10) | [make test](../loadtest/results/w0-round3/merges/pr-30-87ddbe5.log) |
 | [#37](https://github.com/yy31104/warsaw-hackathon-2026/pull/37) | `a3b95f2` | PASS | 736 passed in 138.61s (0:02:18) | [make test](../loadtest/results/w0-round3/merges/pr-37-a3b95f2.log) |
 | [#40](https://github.com/yy31104/warsaw-hackathon-2026/pull/40) | `94e4cba` | PASS | 736 passed in 150.93s (0:02:30) | [make test](../loadtest/results/w0-round3/merges/pr-40-94e4cba.log) |
+| [#41](https://github.com/yy31104/warsaw-hackathon-2026/pull/41) | `693246e` | PASS | 736 passed in 131.77s (0:02:11) | [make test](../loadtest/results/w0-round3/merges/pr-41-693246e.log) |
+| [#42](https://github.com/yy31104/warsaw-hackathon-2026/pull/42) | `d63a7c5` | PASS | 750 passed in 143.05s (0:02:23) | [make test](../loadtest/results/w0-round3/merges/pr-42-d63a7c5.log) |
+| [#44](https://github.com/yy31104/warsaw-hackathon-2026/pull/44) | `356ea3c` | FAIL | 1 failed, 777 passed in 148.62s (0:02:28) | [make test](../loadtest/results/w0-round3/merges/pr-44-356ea3c.log) |
+| [#44](https://github.com/yy31104/warsaw-hackathon-2026/pull/44) | `356ea3c` | PASS | 778 passed in 140.59s (0:02:20) | [make test](../loadtest/results/w0-round3/merges/pr-44-356ea3c-060844.log) |
+| [#43](https://github.com/yy31104/warsaw-hackathon-2026/pull/43) | `1a9d0dd` | PASS | 798 passed in 141.93s (0:02:21) | [make test](../loadtest/results/w0-round3/merges/pr-43-1a9d0dd.log) |
 <!-- w0-round3-end -->
 
 <!-- w0-console-start -->
@@ -43,6 +48,10 @@ For #19, the first run used the shared development database. Its team-scoped SSE
 | [#30](https://github.com/yy31104/warsaw-hackathon-2026/pull/30) | `87ddbe5` | PASS | PASS (10/10 completed) | [Command receipts](../loadtest/results/w0-round3/console/pr-30-87ddbe5/receipt.json) |
 | [#37](https://github.com/yy31104/warsaw-hackathon-2026/pull/37) | `a3b95f2` | PASS | PASS (10/10 completed) | [Command receipts](../loadtest/results/w0-round3/console/pr-37-a3b95f2/receipt.json) |
 | [#40](https://github.com/yy31104/warsaw-hackathon-2026/pull/40) | `94e4cba` | PASS | PASS (13/13 completed) | [Command receipts](../loadtest/results/w0-round3/console/pr-40-94e4cba/receipt.json) |
+| [#41](https://github.com/yy31104/warsaw-hackathon-2026/pull/41) | `693246e` | PASS | PASS (13/13 completed) | [Command receipts](../loadtest/results/w0-round3/console/pr-41-693246e/receipt.json) |
+| [#42](https://github.com/yy31104/warsaw-hackathon-2026/pull/42) | `d63a7c5` | PASS | PASS (13/13 completed) | [Command receipts](../loadtest/results/w0-round3/console/pr-42-d63a7c5/receipt.json) |
+| [#44](https://github.com/yy31104/warsaw-hackathon-2026/pull/44) | `356ea3c` | PASS | PASS (13/13 completed) | [Command receipts](../loadtest/results/w0-round3/console/pr-44-356ea3c/receipt.json) |
+| [#43](https://github.com/yy31104/warsaw-hackathon-2026/pull/43) | `1a9d0dd` | PASS | PASS (13/13 completed) | [Command receipts](../loadtest/results/w0-round3/console/pr-43-1a9d0dd/receipt.json) |
 <!-- w0-console-end -->
 
 ## G0 — contract (Fri 21:00)
