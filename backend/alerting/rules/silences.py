@@ -69,8 +69,8 @@ async def active_rows(conn, at: datetime, *, team: str | None = None) -> list[di
         return await cur.fetchall()
 
 
-async def load_active(conn, at: datetime) -> tuple[Silence, ...]:
-    return tuple(Silence.from_row(row) for row in await active_rows(conn, at))
+async def load_active(conn, at: datetime, *, team: str | None = None) -> tuple[Silence, ...]:
+    return tuple(Silence.from_row(row) for row in await active_rows(conn, at, team=team))
 
 
 def active_silence(silences, fields, at: datetime, *, severity: str | Severity) -> Silence | None:

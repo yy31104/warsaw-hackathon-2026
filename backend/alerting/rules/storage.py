@@ -353,7 +353,7 @@ async def get_db():
     return pool()
 
 
-async def delivery_plan(cur, alert, transition, rule, fields, settings, clock):
+async def delivery_plan(cur, alert, transition, rule, fields, settings, clock, *, reserve_throttle=True):
     from alerting.routing import plan
     from alerting.routing.throttle import apply, reserve
 
@@ -375,7 +375,7 @@ async def delivery_plan(cur, alert, transition, rule, fields, settings, clock):
         clock,
         sensitive_paths=paths,
     )
-    if rule.get("throttle") and initial.intents:
+    if reserve_throttle and rule.get("throttle") and initial.intents:
         counts = await reserve(cur, rule, initial.intents, clock)
         for intent in initial.intents:
             apply(intent, rule, counts, clock)
