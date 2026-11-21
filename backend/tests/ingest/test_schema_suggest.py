@@ -80,3 +80,32 @@ async def test_suggestion_api_is_read_only_and_works_from_an_issue(client, monke
         assert preview.json()["aliases"]["$severity"] == "critical"
     assert (await client.get(f"/v1/events/{event_id}")).json()["status"] == "needs_review"
     assert all(s["origin"] == "file" for s in (await client.get("/v1/schemas")).json()["items"])
+
+
+async def test_time_hints_keep_units_without_revealing_digits(monkeypatch):
+    call = AsyncMock(return_value=FieldHints())
+    monkeypatch.setattr(llm, "enabled", lambda: True)
+    monkeypatch.setattr(llm, "structured", call)
+    sample_time = "1729034400"
+    result = await suggest(sample({"measure": {"event_epoch": sample_time}, "contactPhone": sample_time,
+                                   "inventory": {"level": 12}, "importance_label": "WARN"}))
+    assert result["draft"]["aliases"] == {"time": "measure.event_epoch", "severity": "importance_label"}
+    assert result["draft"]["time_format"] == "epoch_s"
+    payload = call.await_args.kwargs["user"]
+    assert sample_time not in payload and "contactPhone" not in payload
+    assert {r["path"]: r["example"] for r in json.loads(payload)}["measure.event_epoch"] == "<epoch_s>"
+
+
+async def test_ambiguous_clock_and_severity_candidates_stay_unmapped(monkeypatch):
+    monkeypatch.setenv("ASSIST_ENABLED", "0")
+    result = await suggest(sample({"start_epoch": 1729034400, "end_epoch": 1729034600,
+                                   "inventory": {"level": 12}, "status_a": "warn", "status_b": "info"}))
+    assert result["draft"]["aliases"] == {}
+
+
+async def test_event_clock_takes_precedence_over_related_object_creation(monkeypatch):
+    monkeypatch.setenv("ASSIST_ENABLED", "0")
+    raw = {"manifest": {"createdAt": "2024-12-01T09:00:00Z"}, "signal": {"onset_ms": 1735574410000}}
+    draft = (await suggest(sample(raw)))["draft"]
+    assert draft["aliases"]["time"] == "signal.onset_ms"
+    assert draft["time_format"] == "epoch_ms"

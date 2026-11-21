@@ -1,12 +1,13 @@
 from unittest.mock import AsyncMock
 
 import yaml
+import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
 from alerting import llm
 from alerting.api.routes_runbook_assist import router
-from alerting.assist.runbook_structure import StepHint, StepHints, structure
+from alerting.assist.runbook_structure import StepHint, StepHints, approval_for, structure
 from alerting.runbooks.render import render
 
 
@@ -78,3 +79,67 @@ async def test_unavailable_model_keeps_unknown_and_conditional_steps_manual(monk
     assert len(result["draft"]["steps"]) == 3
     assert [s["approval"] for s in result["draft"]["steps"]] == ["none", "required", "required"]
     assert all("action" not in s for s in result["draft"]["steps"])
+
+
+async def test_model_cannot_use_a_role_or_pronoun_as_a_missing_target(monkeypatch):
+    monkeypatch.setattr(llm, "enabled", lambda: True)
+    monkeypatch.setattr(llm, "structured", AsyncMock(return_value=StepHints(steps=[
+        StepHint(index=1, action="restart_service", params=[{"name": "service", "value": "service"}]),
+        StepHint(index=2, action="restart_service", params=[{"name": "service", "value": "it"}]),
+    ])))
+    steps = (await structure("Restart the affected service. Reboot it."))["draft"]["steps"]
+    assert [(s.get("action"), s["approval"]) for s in steps] == [(None, "required"), (None, "required")]
+
+
+async def test_offline_explicit_targets_with_alternate_verbs(monkeypatch):
+    monkeypatch.setenv("ASSIST_ENABLED", "0")
+    text = "Re-run workflow label-printer. File a ticket titled Empty tray."
+    steps = (await structure(text))["draft"]["steps"]
+    assert [(s.get("action"), s.get("workflowId") or s.get("title")) for s in steps] == [
+        ("retry_workflow", "label-printer"), ("open_ticket", "Empty tray")
+    ]
+
+
+@pytest.mark.parametrize("mode", ["disabled", "unavailable", "rejected"])
+async def test_manual_approval_survives_unavailable_or_rejected_hints(monkeypatch, mode):
+    monkeypatch.setenv("ASSIST_MODEL", f"manual-approval-{mode}")
+    monkeypatch.setattr(llm, "enabled", lambda: mode != "disabled")
+    hints = StepHints(steps=[
+        StepHint(index=1, action="call_webhook", params=[{"name": "url", "value": "https://elsewhere.invalid/write"}]),
+        StepHint(index=2, action="restart_service", params=[{"name": "service", "value": "fabricated"}]),
+    ])
+    call = AsyncMock(return_value=hints if mode == "rejected" else None)
+    monkeypatch.setattr(llm, "structured", call)
+    instructions = [
+        ("Post to the webhook https://elsewhere.invalid/write.", "required"),
+        ("Replace the faulty relay.", "required"),
+        ("If latency rises, invoke the recovery procedure.", "required"),
+        ("Never re-run the workflow without clearance.", "required"),
+        ("Inspect queue depth and release the hold.", "required"),
+        ("Review metrics; move the active partition.", "required"),
+        ("Check the signal to rotate the credential.", "required"),
+        ("Record the current timestamp.", "none"),
+        ("Inspect metrics for {{system.component}}.", "none"),
+        ("Check Grafana.", "none"),
+        ("A brief operator note.", "none"),
+        ("A generic harmless note.", "none"),
+        ("Read the logs and review the dashboard.", "none"),
+    ]
+    result = await structure("\n".join(text for text, _ in instructions))
+    assert result["source"] == "heuristic"
+    assert [(s["text"], s.get("action"), s["approval"]) for s in result["draft"]["steps"]] == [
+        (text, None, approval) for text, approval in instructions
+    ]
+    assert call.await_count == (0 if mode == "disabled" else 1)
+
+
+@pytest.mark.parametrize("text,action,expected", [
+    ("Get http://mock-ops/health, switch traffic.", "http_get", "required"),
+    ("Get http://mock-ops/health while releasing a hold.", "http_get", "required"),
+    ("Re-run workflow label-printer.", "retry_workflow", "none"),
+    ("File a ticket titled Empty tray.", "open_ticket", "none"),
+    ("Probe http://mock-ops/health.", "http_get", "none"),
+    ("Read service metrics.", "unregistered_action", "required"),
+])
+def test_only_a_complete_registered_operation_can_use_its_approval_default(text, action, expected):
+    assert approval_for(text, action) == expected
