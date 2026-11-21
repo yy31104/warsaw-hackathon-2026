@@ -1,0 +1,32 @@
+{
+  "services": {
+    "api": {
+      "image": "w0w2-before-backend:local",
+      "pull_policy": "never"
+    },
+    "ingest-amqp": {
+      "image": "w0w2-before-backend:local",
+      "pull_policy": "never"
+    },
+    "rule-worker": {
+      "image": "w0w2-before-backend:local",
+      "pull_policy": "never"
+    },
+    "rule-worker-critical": {
+      "image": "w0w2-before-backend:local",
+      "pull_policy": "never"
+    },
+    "delivery-worker": {
+      "image": "w0w2-before-backend:local",
+      "pull_policy": "never"
+    },
+    "scheduler": {
+      "image": "w0w2-before-backend:local",
+      "pull_policy": "never"
+    },
+    "fake-telecom": {
+      "image": "w0w2-before-fake-telecom",
+      "pull_policy": "never"
+    }
+  }
+}

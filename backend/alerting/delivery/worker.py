@@ -1,7 +1,8 @@
-"""Durably claim one delivery per available sender. Lease ownership fences late responses."""
+"""Claim and drain bounded delivery batches. Lease ownership fences late responses."""
 
 import argparse
 import asyncio
+import os
 from datetime import timedelta
 from random import uniform
 from time import monotonic
@@ -13,7 +14,10 @@ from psycopg.rows import dict_row
 from alerting.clock import SYSTEM
 from alerting.contracts import RenderedMessage
 from alerting.db import close_pool, open_pool, pool
+from alerting.delivery.fair import next_notifications
+from alerting.delivery.guard import can_dispatch, recheck_dispatch
 from alerting.delivery.providers import registry
+from alerting.delivery.shutdown import termination_event, wait_or_stop
 from alerting.rules.storage import close_settings, emit
 
 
@@ -23,90 +27,134 @@ def exhausted(row, now):
     return row["attempts"] >= 8 or now >= deadline
 
 
-async def claim(db, channels, clock):
+async def claim_batch(db, channels, clock, stop=None, *, batch_size=25):
+    if batch_size < 1:
+        raise ValueError("batch_size must be positive")
     now = clock.now()
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+        rows = await next_notifications(cur, channels, now, limit=batch_size)
+        if not rows or (stop is not None and stop.is_set()):
+            return []
+        candidates = []
+        for row in rows:
+            if row["state"] == "sending":
+                await cur.execute(
+                    """update delivery_attempts set outcome='unknown',finished_at=%s,error='lease expired'
+                    where notification_id=%s and attempt=%s and finished_at is null""",
+                    (now, row["id"], row["attempts"]),
+                )
+            if not await can_dispatch(cur, row):
+                continue
+            if exhausted(row, now):
+                await cur.execute(
+                    "update notifications set state='failed',locked_by=null,locked_until=null where id=%s",
+                    (row["id"],),
+                )
+                await emit(
+                    cur, "notifications", "notification.updated", id=row["id"],
+                    team_id=row["team_id"], state="failed", attempts=row["attempts"],
+                )
+                continue
+            candidates.append(row)
+
+        budgets = {}
+        for channel in sorted({row["channel"] for row in candidates}):
+            budgets[channel] = await channel_budget(cur, channel, now, batch_size)
+        claimed = []
+        for row in candidates:
+            channel = row["channel"]
+            if budgets[channel]:
+                budgets[channel] -= 1
+                claimed.append(row)
+        if not claimed:
+            return []
+
+        # A token identifies this claim. Completion checks it together with the notification ID.
+        token = str(uuid4())
+        now = clock.now()
+        locked_until = now + timedelta(seconds=30)
         await cur.execute(
-            """select n.*, a.team_id from notifications n join alerts a on a.id=n.alert_id
-            left join delivery_breakers b on b.channel=n.channel
-            where n.channel=any(%s) and (b.probe_after is null or b.probe_after<=%s)
-            and ((n.state in ('pending','retrying','unknown') and n.next_attempt_at<=%s)
-            or (n.state='sending' and n.locked_until<=%s))
-            order by n.priority,n.next_attempt_at,n.id limit 1 for update of n skip locked""",
-            (list(channels), now, now, now),
-        )
-        row = await cur.fetchone()
-        if not row:
-            return None
-        if row["state"] == "sending":
-            await cur.execute(
-                """update delivery_attempts set outcome='unknown',finished_at=%s,error='lease expired'
-                where notification_id=%s and attempt=%s and finished_at is null""",
-                (now, row["id"], row["attempts"]),
+            """with leased as (
+                update notifications set state='sending',locked_until=%s,locked_by=%s,attempts=attempts+1
+                where id=any(%s) returning id,attempts
             )
-        if exhausted(row, now):
-            await cur.execute(
-                "update notifications set state='failed',locked_by=null,locked_until=null where id=%s",
-                (row["id"],),
-            )
-            await emit(
-                cur,
-                "notifications",
-                "notification.updated",
-                id=row["id"],
-                team_id=row["team_id"],
-                state="failed",
-                attempts=row["attempts"],
-            )
-            return None
-        # Only one sender probes a half-open circuit during its retry interval.
-        await cur.execute(
-            """update delivery_breakers set probe_after=%s where channel=%s
-            and opened_at is not null and probe_after<=%s returning channel""",
-            (now + timedelta(seconds=10), row["channel"], now),
+            insert into delivery_attempts(notification_id,attempt,started_at)
+            select id,attempts,%s from leased""",
+            (locked_until, token, [row["id"] for row in claimed], now),
         )
-        if not await cur.fetchone():
-            await cur.execute(
-                "select 1 from delivery_breakers where channel=%s and probe_after>%s",
-                (row["channel"], now),
-            )
-            if await cur.fetchone():
-                return None
-        row.update(locked_by=str(uuid4()), attempts=row["attempts"] + 1)
-        await cur.execute(
-            """update notifications set state='sending',locked_until=%s,locked_by=%s,attempts=%s
-            where id=%s""",
-            (now + timedelta(seconds=30), row["locked_by"], row["attempts"], row["id"]),
-        )
-        await cur.execute(
-            "insert into delivery_attempts(notification_id,attempt,started_at) values (%s,%s,%s)",
-            (row["id"], row["attempts"], now),
-        )
-        await emit(
-            cur,
-            "notifications",
-            "notification.updated",
-            id=row["id"],
-            team_id=row["team_id"],
-            state="sending",
-            attempts=row["attempts"],
-        )
-        return row
+        async with conn.pipeline():
+            for row in claimed:
+                row.update(locked_by=token, locked_until=locked_until, attempts=row["attempts"] + 1)
+                await emit(
+                    cur, "notifications", "notification.updated", id=row["id"],
+                    team_id=row["team_id"], state="sending", attempts=row["attempts"],
+                )
+        return claimed
 
 
-async def deliver_one(db, providers, channels, clock=SYSTEM):
+async def channel_budget(cur, channel, now, batch_size):
+    # One row may probe a half-open circuit during its retry interval.
+    await cur.execute(
+        """update delivery_breakers set probe_after=%s where channel=%s
+        and opened_at is not null and probe_after<=%s returning channel""",
+        (now + timedelta(seconds=10), channel, now),
+    )
+    if await cur.fetchone():
+        return 1
+    await cur.execute(
+        "select 1 from delivery_breakers where channel=%s and probe_after>%s",
+        (channel, now),
+    )
+    return 0 if await cur.fetchone() else batch_size
+
+
+async def claim(db, channels, clock, stop=None):
+    rows = await claim_batch(db, channels, clock, stop, batch_size=1)
+    return rows[0] if rows else None
+
+
+async def deliver_batch(
+    db, providers, channels, clock=SYSTEM, stop=None, *, batch_size=25, semaphores=None
+):
     from alerting.delivery.fallback import fallback_one
 
-    if await fallback_one(db, channels, clock):
-        return True
-    row = await claim(db, channels, clock)
-    if not row:
+    if stop is not None and stop.is_set():
         return False
-    start = monotonic()
-    result = await providers[row["channel"]].send(
-        RenderedMessage.model_validate(row["rendered"]), row["contact"], str(row["id"])
+    rerouted = await fallback_one(db, channels, clock)
+    if stop is not None and stop.is_set():
+        return rerouted
+    rows = await claim_batch(db, channels, clock, stop, batch_size=batch_size)
+    if not rows:
+        return rerouted
+    if semaphores is None:
+        semaphores = {channel: asyncio.Semaphore(16) for channel in channels}
+    results = await asyncio.gather(
+        *(
+            send_claimed(db, providers[row["channel"]], row, clock, semaphores[row["channel"]])
+            for row in rows
+        ),
+        return_exceptions=True,
     )
-    latency = int((monotonic() - start) * 1000)
+    for result in results:
+        if isinstance(result, BaseException):
+            raise result
+    return True
+
+
+async def deliver_one(db, providers, channels, clock=SYSTEM, stop=None):
+    return await deliver_batch(db, providers, channels, clock, stop, batch_size=1)
+
+
+async def send_claimed(db, provider, row, clock, semaphore):
+    async with semaphore:
+        # A slot can wait behind earlier sends longer than the batch lease.
+        if not await recheck_dispatch(db, row, clock) or clock.now() >= row["locked_until"]:
+            return
+        start = monotonic()
+        result = await provider.send(
+            RenderedMessage.model_validate(row["rendered"]), row["contact"], str(row["id"])
+        )
+        latency = int((monotonic() - start) * 1000)
     now = clock.now()
     state = {
         "delivered": "delivered",
@@ -168,16 +216,25 @@ async def deliver_one(db, providers, channels, clock=SYSTEM):
 
 
 async def main(channels):
-    await open_pool()
-    try:
-        async with httpx.AsyncClient() as client:
-            providers = registry(client)
-            while True:
-                if not await deliver_one(pool(), providers, channels):
-                    await asyncio.sleep(0.15)
-    finally:
-        await close_settings(pool())
-        await close_pool()
+    batch_size = int(os.getenv("DELIVERY_BATCH", "25"))
+    concurrency = int(os.getenv("DELIVERY_CONCURRENCY", "16"))
+    if batch_size < 1 or concurrency < 1:
+        raise ValueError("DELIVERY_BATCH and DELIVERY_CONCURRENCY must be positive")
+    semaphores = {channel: asyncio.Semaphore(concurrency) for channel in channels}
+    with termination_event() as stop:
+        await open_pool()
+        try:
+            async with httpx.AsyncClient() as client:
+                providers = registry(client)
+                while not stop.is_set():
+                    if not await deliver_batch(
+                        pool(), providers, channels, stop=stop,
+                        batch_size=batch_size, semaphores=semaphores,
+                    ):
+                        await wait_or_stop(stop, 0.15)
+        finally:
+            await close_settings(pool())
+            await close_pool()
 
 
 if __name__ == "__main__":

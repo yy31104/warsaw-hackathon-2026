@@ -1,6 +1,5 @@
 """Replay the published cases at the canonical-event boundary."""
 
-import hashlib
 import json
 import re
 from collections import Counter
@@ -11,9 +10,8 @@ import pytest
 import yaml
 from alerting.clock import FixedClock
 from alerting.config import files
-from alerting.contracts import CanonicalEvent
+from alerting.ingest.normalize import normalize
 from alerting.rules.engine import Ruleset, evaluate
-from alerting.templates import lookup, render
 
 ROOT = Path(__file__).resolve().parents[3]
 GOLD = yaml.safe_load((ROOT / "fixtures/golden/expectations.yaml").read_text())
@@ -29,55 +27,11 @@ def merge(raw, changes):
             raw[k] = v
 
 
-def fixture_fields(raw):
-    """Build the fixture projection at the inbox boundary while DEV2's normaliser is pending."""
-    fields = {}
-
-    def visit(path, value):
-        if isinstance(value, dict):
-            for key, child in value.items():
-                visit(f"{path}.{key}" if path else key, child)
-        else:
-            fields[path] = value
-            if isinstance(value, list):
-                for index, child in enumerate(value):
-                    visit(f"{path}.{index}", child)
-
-    visit("", raw)
-    return fields
-
-
 def make_event(raw, schema_id, source_id):
-    schema = next(s for s in files.schemas() if s["id"] == schema_id)
     source = next(s for s in files.sources() if s["id"] == source_id)
-    fields = fixture_fields(raw)
-    fields.update({"$source": source_id, "$transport": source["transport"]})
-    for alias, path in schema.get("aliases", {}).items():
-        fields["$" + alias] = lookup(raw, path)
-    severity = str(fields.get("$severity") or "")
-    mapping = schema.get("severity_map", {})
-    folded = {str(k).casefold(): v for k, v in mapping.items()}
-    fields["$severity"] = mapping.get(
-        severity, folded.get(severity.casefold(), schema.get("severity_default", "unknown"))
-    )
-    fields["$schema"] = render(schema["name"], fields)
-    return CanonicalEvent(
-        id=1,
-        source_id=source_id,
-        transport=source["transport"],
-        service=fields.get("$service"),
-        environment=fields.get("$environment"),
-        payload_hash=hashlib.sha256(
-            json.dumps(raw, sort_keys=True, separators=(",", ":")).encode()
-        ).hexdigest(),
-        source_event_id=render(schema["event_id"], fields) if "event_id" in schema else None,
-        received_at=START.now(),
-        schema_id=schema_id,
-        schema_name=fields["$schema"],
-        severity=fields["$severity"],
-        raw=raw,
-        fields=fields,
-    )
+    event = normalize(raw, source, files.schemas(), received_at=START.now())
+    assert event.schema_id == schema_id
+    return event
 
 
 CASES = [
@@ -142,7 +96,13 @@ def test_alertmanager_auto_resolve_without_firing_predicate():
     event = case_event(case)
     (op,) = evaluate(event, RULESET, {}, START).alert_ops
     event.fields.update(status="resolved", **{"$severity": "info"})
-    state = {(op.rule["id"], op.key): {"status": "open", "severity": "critical"}}
+    state = {
+        (op.rule["id"], op.key): {
+            "status": "open",
+            "severity": "critical",
+            "latest_episode": event.fields["startsAt"],
+        }
+    }
     result = evaluate(event, RULESET, state, START)
     (resolved,) = result.alert_ops
     assert resolved.transition == "resolved" and not resolved.notify

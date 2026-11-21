@@ -1,0 +1,25 @@
+{
+  "docker": {
+    "ServerVersion": "29.9.2",
+    "OperatingSystem": "Docker Desktop",
+    "OSType": "linux",
+    "Architecture": "x86_64",
+    "NCPU": 24,
+    "MemTotal": 33353244672,
+    "KernelVersion": "6.6.87.2-microsoft-standard-WSL2"
+  },
+  "compose_version": "Docker Compose version v5.6.1",
+  "elapsed_clock": "Host monotonic clock for container downtime; Docker VM monotonic scheduling and VM epoch delivery stamps",
+  "source_head": "bc341a2c4134a8ccd4126a7617edd3e163d3b009",
+  "host_cpu": {
+    "Name": "Intel(R) Core(TM) Ultra 9 275HX",
+    "NumberOfCores": 24,
+    "NumberOfLogicalProcessors": 24
+  },
+  "host_os": {
+    "Caption": "Microsoft Windows 11 家庭版 中文版",
+    "Version": "10.0.26300",
+    "TotalVisibleMemorySize": 66516344
+  },
+  "captured_at": "2026-11-20T23:26:48.5474161Z"
+}

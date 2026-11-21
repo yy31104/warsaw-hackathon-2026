@@ -36,3 +36,5 @@ sources:
     transport: rabbitmq
     queue: events.generic
     description: Catch-all broker queue for new teams
+
+  - {id: canary, transport: http, api_key: demo-canary-key}

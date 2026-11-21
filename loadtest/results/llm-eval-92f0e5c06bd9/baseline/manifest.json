@@ -1,0 +1,59 @@
+{
+  "families": [
+    "gpt-6-luna",
+    "gpt-6.2-sol"
+  ],
+  "models": {
+    "gpt-6-luna": "gpt-6-luna",
+    "gpt-6.2-sol": "gpt-6.2-sol"
+  },
+  "output_cap": 1536,
+  "production_sha256": "455983e45c896e6d7d43fb72ad84e25afd59e46e67eecb6480cc1e779e98e072",
+  "rates_sha256": "deedefd837d933ba14eb45e6b6b766b00ad3fe1164b3a04628d27051659bc05a",
+  "fixtures_manifest_sha256": "0392974a44d194856491a3a0cfc48e119345a26b22a9bef62a3d105bdc2bdd45",
+  "scorer_sha256": "b4f1499477e6278c832dbac09c9598015d94d3cac2caed297b1294eefbfda7f0",
+  "split": "dev",
+  "fixtures_sha256": {
+    "dev_schemas.json": "64bece428239c1c6f3ebdad358601be959eb8003bd2871af9cca5cd1063031f6",
+    "dev_runbooks.json": "eb36a926924a08b729ee49e8ac9beb2e2ccdb2f26a35cbfd42e513ed53fde246"
+  },
+  "phase": "baseline",
+  "source_revision": "de310f6d5a8a16bb246493b42f60ca16d8489ae2",
+  "runner_revision": "d494cb292f6d7d2f8c50f0fe3a01a3aa85298ac3",
+  "pricing": {
+    "gpt-6-luna": {
+      "input_per_million": "0.10",
+      "cached_input_per_million": "0.01",
+      "cache_write_per_million": "0.125",
+      "output_per_million": "0.50",
+      "max_context_tokens": 1050000,
+      "long_context_above": 272000,
+      "source": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+      "verified_utc": "2026-11-21"
+    },
+    "gpt-6.2-sol": {
+      "input_per_million": "2.00",
+      "cached_input_per_million": "0.10",
+      "cache_write_per_million": "2.50",
+      "output_per_million": "10.00",
+      "max_context_tokens": 922000,
+      "long_context_above": 272000,
+      "source": "https://developers.openai.com/api/docs/models/gpt-6.2-sol",
+      "verified_utc": "2026-11-21"
+    }
+  },
+  "inventory": {
+    "gpt-6-luna": {
+      "listed_family": true,
+      "listed_snapshots": [],
+      "selected": "gpt-6-luna"
+    },
+    "gpt-6.2-sol": {
+      "listed_family": true,
+      "listed_snapshots": [],
+      "selected": "gpt-6.2-sol"
+    }
+  },
+  "inventory_error": null,
+  "budget_usd": "5"
+}

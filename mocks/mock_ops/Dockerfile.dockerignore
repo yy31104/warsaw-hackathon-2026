@@ -1,0 +1,7 @@
+**
+!backend/
+!backend/pyproject.toml
+!backend/uv.lock
+!mocks/
+!mocks/mock_ops/
+!mocks/mock_ops/service.py

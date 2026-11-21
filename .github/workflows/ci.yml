@@ -14,8 +14,18 @@ jobs:
         ports: ["5432:5432"]
         options: >-
           --health-cmd "pg_isready -U alerting" --health-interval 2s --health-timeout 3s --health-retries 30
+      rabbitmq:
+        image: rabbitmq:3.13-alpine
+        ports: ["5672:5672"]
+        env:
+          RABBITMQ_DEFAULT_USER: alerting_ci
+          RABBITMQ_DEFAULT_PASS: local_ci_only
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping" --health-interval 3s --health-timeout 5s --health-retries 30
     env:
+      INGEST_TEST_RABBITMQ_URL: amqp://alerting_ci:local_ci_only@127.0.0.1:5672/
       DATABASE_URL: postgresql://alerting:alerting@localhost:5432/alerting
+      CANARY_LIVE_GATEWAY_ROOT: ${{ github.workspace }}
       DEMO_MODE: "1"
       ASSIST_ENABLED: "0"
     steps:

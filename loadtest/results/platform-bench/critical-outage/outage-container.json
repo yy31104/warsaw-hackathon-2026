@@ -1,0 +1,15 @@
+{
+  "mode_after": "ok",
+  "stopped_at_utc": "2026-11-20T22:38:33.7071654Z",
+  "start_requested_at_utc": "2026-11-20T22:39:03.7245129Z",
+  "stopped_before_start_seconds": 30.0159909,
+  "stopped_http_error": "The request was canceled due to the configured HttpClient.Timeout of 2 seconds elapsing.",
+  "volume_after": "dev2perffinal-critical-outage_telecom-data",
+  "volume_before": "dev2perffinal-critical-outage_telecom-data",
+  "container_id_after": "fe99cd4fd9912842889d1a95ce486c38cb45be0b2fa1088b380ca0107322f92d",
+  "stopped_container_state": "exited",
+  "container_id_before": "fe99cd4fd9912842889d1a95ce486c38cb45be0b2fa1088b380ca0107322f92d",
+  "restored_at_utc": "2026-11-20T22:39:06.8264924Z",
+  "requested_seconds": 30,
+  "receiver_items_before": 0
+}

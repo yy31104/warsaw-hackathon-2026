@@ -17,6 +17,17 @@ def team_for(owner, directory):
     )
 
 
+def target_people(target, teams, users):
+    kind, _, name = target.partition(":")
+    if kind == "user":
+        return [name] if name in users else []
+    team = teams.get(name, {})
+    if kind == "oncall":
+        primary = team.get("oncall", {}).get("primary")
+        return [primary] if primary in users else []
+    return team.get("members", []) if kind == "team" else []
+
+
 def preferences(user, team, directory, severity, clock):
     local = clock.now().astimezone(ZoneInfo(user.get("timezone", "UTC"))).strftime("%H:%M")
     for rows in (

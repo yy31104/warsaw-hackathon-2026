@@ -1,0 +1,129 @@
+{
+  "status": "PASS",
+  "event_id": 9,
+  "rule_id": "stability-workbench-4b453c37",
+  "path": "/sources?fingerprint=kind%2Creview_case_4b453c37%2Csignal",
+  "actor": "ops",
+  "capture": {
+    "status": "VARIANT",
+    "complete": true,
+    "decision_invariant": false,
+    "semantics_confirmed": false,
+    "evaluated_combinations": 2,
+    "total_combinations": 2,
+    "relevant_unknowns": [
+      "grade"
+    ],
+    "ordered_questions": [
+      {
+        "id": "grade",
+        "kind": "severity",
+        "path": "signal.severity",
+        "label": "P1",
+        "candidates": [
+          {
+            "value": "warning",
+            "source": "declared"
+          },
+          {
+            "value": "critical",
+            "source": "declared"
+          }
+        ]
+      }
+    ],
+    "question_tree": {
+      "question_id": "grade",
+      "branches": [
+        {
+          "option_index": 0,
+          "next": {
+            "outcome_group": "g0"
+          }
+        },
+        {
+          "option_index": 1,
+          "next": {
+            "outcome_group": "g1"
+          }
+        }
+      ]
+    },
+    "worst_case_questions": 1,
+    "outcome_groups": [
+      {
+        "id": "g0",
+        "outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [],
+            "alerts": [],
+            "deliveries": []
+          }
+        ],
+        "hypotheses": [
+          {
+            "grade": 0
+          }
+        ]
+      },
+      {
+        "id": "g1",
+        "outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [
+              "stability-workbench-4b453c37"
+            ],
+            "alerts": [
+              {
+                "rule_id": "stability-workbench-4b453c37",
+                "severity": "critical",
+                "priority": "P0",
+                "alert_key": "risk-threshold-rehearsal-4b453c37"
+              }
+            ],
+            "deliveries": [
+              {
+                "recipient": "sam",
+                "channel": "sms"
+              }
+            ]
+          }
+        ],
+        "hypotheses": [
+          {
+            "grade": 1
+          }
+        ]
+      }
+    ],
+    "hypotheses": [
+      {
+        "id": "grade",
+        "kind": "severity",
+        "path": "signal.severity",
+        "label": "P1",
+        "candidates": [
+          {
+            "value": "warning",
+            "source": "declared"
+          },
+          {
+            "value": "critical",
+            "source": "declared"
+          }
+        ]
+      }
+    ],
+    "critical_possible": true,
+    "warnings": [
+      "may page critical: keep in review"
+    ],
+    "snapshot": {
+      "id": "sha256:059d12a658d4dc9f9087d129e3996aebcfcd886eae049659ed55285cec12e0f9",
+      "revision": 40
+    }
+  },
+  "event_status": "needs_review"
+}

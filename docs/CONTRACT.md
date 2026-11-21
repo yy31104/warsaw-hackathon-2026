@@ -49,6 +49,7 @@ Kinds: `source`, `schema`, `rule`, `team`, `user`, `runbook`, plus singletons `f
 - **sources.yaml**: `id, transport, queue? | path? + parser? | api_key?, split_path?, dedup?(payload_hash)`.
 - **schemas.yaml**: `id, detect (rule DSL), name (template), event_id?, aliases{severity,service,environment,time}, severity_map?, severity_default?, time_format?(iso|epoch_ms|epoch_s), alert_key?, resolve_when? (DSL)`.
   - `transforms?`: `{<path>: {scale: 0.01, unit: EUR}}`, applied after flattening and before rules (e.g. a notional sent in cents). The original value is kept as `<path>.raw`. If a rule compares a numeric field whose unit is unknown for this schema, onboarding flags it.
+    Keys use the source value retained at `<path>.raw` for each declared unit transform. Rule comparisons and displayed group values use the scaled value.
   - `episode_key?`: a template identifying one firing episode (Alertmanager: `{{startsAt}}`); it is exposed as `$episode`. The alert stores its `latest_episode`. A resolve event closes the alert **only if its `$episode` equals the alert's `latest_episode`**. Otherwise the outcome is `STALE_RESOLVE` and the alert stays open, with the resolve kept as evidence.
 - **rules.yaml**: see §5.
 - **teams.yaml**: `fallback_team, default_preferences[], teams[{id, members, oncall{primary, secondary?}, approvers[], required_channels?: {critical: [phone, sms]}}], users[{id, timezone, contacts{email,sms,phone}, preferences[]?}]`. Preference row: `{when?: "HH:MM-HH:MM" (user tz, [start,end)), min_severity, channels[]}`. The first matching row wins. If no user row matches, `default_preferences` applies. **A critical alert always gets at least one channel.**
@@ -130,7 +131,7 @@ Delivery states: `pending → sending → delivered | retrying | unknown | faile
 
 | Method & path | Purpose | Owner |
 |---|---|---|
-| `POST /events/{source_id}` | Body = one object or array. Headers: `X-Api-Key`, optional `Idempotency-Key`, `X-Gen-Sent-At` (epoch ms), `X-Demo-Clock`. → `202 {accepted, duplicates, conflicts, rejected:[{index, reason}], event_ids}` | DEV2 daizhongtian |
+| `POST /events/{source_id}` | Accepts JSON objects and arrays, NDJSON/JSONL, CSV with a header row, YAML mappings and lists, XML, and plain-text lines. `Content-Type` is a decoding hint. Headers include `X-Api-Key`, optional `Idempotency-Key`, `X-Gen-Sent-At` (epoch ms), and `X-Demo-Clock`. A valid batch returns `202 {accepted, duplicates, conflicts, rejected, event_ids}`. | DEV2 daizhongtian |
 | `GET /events?source=&schema=&status=&field=&value=` · `GET /events/{id}` | Query/inspect stored events (raw + flattened, GIN-indexed) | DEV2 daizhongtian |
 | `GET /events/{id}/explain` | Decision trace (schema detection, each rule's match trace, incident op, notifications planned) | DEV1 Yi |
 | `GET /sources` · `GET/POST /schemas` · `GET /schema-issues` · `POST /schemas/suggest {sample}` | Registry and onboarding (`suggest` = heuristic + LLM, returns a draft) | DEV2 daizhongtian |
@@ -144,9 +145,22 @@ Delivery states: `pending → sending → delivered | retrying | unknown | faile
 | `GET/PUT /teams` · `GET/PUT /users/{id}/preferences` | Directory and preferences (config CRUD) | DEV2 daizhongtian |
 | `GET /stream?team=` (SSE) | Live events, §10 | DEV2 daizhongtian |
 | `GET /stats/funnel?window=15m` · `GET /health` · `GET /metrics` (Prometheus text) · `POST /debug/reset` (DEMO_MODE) | Dashboard + ops | DEV2 daizhongtian |
-
+| `GET /assist/status` | `{enabled, provider, model}`; the UI shows "AI on" or "AI off (rules only)" | DEV1 Yi |
+| `GET /alerts/{id}` additions | `pending_actions:[{run_id, action, requested_by, approvers, status, created_at}]` and `next_escalation:{at, level, targets, channels}` or `null` | DEV1 Yi |
+| `POST /schemas/{id}/restore {version}` · `POST /rules/{id}/restore {version}` · `POST /runbooks/{id}/restore {version}` | Republish an old version as a new version (audited); list endpoints show at least the last 5 versions | DEV2 daizhongtian |
+| `GET /stats/response?window=24h&team=` | `{n_alerts, tta_p50_s, tta_p95_s, mtta_s, mttr_s, ack_rate, unrouted, notifications_per_alert, no_action_rate, interruptions:[{user, count}]}`; time to awareness = event received → first delivered notification to a person; MTTA excludes unacknowledged alerts, MTTR excludes unresolved ones | DEV2 daizhongtian |
 | `POST /rules/check {rule}` | Rule Safety Checker → `{scenarios_checked:[...], violations:[{scenario, requirement, problem, trace}]}` (pure function `rules.safety.check` by Yi). It checks against the rule's declared channels and the team's optional `required_channels`; it never flags a declared UI-only rule | DEV2 daizhongtian (route) |
 | `POST /schemas/verify {schema, samples:[{event, expect: "notify"\|"quiet"\|{recipients:[...], channels:[...]}, note?}]}` | Sample-based verification → per sample: actual vs expected recipients and channels, deciding fields, pass/fail, unit warnings (uses Yi's engine + plan, no side effects) | DEV2 daizhongtian |
+
+**HTTP decoding.** Use `application/json`, `application/x-ndjson` or `application/jsonl`, `text/csv`, `application/yaml`, `application/xml`, or `text/plain`. A valid JSON object or array works with any media type, including curl's default `application/x-www-form-urlencoded`. When a JSON object contains the source's configured `split_path`, each array element is ingested as its own event regardless of the media type. For other bodies, a successfully decoded, explicitly declared CSV, YAML, or XML body takes precedence. After checking for a complete JSON document, the endpoint treats `text/plain` as NDJSON when every nonempty line is a JSON object. Other plain text uses the source's configured parser. A source without a parser stores each nonempty line as `{"message": line}` in review. Log tailing also accepts lines containing JSON objects.
+
+CSV values stay strings, including leading zeros. CSV supports a UTF-8 BOM, CRLF and quoted commas or newlines. XML attributes use `@name`, text uses `#text`, and repeated children are lists. An XML collection with an `<events>` or `<records>` root and only child records is a batch. XML DTDs, entities and external references are prohibited.
+
+**HTTP errors and compatibility.** Without a media type, the endpoint recognizes a JSON document, consistent NDJSON, a header-like CSV with consistent row widths, marked YAML, or well-formed XML. An ambiguous body returns `415` with `tried` and a media-type hint. The request and the normalized size of each event are capped at 256 KiB. An oversized request returns `413`. Depth and path limits remain 20 and 2,000. Invalid rows are reported with a zero-based `index`. For additional formats, the rejection includes a one-based record `row`, a `field` path, and a `fix_example`. CSV, NDJSON and plain text include the physical `line`. YAML reports the parser's record start line. XML record rejections are index-only for location. The XML parser can report a document-level syntax error line. A batch that keeps valid records returns `202`. A non-JSON batch with all records rejected returns `400`. The existing JSON response envelope and batch statuses are preserved. Multipart uploads, spreadsheet files, headerless CSV and multi-document YAML are unsupported. Send an explicit media type for plain text and unmarked YAML.
+
+**Problems and fixes, one shape everywhere.** `rules/check`, `schemas/verify`, `runbooks/structure` (for each manual step) and the runbook publish lint return problems as `{code, message, fix_example?, path?, suggestions?: [path]}`. `code` is a stable name: `missing_target`, `conditional`, `unknown_action`, `combined_steps`, `masked_value`, `unknown_field`, `no_timezone`, `unit_unclear`, `unmapped_severity`, `ambiguous_schema`, `unknown_recipient`, `no_manual_fallback`. `message` and `fix_example` are deterministic, so they work without an LLM. With assist on, the LLM may add `plain`: one plain-language sentence.
+
+**Time and severity diagnostics.** Verification exposes `normalization` and `problems` per sample. Live events retain the same diagnostics in `trace`. With no configured time format, ISO timestamps and epoch seconds or milliseconds are auto-detected. Naive times are read in UTC and produce `no_timezone`. Severity synonyms are case-insensitive. Unconfirmed ranks such as `SEV1`, `P1` and `high` stay `unknown` and produce `unmapped_severity`. Onboarding can return a separate `suggested_severity_map`. A reviewer confirms it by publishing an explicit `severity_map`.
 
 `POST /inbound/{channel}` requires the header `X-Provider-Secret` (shared secret `INBOUND_SECRET` in `.env`, sent by fake-telecom); a missing or wrong secret → 401. Failed code attempts are persisted per sender: 5 failures in 15 min → 429, audited.
 
@@ -162,7 +176,9 @@ Actor identity (demo-grade): header `X-User: <user id>` on mutating calls, check
 
 ## 11. LLM usage (shared helper `backend/alerting/llm.py`)
 
-- Model `claude-opus-5-5` via the official `anthropic` SDK, `messages.parse(output_format=PydanticModel)` (structured output, validated). 20 s timeout, 1 retry.
+- **Provider** from `ASSIST_PROVIDER` (`openai` for this team; `anthropic` stays supported), **model** from `ASSIST_MODEL`. Keys (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`) live only in the local `.env`. Output is structured and validated into a Pydantic model. Interactive endpoints use an 8 s timeout and then return the heuristic result. Every LLM result records `source: llm` and `model`.
+- **Measured, not assumed:** `loadtest/results/llm-eval-<commit>/` reports n/N accuracy, invented parameters, risky steps without approval (must be 0), latency and cost per model. Eval cases are synthetic and written by us; never the private holdout.
+- **Default model: `gpt-6.2-sol`** (M3 eval, `loadtest/results/llm-eval-92f0e5c06bd9/`). Accuracy tied with `gpt-6-luna` on every split (final: 17/17 fields, 9/9 steps). Sol was faster on the final split, p50/p95 1.59/2.11 s vs 3.13/6.23 s, and Luna's p95 is close to the 8 s timeout. Sol costs about $0.0014 per call. The sample is small, so treat the tie as "both adequate", not "equal".
 - **Never on the alert path.** Only onboarding, runbook structuring, rule drafts, fix proposals and summaries. On `None` (timeout/error/refusal) the endpoint returns the deterministic suggestion with `"source": "heuristic"`.
 - **What to send for an event:** `json.dumps(llm.describe_sample(fields))` (path, type, redacted example). Never a raw JSON string: `redact()` on raw JSON can mask numbers such as epoch-ms timestamps and break the JSON. Use `redact()` only on free text.
 - **Before sending:** redact emails, phone numbers, card-like digit runs, `Bearer`/`token=`/`password=` values, and truncate samples to 8 KB. Send at most 3 samples. Cache by schema fingerprint or text hash.
@@ -173,3 +189,14 @@ Actor identity (demo-grade): header `X-User: <user id>` on mutating calls, check
 `X-Gen-Sent-At` (HTTP) / AMQP header `x-gen-sent-at` → `events.trace.gen_sent_at`, plus `trace.received_at`, `trace.processed_at` → copied into `notifications.rendered.meta.gen_sent_at` → sent as the `X-Gen-Sent-At` header to fake-telecom / in email headers → the receivers record `received_at`. E2E latency = receiver time − gen_sent_at. Load reports also include **decisions written per 1,000 events** and **SMS/phone sends per 1,000 events**.
 
 DEMO_MODE fault hook (tests only): an event with `trace.demo_fault = "raise"` makes evaluation raise for that event, to demonstrate poison-event isolation.
+
+
+### Following an event in PostgreSQL logs
+
+After applying `db/migrations/111_correlation_logs.sql` to an existing database, filter the PostgreSQL log by event ID. With the supplied Compose service and jq, for example:
+
+```sh
+docker compose logs --no-color postgres | sed -n 's/^.*alert_funnel //p' | jq -c 'select(.event_id == 42)'
+```
+
+Each lifecycle record includes stage, state, event ID, alert ID, notification ID, run ID and delivery attempt. IDs appear as soon as the corresponding object exists. Routing decisions identify the event that caused a send. Retries and fallbacks keep that event even when a later occurrence updates the alert. Incident-wide actions use the first linked decision, and approval notifications include the run ID. Unavailable IDs are null. The records use the PostgreSQL `LOG` level and contain only IDs, state and attempt metadata.

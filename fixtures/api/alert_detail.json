@@ -28,6 +28,7 @@
     "error.code": "TIMEOUT"
   },
   "runbook_id": "settlement-timeout",
+  "next_escalation": null,
   "occurrence_count": 500,
   "first_seen_at": "2026-10-23T09:14:02.331Z",
   "last_seen_at": "2026-10-23T09:15:01.904Z",
@@ -97,6 +98,18 @@
       "ts": "2026-10-23T09:16:00.000Z",
       "kind": "audit",
       "text": "sam acknowledged"
+    }
+  ],
+  "pending_actions": [
+    {
+      "run_id": 3,
+      "action": "escalate",
+      "requested_by": "sam",
+      "approvers": [
+        "lee"
+      ],
+      "status": "pending_approval",
+      "created_at": "2026-10-23T09:17:00Z"
     }
   ]
 }

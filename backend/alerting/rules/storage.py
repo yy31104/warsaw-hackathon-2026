@@ -20,6 +20,7 @@ from psycopg.types.json import Jsonb
 from alerting.clock import SYSTEM
 from alerting.config import files
 from alerting.rules.engine import Ruleset
+from alerting.schemas.registry import schemas as active_schemas
 
 
 @dataclass
@@ -42,43 +43,47 @@ def file_signature():
     return tuple(sorted((str(p), p.stat().st_mtime_ns) for p in root.rglob("*") if p.is_file()))
 
 
-async def registry_settings(db):
+def config_loader():
     try:
-        loader = import_module("alerting.config.loader")
+        return import_module("alerting.config.loader")
     except ModuleNotFoundError as exc:
         if exc.name != "alerting.config.loader":
             raise
         return None
+
+
+async def registry_settings(db):
+    loader = config_loader()
+    if loader is None:
+        return None
     values = []
-    for name in ("rules", "schemas", "directory", "runbooks"):
+    for name in ("rules", "directory", "runbooks"):
         result = getattr(loader, name)()
         values.append(await result if inspect.isawaitable(result) else result)
-    rules, schemas, directory, books = values
-    if not (
-        rules
-        or schemas
-        or books
-        or (directory or {}).get("teams")
-        or (directory or {}).get("users")
-    ):
+    rules, directory, books = values
+    if not (rules or books or (directory or {}).get("teams") or (directory or {}).get("users")):
         return None
-    if any("version" not in rule for rule in rules):
-        async with db.connection() as conn:
+    async with db.connection() as conn:
+        # Reviewed schemas and their detection order come from the ingest registry.
+        # A config loader may be present before it implements schema review itself.
+        schemas = await active_schemas(conn)
+        if any("version" not in rule for rule in rules):
             rows = await (
                 await conn.execute(
                     "select id,version from config_objects where kind='rule' and active"
                 )
             ).fetchall()
-        versions = dict(rows)
-        rules = [dict(r, version=r.get("version") or versions[r["id"]]) for r in rules]
+            versions = dict(rows)
+            rules = [dict(r, version=r.get("version") or versions[r["id"]]) for r in rules]
     return Settings(Ruleset(rules, schemas), directory, books)
 
 
 async def file_settings(db):
     rules = files.rules()
-    schemas, directory, books = files.schemas(), files.directory(), files.runbooks()
+    directory, books = files.directory(), files.runbooks()
     # Coordinate versions across processes and restarts, even when a file has no version field.
     async with db.connection() as conn:
+        schemas = await active_schemas(conn)
         for rule in sorted(rules, key=lambda r: r["id"]):
             content = json.dumps(rule, sort_keys=True, separators=(",", ":")).encode()
             row = await (
@@ -149,7 +154,19 @@ class SettingsProvider:
             return self.current
 
 
-async def get_settings(db):
+async def prepare_settings(db):
+    loader = config_loader()
+    if hasattr(loader, "sync_files"):
+        await loader.sync_files(db)
+
+
+async def get_settings(db, *, conn=None):
+    loader = config_loader()
+    if hasattr(loader, "read_settings"):
+        if conn is not None:
+            return await loader.read_settings(db, conn)
+        async with db.connection() as scoped:
+            return await loader.read_settings(db, scoped)
     provider = _providers.get(db)
     if provider is None:
         _providers[db] = provider = SettingsProvider(db.conninfo)
@@ -184,6 +201,8 @@ async def emit(cur, channel, topic, *, id, team_id, **changes):
 async def enqueue(cur, intents, team_id):
     for i in intents:
         ui = i.channel == "ui"
+        if i.kind == "escalation" and "masked" not in i.rendered.meta:
+            await apply_legacy_mask(cur, i)
         if i.kind == "throttle_summary":
             from datetime import timedelta
 
@@ -223,37 +242,90 @@ async def enqueue(cur, intents, team_id):
                 attempts=row["attempts"],
             )
             continue
-        await cur.execute(
-            """insert into notifications(alert_id,kind,recipient,channel,contact,rendered,
-            priority,dedup_key,state,attempts,delivered_at)
-            values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            on conflict (dedup_key) where dedup_key is not null do nothing returning id""",
-            (
-                i.alert_id,
-                i.kind,
-                i.recipient,
-                i.channel.value,
-                i.contact,
-                Jsonb(i.rendered.model_dump(mode="json")),
-                i.priority,
-                i.dedup_key,
-                "delivered" if ui else "pending",
-                int(ui),
-                SYSTEM.now() if ui else None,
-            ),
-        )
-        row = await cur.fetchone()
-        if row:
-            await emit(
-                cur,
-                "notifications",
-                "notification.updated",
-                id=row["id"],
-                alert_id=i.alert_id,
-                team_id=team_id,
-                state="delivered" if ui else "pending",
-                attempts=int(ui),
+        await insert_notification(cur, i, team_id)
+
+
+async def insert_notification(cur, intent, team_id, merged_into=None):
+    ui = intent.channel == "ui"
+    state = "delivered" if ui else "pending"
+    await cur.execute(
+        """insert into notifications(alert_id,kind,recipient,channel,contact,rendered,
+        priority,dedup_key,state,attempts,delivered_at,merged_into)
+        values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        on conflict (dedup_key) where dedup_key is not null do nothing returning id""",
+        (intent.alert_id, intent.kind, intent.recipient, intent.channel.value, intent.contact,
+         Jsonb(intent.rendered.model_dump(mode="json")), intent.priority, intent.dedup_key,
+         state, int(ui), SYSTEM.now() if ui else None, merged_into),
+    )
+    row = await cur.fetchone()
+    if row:
+        await emit(cur, "notifications", "notification.updated", id=row["id"], alert_id=intent.alert_id,
+                   team_id=team_id, state=state, attempts=int(ui))
+        return row["id"]
+
+
+async def apply_legacy_mask(cur, intent):
+    """Manual escalation of an incident created before its schema policy was snapshotted."""
+    from alerting.routing.plan import render_message
+
+    await cur.execute(
+        """select a.title,a.body,a.fields,a.sensitive_paths,e.fields as event_fields,e.schema_id,
+                  (select spec from config_objects c where c.kind='schema' and c.id=e.schema_id
+                   and (c.version=e.schema_version or c.active)
+                   order by (c.version=e.schema_version) desc nulls last,c.version desc limit 1) as schema
+           from alerts a left join events e on e.id=a.representative_event_id where a.id=%s""",
+        (intent.alert_id,),
+    )
+    row = await cur.fetchone()
+    paths = row["sensitive_paths"]
+    if paths is None:
+        schema = row["schema"] or next((s for s in files.schemas() if s["id"] == row["schema_id"]), None)
+        paths = schema.get("sensitive", []) if schema is not None else None
+    msg = intent.rendered
+    # Without a trusted schema, legacy external notifications can still give an incident link.
+    if paths is None:
+        intent.rendered = render_message(intent.channel, f"Alert {intent.alert_id}", "", {}, None,
+                                         msg.link, msg.color, {**msg.meta, "masked": True}, {}, None)
+        return
+    # Complete alert text lets us apply masking before calculating the SMS or phone length.
+    excerpt = msg.runbook_excerpt
+    if paths and excerpt and len(excerpt) == 512:
+        excerpt = None  # An old excerpt may end midway through a private value.
+    intent.rendered = render_message(intent.channel, row["title"] or msg.title, row["body"] or "",
+                                     row["fields"], excerpt, msg.link, msg.color, msg.meta,
+                                     row["event_fields"] or {}, paths)
+
+
+async def enqueue_event_plans(cur, planned):
+    from alerting.routing.merge import combined, groups
+
+    for members in groups(planned):
+        if len(members) == 1:
+            only = members[0]
+            await enqueue(cur, [only.intent], only.alert["team_id"])
+            continue
+        # A critical incident gives the shared delivery its priority immediately.
+        members.sort(key=lambda m: (m.intent.priority, m.alert["rule_id"], m.intent.alert_id))
+        physical = None
+        for member in members:
+            alert, intent = member.alert, member.intent
+            rendered = combined(members) if physical is None else intent.rendered
+            merged = intent.model_copy(update={"kind": "merged", "rendered": rendered})
+            notification = await insert_notification(cur, merged, alert["team_id"], merged_into=physical)
+            if notification is None:
+                # The original batch and every logical link are committed atomically.
+                break
+            if physical is None:
+                physical = notification
+            detail = {"notification_id": str(notification), "physical_notification_id": str(physical),
+                      "link": intent.rendered.link, "notifications": [intent.dedup_key]}
+            await cur.execute(
+                """insert into decisions(event_id,rule_id,rule_version,outcome,reason,alert_id)
+                   values (%s,%s,%s,'MERGED',%s,%s)""",
+                (alert["representative_event_id"], alert["rule_id"], alert["rule_version"],
+                 Jsonb(detail), intent.alert_id),
             )
+            await audit(cur, "system", "notification.merged", "alert", intent.alert_id, detail)
 
 
 async def alert_changed(cur, row, created=False):
@@ -262,6 +334,7 @@ async def alert_changed(cur, row, created=False):
         cur,
         "alerts",
         "alert.created" if created else "alert.updated",
+        **({"masked": bool(row.get("sensitive_paths"))} if created else {}),
         **{k: row.get(k) for k in keys},
     )
 
@@ -280,10 +353,17 @@ async def get_db():
     return pool()
 
 
-async def delivery_plan(cur, alert, transition, rule, fields, settings, clock):
+async def delivery_plan(cur, alert, transition, rule, fields, settings, clock, *, reserve_throttle=True):
     from alerting.routing import plan
     from alerting.routing.throttle import apply, reserve
 
+    schema_id = alert.get("schema_id")
+    if "schema_id" not in alert and alert.get("representative_event_id"):
+        await cur.execute("select schema_id from events where id=%s", (alert["representative_event_id"],))
+        event = await cur.fetchone()
+        schema_id = event["schema_id"] if event else None
+    paths = set(alert.get("sensitive_paths") or ())
+    paths.update(settings.ruleset.schemas.get(schema_id, {}).get("sensitive", ()))
     initial = plan(
         alert,
         transition,
@@ -293,8 +373,9 @@ async def delivery_plan(cur, alert, transition, rule, fields, settings, clock):
         settings.runbooks,
         {},
         clock,
+        sensitive_paths=paths,
     )
-    if rule.get("throttle") and initial.intents:
+    if reserve_throttle and rule.get("throttle") and initial.intents:
         counts = await reserve(cur, rule, initial.intents, clock)
         for intent in initial.intents:
             apply(intent, rule, counts, clock)

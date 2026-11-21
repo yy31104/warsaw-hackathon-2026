@@ -1,0 +1,90 @@
+[
+  {
+    "id": "schema-heldback-kiln",
+    "sample": {
+      "FiringReport": {
+        "AffectedDaemon": "kiln-setter",
+        "DeploymentTier": "rehearsal",
+        "Observation": {
+          "capturedUnixMs": 1768693202875,
+          "impactBand": "CRITICAL",
+          "operatorReading": "All three glaze probes stopped reporting."
+        }
+      },
+      "traysInOven": 4
+    },
+    "aliases": {
+      "service": "FiringReport.AffectedDaemon",
+      "environment": "FiringReport.DeploymentTier",
+      "time": "FiringReport.Observation.capturedUnixMs",
+      "severity": "FiringReport.Observation.impactBand",
+      "message": "FiringReport.Observation.operatorReading"
+    },
+    "service": "kiln-setter",
+    "severity": "critical",
+    "time_format": "epoch_ms",
+    "occurred_at": "2026-01-17T23:40:02.875000+00:00"
+  },
+  {
+    "id": "schema-heldback-curtain",
+    "sample": {
+      "time": "2026-06-03T00:05:12+05:30",
+      "audioMeter": {"level": 62, "unit": "dB"},
+      "backdrop": {"colour": "cobalt", "hook": 9},
+      "message": "The rehearsal curtain reached the floor."
+    },
+    "aliases": {"time": "time", "message": "message"},
+    "service": null,
+    "severity": "unknown",
+    "time_format": "iso",
+    "occurred_at": "2026-06-02T18:35:12+00:00"
+  },
+  {
+    "id": "schema-heldback-booth",
+    "sample": {
+      "component": "booth-voucher",
+      "stage": "qa",
+      "timestamp": "1786295927",
+      "level": "Warn",
+      "msg": "The booth fee differs from its posted rate.",
+      "ledgerLine": {"feeMinor": 4825, "currency": "BHD", "minorPerMajor": 1000},
+      "boothMark": "square"
+    },
+    "aliases": {
+      "service": "component",
+      "environment": "stage",
+      "time": "timestamp",
+      "severity": "level",
+      "message": "msg"
+    },
+    "service": "booth-voucher",
+    "severity": "warning",
+    "time_format": "epoch_s",
+    "occurred_at": "2026-08-09T17:18:47+00:00",
+    "transforms": {"ledgerLine.feeMinor": {"scale": 0.001, "unit": "BHD"}}
+  },
+  {
+    "id": "schema-heldback-chart",
+    "sample": {
+      "issue": {
+        "emittedBy": {"applicationName": "star-chart-binder"},
+        "classification": {"logLevel": "Informational"},
+        "problemCode": "PLATE_REBOUND",
+        "annotation": "A spare star plate has been filed."
+      },
+      "observationTime": "2025-09-01T03:02:01.004Z",
+      "chartMarks": ["wedge", "circle"]
+    },
+    "aliases": {
+      "service": "issue.emittedBy.applicationName",
+      "severity": "issue.classification.logLevel",
+      "error_code": "issue.problemCode",
+      "message": "issue.annotation",
+      "time": "observationTime"
+    },
+    "service": "star-chart-binder",
+    "severity": "info",
+    "time_format": "iso",
+    "occurred_at": "2025-09-01T03:02:01.004000+00:00"
+  }
+]

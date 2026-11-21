@@ -1,0 +1,34 @@
+| Case | Status | Evidence |
+|---|---|---|
+| settlements-positive | PASS | All declared checks passed |
+| settlements-negative-env | PASS | All declared checks passed |
+| settlements-negative-workflow | PASS | All declared checks passed |
+| settlements-runbook-rendered | PASS | All declared checks passed |
+| rates-positive | PASS | All declared checks passed |
+| rates-boundary-equal | PASS | All declared checks passed |
+| rates-other-desk | PASS | All declared checks passed |
+| rates-schema-glob-v3 | PASS | All declared checks passed |
+| rates-not-rejected | PASS | All declared checks passed |
+| rates-missing-template-field | PASS | All declared checks passed |
+| anna-daytime-sms | PASS | All declared checks passed |
+| anna-evening-email | PASS | All declared checks passed |
+| anna-boundary-0800 | PASS | All declared checks passed |
+| anna-boundary-2000 | PASS | All declared checks passed |
+| anna-not-critical | PASS | All declared checks passed |
+| anna-other-service | PASS | All declared checks passed |
+| alertmanager-auto-resolve | PASS | All declared checks passed |
+| pricing-digest | PASS | All declared checks passed |
+| retransmission-dedup | PASS | All declared checks passed |
+| storm-500-one-alert | PASS | All declared checks passed |
+| unknown-schema-visible | PASS | All declared checks passed |
+| approval-required | PASS | All declared checks passed |
+| approval-wrong-person | PASS | All declared checks passed |
+| approval-ok | PASS | All declared checks passed |
+| channel-down-no-loss | PASS | All declared checks passed |
+| stale-recovery-keeps-newer-episode | PASS | All declared checks passed |
+| poison-event-isolated | PASS | All declared checks passed |
+| inbound-approval-needs-provider-secret | PASS | All declared checks passed |
+| inbound-approval-brute-force-locked | PASS | All declared checks passed |
+| verify-unit-change | PASS | All declared checks passed |
+| rule-safety-counterexample | PASS | All declared checks passed |
+| rule-safety-ui-only-is-valid | PASS | All declared checks passed |

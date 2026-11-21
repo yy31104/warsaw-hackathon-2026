@@ -40,6 +40,8 @@ teams:
     oncall: {primary: ops}
     approvers: [ops]
 
+  - {id: canary, name: Synthetic monitors, members: [canary]}
+
 users:
   - id: anna
     name: Anna
@@ -76,3 +78,8 @@ users:
     name: Ops (platform)
     timezone: Europe/Warsaw
     contacts: {email: ops@example.com, sms: "+15550100008", phone: "+15550100008"}
+
+  - id: canary
+    name: Simulated receiver
+    timezone: UTC
+    contacts: {sms: "+15550100990"}

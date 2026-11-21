@@ -1,0 +1,209 @@
+{
+  "start_utc": "2026-11-21T02:50:58.847406+00:00",
+  "source_commit": "d7a6884813f7270ee75482da113390ed68cb9f5b",
+  "chip": "Apple M4 Pro",
+  "model": "Mac16,7",
+  "host_logical_cpus": 14,
+  "host_memory_bytes": 25769803776,
+  "macos": "27.2",
+  "docker_version": "29.4.3",
+  "docker_cpus_and_bytes": "14 8321150976",
+  "before": [
+    {
+      "container_id": "7f27f0ad92d9",
+      "image_role": "postgres",
+      "state": "Up 6 minutes"
+    },
+    {
+      "container_id": "4cec271e2855",
+      "image_role": "postgres",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "8ee3f50b6f21",
+      "image_role": "rabbitmq",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "077d5120650d",
+      "image_role": "mailpit",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "f5fab047257e",
+      "image_role": "postgres",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "2c659c6a677e",
+      "image_role": "chronicle-local",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "12519e922569",
+      "image_role": "postgres",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "1b2c3d6fecfb",
+      "image_role": "postgres",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "d2517f248bcc",
+      "image_role": "studio",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "9648c62cb010",
+      "image_role": "postgres-meta",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "85622062942d",
+      "image_role": "storage-api",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "d2f479f92c77",
+      "image_role": "postgrest",
+      "state": "Up 8 hours"
+    },
+    {
+      "container_id": "fbaed8905680",
+      "image_role": "realtime",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "0e4b3251b4cf",
+      "image_role": "mailpit",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "e485320db1f6",
+      "image_role": "gotrue",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "fc984105985e",
+      "image_role": "vector",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "10e7ac4d99a6",
+      "image_role": "logflare",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "46cd0a4435dc",
+      "image_role": "studio",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "806bb9aeb406",
+      "image_role": "postgres-meta",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "768ca6dc9cd8",
+      "image_role": "storage-api",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "86406d7ba1d8",
+      "image_role": "postgrest",
+      "state": "Up 8 hours"
+    },
+    {
+      "container_id": "6df4c6113540",
+      "image_role": "realtime",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "4f2b0f46eb81",
+      "image_role": "mailpit",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "2f5ca12811b8",
+      "image_role": "gotrue",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "e2e6de1a6ad4",
+      "image_role": "kong",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "4ec240e8f092",
+      "image_role": "vector",
+      "state": "Up 8 hours (healthy)"
+    },
+    {
+      "container_id": "c3a58458c9c1",
+      "image_role": "logflare",
+      "state": "Up 8 hours (healthy)"
+    }
+  ],
+  "paused_for_comparison": [
+    "7f27f0ad92d9",
+    "4cec271e2855",
+    "8ee3f50b6f21",
+    "077d5120650d",
+    "f5fab047257e",
+    "2c659c6a677e",
+    "12519e922569",
+    "1b2c3d6fecfb",
+    "d2517f248bcc",
+    "9648c62cb010",
+    "85622062942d",
+    "d2f479f92c77",
+    "fbaed8905680",
+    "0e4b3251b4cf",
+    "e485320db1f6",
+    "fc984105985e",
+    "10e7ac4d99a6",
+    "46cd0a4435dc",
+    "806bb9aeb406",
+    "768ca6dc9cd8",
+    "86406d7ba1d8",
+    "6df4c6113540",
+    "4f2b0f46eb81",
+    "2f5ca12811b8",
+    "e2e6de1a6ad4",
+    "4ec240e8f092",
+    "c3a58458c9c1"
+  ],
+  "observation": "The bench uses the same pinned images, fresh project volumes per trial, a 60 s offer and a maximum 20 s drain. The Docker inventory was sampled throughout. Other local project names are omitted from this shared evidence; original names were retained locally.",
+  "finished_utc": "2026-11-21T02:54:42.005362+00:00",
+  "restored_ids": [
+    "7f27f0ad92d9",
+    "4cec271e2855",
+    "8ee3f50b6f21",
+    "077d5120650d",
+    "f5fab047257e",
+    "2c659c6a677e",
+    "12519e922569",
+    "1b2c3d6fecfb",
+    "d2517f248bcc",
+    "9648c62cb010",
+    "85622062942d",
+    "d2f479f92c77",
+    "fbaed8905680",
+    "0e4b3251b4cf",
+    "e485320db1f6",
+    "fc984105985e",
+    "10e7ac4d99a6",
+    "46cd0a4435dc",
+    "806bb9aeb406",
+    "768ca6dc9cd8",
+    "86406d7ba1d8",
+    "6df4c6113540",
+    "4f2b0f46eb81",
+    "2f5ca12811b8",
+    "e2e6de1a6ad4",
+    "4ec240e8f092",
+    "c3a58458c9c1"
+  ],
+  "outside_process_samples": []
+}

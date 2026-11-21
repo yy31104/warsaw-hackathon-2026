@@ -75,8 +75,18 @@ def render(book, fields, runs=(), approvers=()):
     failures = sum(r["action"] == "retry_workflow" and r["state"] == "failed" for r in runs)
     for i, step in enumerate(steps):
         history = [r for r in runs if r["step_index"] == i]
-        step.update(index=i, state=history[-1]["state"] if history else None, runs=len(history))
-        if step["approval"] == "required":
+        latest = history[-1] if history else {}
+        step.update(
+            index=i,
+            state=latest.get("state"),
+            run_id=latest.get("run_id"),
+            approved_by=latest.get("approved_by"),
+            runs=len(history),
+            execution_count=sum(r["execution_count"] for r in history),
+        )
+        if step["state"] == "unknown":
+            step["requested_by"] = latest.get("requested_by")
+        if step["approval"] == "required" or step["state"] == "unknown":
             step["approvers"] = list(approvers)
         if step.get("action") == "escalate":
             step["suggested"] = failures >= 2

@@ -1,0 +1,24 @@
+
+> alert-funnel-ui@0.1.0 build
+> tsc -b && vite build
+
+vite v6.4.6 building for production...
+transforming...
+✓ 932 modules transformed.
+[plugin vite:reporter] 
+(!) <w0>/console-src-40/frontend/src/session.ts is dynamically imported by <w0>/console-src-40/frontend/src/Overview.tsx, <w0>/console-src-40/frontend/src/Overview.tsx but also statically imported by <w0>/console-src-40/frontend/src/ActivityFeed.tsx, <w0>/console-src-40/frontend/src/App.tsx, <w0>/console-src-40/frontend/src/Motion.tsx, <w0>/console-src-40/frontend/src/Overview.tsx, <w0>/console-src-40/frontend/src/ProposalPage.tsx, <w0>/console-src-40/frontend/src/Runbook.tsx, <w0>/console-src-40/frontend/src/Screens.tsx, <w0>/console-src-40/frontend/src/api.ts, dynamic import will not move module into another chunk.
+
+[plugin vite:reporter] 
+(!) <w0>/console-src-40/frontend/src/api.ts is dynamically imported by <w0>/console-src-40/frontend/src/App.tsx, <w0>/console-src-40/frontend/src/App.tsx but also statically imported by <w0>/console-src-40/frontend/src/ActivityFeed.tsx, <w0>/console-src-40/frontend/src/App.tsx, <w0>/console-src-40/frontend/src/Motion.tsx, <w0>/console-src-40/frontend/src/Overview.tsx, <w0>/console-src-40/frontend/src/ProposalPage.tsx, <w0>/console-src-40/frontend/src/Runbook.tsx, <w0>/console-src-40/frontend/src/RunbookCatalogue.tsx, <w0>/console-src-40/frontend/src/SchemaOnboarding.tsx, <w0>/console-src-40/frontend/src/Screens.tsx, <w0>/console-src-40/frontend/src/VerificationPanels.tsx, <w0>/console-src-40/frontend/src/console/Incident.tsx, <w0>/console-src-40/frontend/src/console/Now.tsx, <w0>/console-src-40/frontend/src/console/OnCall.tsx, <w0>/console-src-40/frontend/src/console/Rules.tsx, <w0>/console-src-40/frontend/src/console/Runbooks.tsx, <w0>/console-src-40/frontend/src/console/Shell.tsx, <w0>/console-src-40/frontend/src/console/Sources.tsx, <w0>/console-src-40/frontend/src/console/data.ts, dynamic import will not move module into another chunk.
+
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.37 kB │ gzip:   0.27 kB
+dist/assets/index-C_LM7SZk.css  280.76 kB │ gzip:  44.91 kB
+dist/assets/index-C46-k8yw.js   803.13 kB │ gzip: 238.33 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.66s

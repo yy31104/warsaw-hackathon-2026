@@ -1,6 +1,27 @@
-# Owner: DEV2 daizhongtian (infra + full stack). Infra only for now (G0). App services are added at G1 (api, workers, mocks, frontend)
-# so that `docker compose up` from a fresh clone runs the whole system for the judges.
+# Use -p and the host port overrides to run an isolated local stack.
 name: alertfunnel
+
+x-backend: &backend
+  image: ${COMPOSE_PROJECT_NAME:-alertfunnel}-backend:local
+  pull_policy: never
+  restart: unless-stopped
+  environment: &backend-environment
+    DATABASE_URL: postgresql://alerting:alerting@postgres:5432/alerting
+    RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    CONFIG_DIR: /app/config
+    PUBLIC_UI_URL: ${PUBLIC_UI_URL:-http://127.0.0.1:${FRONTEND_PORT:-5173}}
+    SMTP_HOST: mailpit
+    SMTP_PORT: 1025
+    FAKE_TELECOM_URL: http://fake-telecom:8100
+    MOCK_OPS_URL: http://mock-ops:8200
+    DEMO_MODE: ${DEMO_MODE:-1}
+    INBOUND_SECRET: ${INBOUND_SECRET:-alertfunnel-local-demo}
+    DELIVERY_TARGET_S: ${DELIVERY_TARGET_S:-30}
+  volumes:
+    - ./config:/app/config:ro
+  depends_on: &database-ready
+    db-upgrade:
+      condition: service_completed_successfully
 
 services:
   postgres:
@@ -10,39 +31,158 @@ services:
       POSTGRES_PASSWORD: alerting
       POSTGRES_DB: alerting
     command: ["postgres", "-c", "max_connections=200", "-c", "shared_buffers=256MB"]
-    ports: ["5432:5432"]
+    ports: ["127.0.0.1:${POSTGRES_PORT:-5432}:5432"]
     volumes:
       - ./db/migrations:/docker-entrypoint-initdb.d:ro
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U alerting -d alerting"]
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "alerting", "-d", "alerting"]
       interval: 2s
       timeout: 3s
       retries: 30
 
+  db-upgrade:
+    image: postgres:16-alpine
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGUSER: alerting
+      PGPASSWORD: alerting
+      PGDATABASE: alerting
+    volumes:
+      - ./db/migrations:/upgrade/db/migrations:ro
+      - ./tools/upgrade_db.sql:/upgrade/tools/upgrade_db.sql:ro
+    command: ["psql", "-X", "-f", "/upgrade/tools/upgrade_db.sql"]
+
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
-    ports: ["5672:5672", "15672:15672"]   # UI: http://localhost:15672 (guest/guest)
+    hostname: rabbitmq
+    ports:
+      - "127.0.0.1:${RABBITMQ_PORT:-5672}:5672"
+      - "127.0.0.1:${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    volumes:
+      - rabbit-data:/var/lib/rabbitmq
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      test: ["CMD", "su-exec", "rabbitmq", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
       interval: 5s
       timeout: 5s
       retries: 30
 
   mailpit:
     image: axllent/mailpit:latest
-    ports: ["1025:1025", "8025:8025"]      # SMTP 1025, inbox UI http://localhost:8025
+    ports:
+      - "127.0.0.1:${SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${MAILPIT_PORT:-8025}:8025"
 
-  # --- added at G1 by their owners (keep the names; other services depend on them) ---
-  # fake-telecom:   daizhongtian  port 8100   (SMS/phone gateway mock with a phone-like web UI)
-  # mock-ops:       daizhongtian  port 8200   network alias: counterparty-service (runbook targets)
-  # api:            shared    port 8000   uvicorn alerting.api.app:app
-  # ingest-amqp:    daizhongtian  python -m alerting.ingest.amqp
-  # ingest-logtail: daizhongtian  python -m alerting.ingest.logtail
-  # rule-worker:    Yi            python -m alerting.rules.worker --lane normal   (+ one --lane critical)
-  # scheduler:      Yi            python -m alerting.rules.scheduler              (digests, cooldown, escalations)
-  # delivery-worker: Yi            python -m alerting.delivery.worker
-  # frontend:       zhaoqinghe    port 5173
+  fake-telecom:
+    build:
+      context: .
+      dockerfile: mocks/fake_telecom/Dockerfile
+    ports: ["127.0.0.1:${TELECOM_PORT:-8100}:8100"]
+    environment:
+      ALERTING_API_URL: http://api:8000
+      INBOUND_SECRET: ${INBOUND_SECRET:-alertfunnel-local-demo}
+    volumes: [telecom-data:/data]
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:8100/mode', timeout=2).close()"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  mock-ops:
+    build:
+      context: .
+      dockerfile: mocks/mock_ops/Dockerfile
+    environment:
+      DEMO_MODE: ${DEMO_MODE:-1}
+    ports: ["127.0.0.1:${MOCK_OPS_PORT:-8200}:8200"]
+    volumes: [mock-ops-data:/data]
+    networks:
+      default:
+        aliases: [counterparty-service]
+
+  api:
+    <<: *backend
+    environment:
+      <<: *backend-environment
+      ASSIST_ENABLED: ${ASSIST_ENABLED:-0}
+      ASSIST_PROVIDER: ${ASSIST_PROVIDER:-}
+      ASSIST_MODEL: ${ASSIST_MODEL:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    pull_policy: build
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["uvicorn", "alerting.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports: ["127.0.0.1:${API_PORT:-8000}:8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/health', timeout=2).close()"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  ingest-amqp:
+    <<: *backend
+    deploy:
+      replicas: 2
+    command: ["python", "-m", "alerting.ingest.amqp"]
+    depends_on:
+      <<: *database-ready
+      rabbitmq:
+        condition: service_healthy
+
+  ingest-logtail:
+    <<: *backend
+    command: ["python", "-m", "alerting.ingest.logtail", "--source", "pricing-logs"]
+    volumes:
+      - ./config:/app/config:ro
+      - ${LOG_DIR:-./fixtures/events}:/data/logs:ro
+
+  rule-worker:
+    <<: *backend
+    command: ["python", "-m", "alerting.rules.worker", "--lane", "normal"]
+
+  rule-worker-critical:
+    <<: *backend
+    command: ["python", "-m", "alerting.rules.worker", "--lane", "critical"]
+
+  scheduler:
+    <<: *backend
+    command: ["python", "-m", "alerting.rules.scheduler"]
+
+  delivery-worker:
+    <<: *backend
+    command: ["python", "-m", "alerting.delivery.worker"]
+    environment:
+      <<: *backend-environment
+      DELIVERY_BATCH: ${DELIVERY_BATCH:-25}
+      DELIVERY_CONCURRENCY: ${DELIVERY_CONCURRENCY:-16}
+    depends_on:
+      <<: *database-ready
+      fake-telecom:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports: ["127.0.0.1:${FRONTEND_PORT:-5173}:5173"]
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:5173/"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
 
 volumes:
   pgdata: {}
+  rabbit-data: {}
+  telecom-data: {}
+  mock-ops-data: {}

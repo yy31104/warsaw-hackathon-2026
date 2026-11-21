@@ -1,0 +1,6 @@
+Batch m11-11210332-fa344
+Commit d7a6884813f7270ee75482da113390ed68cb9f5b
+From the repository root
+docker compose --ansi never -p w0w2-before build api fake-telecom
+/opt/homebrew/opt/python@3.12/bin/python3.12 /private/tmp/gs-w0-round3.UbUmhI/run_w2_pool_diagnostic.py before --offer-shape '700 normal + 2 critical, 1000 keys, 4 normal workers, 2 ingest, 1 delivery, 60s + 20s drain'
+Each run includes an exact commands.json and two untouched terminal traces.

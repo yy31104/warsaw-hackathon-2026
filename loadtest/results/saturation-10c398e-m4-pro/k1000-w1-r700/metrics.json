@@ -1,0 +1,82 @@
+{
+  "source": "10c398e3c01aa2b292f6accbdcfac85fbdf0b8fc",
+  "duration_s": 60,
+  "normal_workers": 1,
+  "keys": 1000,
+  "offered_per_s": 700,
+  "status": "PASS",
+  "problems": [],
+  "start_epoch_ms": 1795227925901,
+  "scheduled": 42000,
+  "confirmed_total": 42000,
+  "publisher_attempted_per_s": 700.0,
+  "broker_confirmed_within_per_s": 700.0,
+  "ingested_within_per_s": 700.0,
+  "sustained_processed_per_s": 698.25,
+  "drain_inclusive_processed_per_s": 699.094391714041,
+  "ingested_total": 42000,
+  "processed_total": 42000,
+  "source_drops": 0,
+  "publish_errors": 0,
+  "missing_events_at_cutoff": 0,
+  "missing_receiver_slots_at_cutoff": 0,
+  "duplicate_receiver_count": 0,
+  "receiver_e2e": {
+    "n": 2000,
+    "p50_ms": 16034,
+    "p95_ms": 24275,
+    "p99_ms": 24748
+  },
+  "processed_e2e": {
+    "p50_ms": 210.85693359375,
+    "p95_ms": 857.4580078125,
+    "p99_ms": 1250.077880859375,
+    "n": 42000
+  },
+  "backlog": {
+    "db_at_15_30_45_60": [
+      140,
+      210,
+      175,
+      105
+    ],
+    "db_peak_1s": 960,
+    "broker_confirmed_minus_ingested_at_15_30_45_60": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "peak_delivery": 1846,
+    "oldest_pending_s_peak": 23.422894,
+    "last_observed": {
+      "observed_at_ms": 1795227986506,
+      "accepted": 42000,
+      "processed": 42000,
+      "processing_backlog": 0,
+      "planned": 2000,
+      "delivered": 2000,
+      "delivery_backlog": 0,
+      "terminal": 2000,
+      "failed": 0,
+      "attempts": 2000,
+      "oldest_pending_s": 0.0
+    }
+  },
+  "cpu_pct_of_one_core_by_container": {
+    "w0m11-10c398e-delivery-worker-1": 9.4,
+    "w0m11-10c398e-fake-telecom-1": 11.04,
+    "w0m11-10c398e-ingest-amqp-1": 16.48,
+    "w0m11-10c398e-postgres-1": 77.18,
+    "w0m11-10c398e-rabbitmq-1": 23.68,
+    "w0m11-10c398e-rule-worker-1": 50.01,
+    "w0m11-10c398e-rule-worker-critical-1": 0.48,
+    "w0m11-10c398e-generator": 7.08
+  },
+  "cpu_samples_in_window": 29,
+  "cpu_sampled_s": 57.195,
+  "generator_max_schedule_lag_ms": 21,
+  "input_schedule_sha256": "344694e1b9b73c56f4174edf41b9aecf828400d378bd164a7ecbf5124584d107",
+  "raw_sha256": "0863755857772b6cd010878c1cf9b5552b0e47a982546f6c36d6c6744a3c635d",
+  "confirmed_ids_absent_at_cutoff": 0
+}

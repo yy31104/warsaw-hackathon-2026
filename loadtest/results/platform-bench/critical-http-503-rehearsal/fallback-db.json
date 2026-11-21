@@ -1,0 +1,242 @@
+[
+  {
+    "original_id": "03033dcd-abb6-4b16-83b2-b0dbd06428ad",
+    "original_state": "fallback",
+    "replacement_id": "0e38f5f5-66c3-4265-80ed-eb1565d74374",
+    "original_channel": "phone",
+    "recorded_smtp_id": null,
+    "replacement_state": "delivered",
+    "replacement_channel": "ui",
+    "recorded_smtp_outcome": null
+  },
+  {
+    "original_id": "07f4eff9-060a-4142-a500-3bb4178b382d",
+    "original_state": "fallback",
+    "replacement_id": "4b87bf34-a564-4b81-8712-bbdfe64b4b14",
+    "original_channel": "sms",
+    "recorded_smtp_id": "4b87bf34-a564-4b81-8712-bbdfe64b4b14",
+    "replacement_state": "delivered",
+    "replacement_channel": "email",
+    "recorded_smtp_outcome": "delivered"
+  },
+  {
+    "original_id": "0af5ad92-3f88-49ba-9534-1f856e6714bd",
+    "original_state": "fallback",
+    "replacement_id": "3c059fa0-a282-45c4-b542-21149a7666d1",
+    "original_channel": "sms",
+    "recorded_smtp_id": null,
+    "replacement_state": "delivered",
+    "replacement_channel": "ui",
+    "recorded_smtp_outcome": null
+  },
+  {
+    "original_id": "0c973c0d-8a6d-4130-b14e-2f8d6a03c09b",
+    "original_state": "fallback",
+    "replacement_id": "067205aa-ad2b-4916-a421-db0a68c896d5",
+    "original_channel": "sms",
+    "recorded_smtp_id": null,
+    "replacement_state": "delivered",
+    "replacement_channel": "ui",
+    "recorded_smtp_outcome": null
+  },
+  {
+    "original_id": "2b067e69-5bb8-4cbf-8c5c-2b5ddce99e75",
+    "original_state": "fallback",
+    "replacement_id": "2e9df5c3-314a-4ac0-89f6-739bc095b332",
+    "original_channel": "phone",
+    "recorded_smtp_id": null,
+    "replacement_state": "delivered",
+    "replacement_channel": "ui",
+    "recorded_smtp_outcome": null
+  },
+  {
+    "original_id": "33a016e3-fb5f-403c-a92f-d4fc6aa93b5c",
+    "original_state": "fallback",
+    "replacement_id": "a5d64dbe-82b8-4525-93f4-207bca843c9b",
+    "original_channel": "sms",
+    "recorded_smtp_id": "a5d64dbe-82b8-4525-93f4-207bca843c9b",
+    "replacement_state": "delivered",
+    "replacement_channel": "email",
+    "recorded_smtp_outcome": "delivered"
+  },
+  {
+    "original_id": "351522bd-c3aa-48da-8016-61688b330a3a",
+    "original_state": "fallback",
+    "replacement_id": "c14bbf7e-dfeb-4944-b839-c8cf15df7f67",
+    "original_channel": "phone",
+    "recorded_smtp_id": null,
+    "replacement_state": "delivered",
+    "replacement_channel": "ui",
+    "recorded_smtp_outcome": null
+  },
+  {
+    "original_id": "37daa8bc-a7d3-4c12-87fe-7381d0b20780",
+    "original_state": "fallback",
+    "replacement_id": "9e330e21-8c59-4c98-85c6-1928693604ea",
+    "original_channel": "phone",
+    "recorded_smtp_id": "9e330e21-8c59-4c98-85c6-1928693604ea",
+    "replacement_state": "delivered",
+    "replacement_channel": "email",
+    "recorded_smtp_outcome": "delivered"
+  },
+  {
+    "original_id": "43f5a646-c864-45b5-bfa1-3e7750b78e98",
+    "original_state": "fallback",
+    "replacement_id": "9ae08564-252f-43ba-9a5f-1157f9e75699",
+    "original_channel": "phone",
+    "recorded_smtp_id": null,
+    "replacement_state": "delivered",
+    "replacement_channel": "ui",
+    "recorded_smtp_outcome": null
+  },
+  {
+    "original_id": "4d72c96b-70db-421c-a515-2b8c7fee454a",
+    "original_state": "fallback",
+    "replacement_id": "9bca199f-3fea-4343-b712-84776b7f48d8",
+    "original_channel": "sms",
+    "recorded_smtp_id": "9bca199f-3fea-4343-b712-84776b7f48d8",
+    "replacement_state": "delivered",
+    "replacement_channel": "email",
+    "recorded_smtp_outcome": "delivered"
+  },
+  {
+    "original_id": "4ef993e5-bb1b-4931-b617-df4a69152152",
+    "original_state": "fallback",
+    "replacement_id": "bf16b25e-c60f-4112-93c1-fcdaf52af739",
+    "original_channel": "sms",
+    "recorded_smtp_id": "bf16b25e-c60f-4112-93c1-fcdaf52af739",
+    "replacement_state": "delivered",
+    "replacement_channel": "email",
+    "recorded_smtp_outcome": "delivered"
+  },
+  {
+    "original_id": "8217c223-c3aa-4921-8ed9-bac69e611967",
+    "original_state": "fallback",
+    "replacement_id": "ef395678-1792-4089-aed7-d534cf1f7c5c",
+    "original_channel": "sms",
+    "recorded_smtp_id": "ef395678-1792-4089-aed7-d534cf1f7c5c",
+    "replacement_state": "delivered",
+    "replacement_channel": "email",
+    "recorded_smtp_outcome": "delivered"
+  },
+  {
+    "original_id": "837034bd-ad40-4b26-8260-cc9802964cb6",
+    "original_state": "fallback",
+    "replacement_id": "b691f1cf-7e9e-4a5f-8e65-1e7cebd5579b",
+    "original_channel": "phone",
+    "recorded_smtp_id": null,
+    "replacement_state": "delivered",
+    "replacement_channel": "ui",
+    "recorded_smtp_outcome": null
+  },
+  {
+    "original_id": "84b9d845-707f-4b12-b5ca-07567b0416bc",
+    "original_state": "fallback",
+    "replacement_id": "a5a83f72-b96c-467d-81cb-7ebdde86dec8",
+    "original_channel": "phone",
+    "recorded_smtp_id": null,
+    "replacement_state": "delivered",
+    "replacement_channel": "ui",
+    "recorded_smtp_outcome": null
+  },
+  {
+    "original_id": "8ff46db6-b475-4e78-87e3-22dc6b09aafb",
+    "original_state": "fallback",
+    "replacement_id": "dddebd96-f309-457c-83fa-33bc7da2c3a3",
+    "original_channel": "phone",
+    "recorded_smtp_id": null,
+    "replacement_state": "delivered",
+    "replacement_channel": "ui",
+    "recorded_smtp_outcome": null
+  },
+  {
+    "original_id": "b128af38-78c0-40df-bb7c-e902192f0f83",
+    "original_state": "fallback",
+    "replacement_id": "9c414c7b-65d0-4588-a7c0-fc7685f1deb2",
+    "original_channel": "sms",
+    "recorded_smtp_id": "9c414c7b-65d0-4588-a7c0-fc7685f1deb2",
+    "replacement_state": "delivered",
+    "replacement_channel": "email",
+    "recorded_smtp_outcome": "delivered"
+  },
+  {
+    "original_id": "b1664d0e-37b4-47f4-993e-874a900adc3f",
+    "original_state": "fallback",
+    "replacement_id": "42ab06d2-9dd4-4962-8e8f-38f2c5a0d37b",
+    "original_channel": "sms",
+    "recorded_smtp_id": null,
+    "replacement_state": "delivered",
+    "replacement_channel": "ui",
+    "recorded_smtp_outcome": null
+  },
+  {
+    "original_id": "c316f5cc-00ed-42f5-b852-3c4e4c355be0",
+    "original_state": "fallback",
+    "replacement_id": "fb71bd16-423a-4555-bb44-91d1bdff64ed",
+    "original_channel": "phone",
+    "recorded_smtp_id": null,
+    "replacement_state": "delivered",
+    "replacement_channel": "ui",
+    "recorded_smtp_outcome": null
+  },
+  {
+    "original_id": "cb629966-3176-4942-90b2-254b29478d6c",
+    "original_state": "fallback",
+    "replacement_id": "4403c46d-9ed6-4a21-80f2-1916fe9d323d",
+    "original_channel": "phone",
+    "recorded_smtp_id": null,
+    "replacement_state": "delivered",
+    "replacement_channel": "ui",
+    "recorded_smtp_outcome": null
+  },
+  {
+    "original_id": "e502f329-1a4c-4cb7-9595-68abc53fe1ea",
+    "original_state": "fallback",
+    "replacement_id": "defd0aed-138f-4429-a44f-c23dbb1e537c",
+    "original_channel": "sms",
+    "recorded_smtp_id": "defd0aed-138f-4429-a44f-c23dbb1e537c",
+    "replacement_state": "delivered",
+    "replacement_channel": "email",
+    "recorded_smtp_outcome": "delivered"
+  },
+  {
+    "original_id": "e6892eb3-cf7d-42e2-9e9a-293c3ccb9388",
+    "original_state": "fallback",
+    "replacement_id": "65d96c10-6707-4815-b3f4-435d1ec0ac05",
+    "original_channel": "phone",
+    "recorded_smtp_id": "65d96c10-6707-4815-b3f4-435d1ec0ac05",
+    "replacement_state": "delivered",
+    "replacement_channel": "email",
+    "recorded_smtp_outcome": "delivered"
+  },
+  {
+    "original_id": "e6a1d5f0-c426-4c05-b459-6bce84f25bb4",
+    "original_state": "fallback",
+    "replacement_id": "7fd1d15c-9abc-4ac4-aa4f-2b87b9823703",
+    "original_channel": "phone",
+    "recorded_smtp_id": "7fd1d15c-9abc-4ac4-aa4f-2b87b9823703",
+    "replacement_state": "delivered",
+    "replacement_channel": "email",
+    "recorded_smtp_outcome": "delivered"
+  },
+  {
+    "original_id": "f0033dad-b0ea-4bab-82e1-c028cd30ad11",
+    "original_state": "fallback",
+    "replacement_id": "7822510b-9d4f-4220-ade0-b07a64c36895",
+    "original_channel": "sms",
+    "recorded_smtp_id": "7822510b-9d4f-4220-ade0-b07a64c36895",
+    "replacement_state": "delivered",
+    "replacement_channel": "email",
+    "recorded_smtp_outcome": "delivered"
+  },
+  {
+    "original_id": "f4d4ed0f-6f71-4ed0-8963-c859282b79e5",
+    "original_state": "fallback",
+    "replacement_id": "d0a56b7f-3ccd-4757-b242-a8b87b7b23b2",
+    "original_channel": "sms",
+    "recorded_smtp_id": "d0a56b7f-3ccd-4757-b242-a8b87b7b23b2",
+    "replacement_state": "delivered",
+    "replacement_channel": "email",
+    "recorded_smtp_outcome": "delivered"
+  }
+]

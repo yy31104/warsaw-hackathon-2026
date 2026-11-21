@@ -1,0 +1,182 @@
+[
+  {
+    "id": "schema-dev-lens",
+    "sample": {
+      "ServiceName": "lumen-catalogue",
+      "Environment": "training",
+      "LogLevel": "Warn",
+      "ObservedAt": "2025-08-18T07:26:19+02:00",
+      "Summary": "The spare lens has no matching catalogue entry.",
+      "ErrorCode": "LENS_GAP",
+      "rackPosition": 17
+    },
+    "aliases": {
+      "service": "ServiceName",
+      "environment": "Environment",
+      "severity": "LogLevel",
+      "time": "ObservedAt",
+      "message": "Summary",
+      "error_code": "ErrorCode"
+    },
+    "service": "lumen-catalogue",
+    "severity": "warning",
+    "time_format": "iso",
+    "occurred_at": "2025-08-18T05:26:19+00:00"
+  },
+  {
+    "id": "schema-dev-crate",
+    "sample": {
+      "sorter": {"component": {"name": "crate-weigher"}, "env": "sandbox"},
+      "reading": {"at": 1770236111, "severity": "INFO", "detail": "Return crate accepted."},
+      "refund": {"feeMinor": 2375, "currency": "CAD", "minorPerMajor": 100},
+      "crateColour": "rust"
+    },
+    "aliases": {
+      "service": "sorter.component.name",
+      "environment": "sorter.env",
+      "severity": "reading.severity",
+      "time": "reading.at",
+      "message": "reading.detail"
+    },
+    "service": "crate-weigher",
+    "severity": "info",
+    "time_format": "epoch_s",
+    "occurred_at": "2026-02-04T20:15:11+00:00",
+    "transforms": {"refund.feeMinor": {"scale": 0.01, "unit": "CAD"}}
+  },
+  {
+    "id": "schema-dev-spool",
+    "sample": {
+      "capture": {
+        "emittingDaemon": "spool-reader",
+        "unixTimeMillis": 1761527070625,
+        "fault": {"symbol": "DYE_MARK_MISSING", "operatorNote": "The dye mark reader has stopped."}
+      },
+      "log_level": "FATAL",
+      "trainingDesk": {"email": "loom@example.invalid"},
+      "reelDiameterMm": 34
+    },
+    "aliases": {
+      "service": "capture.emittingDaemon",
+      "time": "capture.unixTimeMillis",
+      "error_code": "capture.fault.symbol",
+      "message": "capture.fault.operatorNote",
+      "severity": "log_level"
+    },
+    "service": "spool-reader",
+    "severity": "critical",
+    "time_format": "epoch_ms",
+    "occurred_at": "2025-10-27T01:04:30.625000+00:00"
+  },
+  {
+    "id": "schema-dev-quill",
+    "sample": {
+      "Cluster": {"Workload": {"Name": "quill-aligner"}, "DeploymentTier": "staging"},
+      "Frame": {
+        "CapturedAt": "2026-03-05T15:06:45.250-05:00",
+        "Level": "DeBuG",
+        "Message": "Alignment marks recomputed."
+      },
+      "penNib": {"widthMicrons": 410}
+    },
+    "aliases": {
+      "service": "Cluster.Workload.Name",
+      "environment": "Cluster.DeploymentTier",
+      "time": "Frame.CapturedAt",
+      "severity": "Frame.Level",
+      "message": "Frame.Message"
+    },
+    "service": "quill-aligner",
+    "severity": "debug",
+    "time_format": "iso",
+    "occurred_at": "2026-03-05T20:06:45.250000+00:00"
+  },
+  {
+    "id": "schema-dev-bin",
+    "sample": {
+      "service": null,
+      "shelf": {"level": 3, "binColour": "amber"},
+      "description": "A volunteer counted two unused dividers.",
+      "checkIntervalSeconds": 45
+    },
+    "aliases": {"message": "description"},
+    "service": null,
+    "severity": "unknown",
+    "time_format": null,
+    "occurred_at": null
+  },
+  {
+    "id": "schema-dev-vane",
+    "sample": {
+      "ORIGIN_APP": "vane-counter",
+      "DEPLOYMENT_STAGE": "test",
+      "EVENT_EPOCH_S": "1753192989",
+      "IMPORTANCE": "ERROR",
+      "FAILURE_CODE": "BLADE_COUNT",
+      "SUMMARY": "A training vane has an extra blade.",
+      "BLADE_TOTAL": "7"
+    },
+    "aliases": {
+      "service": "ORIGIN_APP",
+      "environment": "DEPLOYMENT_STAGE",
+      "time": "EVENT_EPOCH_S",
+      "severity": "IMPORTANCE",
+      "error_code": "FAILURE_CODE",
+      "message": "SUMMARY"
+    },
+    "service": "vane-counter",
+    "severity": "error",
+    "time_format": "epoch_s",
+    "occurred_at": "2025-07-22T14:03:09+00:00"
+  },
+  {
+    "id": "schema-dev-felt",
+    "sample": {
+      "inspections": [
+        {
+          "application": "felt-liner",
+          "reading": {
+            "timestamp": "2025-12-07T23:59:57Z",
+            "summary": "No liner was present on the test jig.",
+            "urgency": "critical"
+          }
+        }
+      ],
+      "rig": {"clampCount": 2}
+    },
+    "aliases": {
+      "service": "inspections.0.application",
+      "time": "inspections.0.reading.timestamp",
+      "message": "inspections.0.reading.summary",
+      "severity": "inspections.0.reading.urgency"
+    },
+    "service": "felt-liner",
+    "severity": "critical",
+    "time_format": "iso",
+    "occurred_at": "2025-12-07T23:59:57+00:00"
+  },
+  {
+    "id": "schema-dev-shuttle",
+    "sample": {
+      "emitter": {"executable": "shuttle-router"},
+      "formTemplate": {"createdAt": "2024-10-02T00:00:00Z", "revision": 3},
+      "incident": {
+        "onsetMs": 1775873994125,
+        "severity": "PANIC",
+        "caption": "All simulated shuttle routing has halted.",
+        "faultTag": "SHUTTLE_HALTED"
+      }
+    },
+    "aliases": {
+      "service": "emitter.executable",
+      "time": "incident.onsetMs",
+      "severity": "incident.severity",
+      "message": "incident.caption",
+      "error_code": "incident.faultTag"
+    },
+    "service": "shuttle-router",
+    "severity": "critical",
+    "time_format": "epoch_ms",
+    "occurred_at": "2026-04-11T02:19:54.125000+00:00"
+  }
+]

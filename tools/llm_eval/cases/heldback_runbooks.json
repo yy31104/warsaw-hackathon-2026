@@ -1,0 +1,32 @@
+[
+  {
+    "id": "runbook-heldback-enamel",
+    "format": "checklist",
+    "text": "* [ ] Restart service glaze-brush only if both enamel swatches are blank.\n* [ ] Post to webhook http://mock-ops/enamel/inspection.\n* [ ] Copy the batch letter from the stencil onto the worksheet.",
+    "steps": [
+      {"text": "Restart service glaze-brush only if both enamel swatches are blank.", "action": null, "params": {}, "approval": "required"},
+      {"text": "Post to webhook http://mock-ops/enamel/inspection.", "action": "call_webhook", "params": {"url": "http://mock-ops/enamel/inspection"}, "approval": "required"},
+      {"text": "Copy the batch letter from the stencil onto the worksheet.", "action": null, "params": {}, "approval": "none"}
+    ]
+  },
+  {
+    "id": "runbook-heldback-cart",
+    "format": "markdown",
+    "text": "### Workshop cart handoff\n\n1) Reboot the service.\n2) Cross-check the exercise contact +1 (212) 555-0183 against the cart placard.\n3) Create a ticket titled Missing caster.",
+    "steps": [
+      {"text": "Reboot the service.", "action": null, "params": {}, "approval": "required"},
+      {"text": "Cross-check the exercise contact <phone-or-number> against the cart placard.", "action": null, "params": {}, "approval": "none"},
+      {"text": "Create a ticket titled Missing caster.", "action": "open_ticket", "params": {"title": "Missing caster"}, "approval": "none"}
+    ]
+  },
+  {
+    "id": "runbook-heldback-folio",
+    "format": "text",
+    "text": "Probe http://mock-ops/health. Page team folio-desk. Restart service vellum-index and file a ticket titled Split folio.",
+    "steps": [
+      {"text": "Probe http://mock-ops/health.", "action": "http_get", "params": {"url": "http://mock-ops/health"}, "approval": "none"},
+      {"text": "Page team folio-desk.", "action": "escalate", "params": {"team": "folio-desk"}, "approval": "required"},
+      {"text": "Restart service vellum-index and file a ticket titled Split folio.", "action": null, "params": {}, "approval": "required"}
+    ]
+  }
+]

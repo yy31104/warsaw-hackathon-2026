@@ -1,0 +1,582 @@
+{
+  "status": "PASS",
+  "problems": [],
+  "normal_workers": 2,
+  "critical_workers": 1,
+  "workload_tag": "platform-compare",
+  "workload_sha256": "3ff3cc90ef376f2489aedf1df1cef74270015a9cf684130aee42b79d7c240e7f",
+  "duration_s": 20,
+  "offered_normal_events_per_s": 700,
+  "offered_critical_events_per_s": 2,
+  "normal_grouping": "one hot key",
+  "scheduled": 14040,
+  "broker_confirmed": 14040,
+  "dropped": 0,
+  "publish_errors": 0,
+  "missing_event_ids": [],
+  "generation_trace_mismatches": [],
+  "max_absolute_schedule_lag_ms": 2,
+  "throughput": {
+    "ingest": {
+      "count": 14040,
+      "elapsed_s": 20,
+      "per_s": 702.0,
+      "within_offered_window": 14040
+    },
+    "processed": {
+      "count": 14040,
+      "elapsed_s": 20.053589111328126,
+      "per_s": 700.124048720481,
+      "within_offered_window": 13934
+    },
+    "telecom_confirmed": {
+      "count": 82,
+      "elapsed_s": 20.168822021484374,
+      "per_s": 4.065681174272418,
+      "within_offered_window": 80
+    },
+    "telecom_received": {
+      "count": 82,
+      "elapsed_s": 20.165,
+      "per_s": 4.0664517728737914,
+      "within_offered_window": 80
+    }
+  },
+  "peak_processing_backlog": 175,
+  "peak_delivery_backlog": 2,
+  "peak_oldest_pending_s": 0.113926,
+  "decisions": 56160,
+  "decisions_per_1000": 4000.0,
+  "sms_phone_receipts_per_1000": 5.84045584045584,
+  "receiver": {
+    "lost_count": 0,
+    "expected_slots": [
+      [
+        "platform-compare-critical-000001",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000001",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000002",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000002",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000003",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000003",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000004",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000004",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000005",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000005",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000006",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000006",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000007",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000007",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000008",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000008",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000009",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000009",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000010",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000010",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000011",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000011",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000012",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000012",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000013",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000013",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000014",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000014",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000015",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000015",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000016",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000016",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000017",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000017",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000018",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000018",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000019",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000019",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000020",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000020",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000021",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000021",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000022",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000022",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000023",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000023",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000024",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000024",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000025",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000025",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000026",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000026",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000027",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000027",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000028",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000028",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000029",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000029",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000030",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000030",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000031",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000031",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000032",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000032",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000033",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000033",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000034",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000034",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000035",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000035",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000036",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000036",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000037",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000037",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000038",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000038",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000039",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000039",
+        "sms"
+      ],
+      [
+        "platform-compare-critical-000040",
+        "phone"
+      ],
+      [
+        "platform-compare-critical-000040",
+        "sms"
+      ],
+      [
+        "platform-compare-hot",
+        "phone"
+      ],
+      [
+        "platform-compare-hot",
+        "sms"
+      ]
+    ],
+    "lost_slots": [],
+    "missing_plan_slots": [],
+    "unexpected_plan_slots": [],
+    "duplicate_plan_slots": [],
+    "expected_outbox_ids": [
+      "023bc723-ac78-4e5c-adf8-4028386b76ca",
+      "042cf92b-d5aa-4296-99e0-e0b8dc04d473",
+      "09d6ebe4-c8dd-47c1-a811-90d14e211ad3",
+      "0a195cbb-36ce-4abf-b12a-b6addaca6cfc",
+      "19fde971-9ecb-4917-965b-0dc879acbd10",
+      "1aa359d7-944f-4660-bc2d-7bf939cae9e7",
+      "1b451252-bc84-4f61-9297-d14e29eafa99",
+      "1f2b3802-0439-406f-a000-1b52129902a1",
+      "211a4715-3fda-4f85-9e84-5cfb5dec6d9b",
+      "27ae7e3a-494f-4a04-952f-7e3d490c5afc",
+      "2af2f408-dd66-4ce2-8a01-4bce6d34d15b",
+      "30d8cfbe-e6e7-4c1b-b746-d45332671d1a",
+      "32af0a68-4a99-4805-8d0f-0d30510b8a70",
+      "39149aef-20f3-4fbb-87e5-758bef14686a",
+      "3b4fa24f-fe15-4b0c-8fe7-dc65d0345f47",
+      "3e71a8cc-83c8-4473-9c25-09f2614b6d19",
+      "4132f95c-4200-4d1c-8929-37cba34ffa3d",
+      "4432b7c5-0b8d-4f41-8994-063bb7ef936b",
+      "4498b78d-4f8a-4727-bdad-dcc7d8021cb2",
+      "4543e2db-04ea-45e3-bad9-809a62f4b10c",
+      "47164f19-0201-4d09-b649-2e92f63b6c57",
+      "47a54994-b20d-45c0-b1ad-69a7a9c3a5fc",
+      "48d598b1-7c62-48a5-bf69-cc01da516767",
+      "50341946-2b0c-40af-b9bf-c6d06a9785f7",
+      "52965add-ab36-4aa5-923d-9750d979d341",
+      "56b48bb4-f87c-48da-a226-28f367bb14b8",
+      "580a9dc9-ed08-4f72-8187-d7d764b7be15",
+      "5da468ae-85b3-4c22-bc32-a9a239fe6c80",
+      "634399f5-0756-4664-85dd-2031e51d812b",
+      "63f474a1-7e1e-42f7-aab4-e6888d23078d",
+      "64e24f14-ed12-4741-bf45-00b9c2c17b34",
+      "6c3affab-6425-4e6b-88ba-789598a5d166",
+      "6e44399a-6ec2-4b34-bafa-ed7d0f40efcc",
+      "719bdb8f-721d-4e62-b37e-ded0c01943b9",
+      "7465d4e0-f46a-46fd-ad6b-55e06da381bd",
+      "75541826-e8c8-4f2b-aba8-f156f6a92720",
+      "7c4a9a68-9797-4204-99b4-f086f68afcf8",
+      "7d113e40-5fec-4daf-8e26-4d0faf14620e",
+      "7ec2ef59-81d1-4a89-b1b0-d77dfb2c6d5c",
+      "80a3d4ff-a921-4ac4-94ae-294d8610148b",
+      "8431b4a1-421e-4da1-a83c-12b325afe0d9",
+      "85c208d4-424a-45a6-8bc9-3307e2f9c3ab",
+      "8a171d06-16ea-4abc-b5fb-465892e9b5da",
+      "8b28d2cb-e831-4637-99ce-c55d62269a41",
+      "8e59f51b-e7dc-4e31-bb40-14c576cc7f37",
+      "9242620f-7b6b-471b-bf39-202627344065",
+      "9321c79a-f169-4f7c-8399-a7e6984b4be2",
+      "934ed202-8cfe-48fb-b2dc-945e3f1c63a9",
+      "94d8ede9-80d1-4952-834a-12dc46d6dc67",
+      "97fcba7b-07f3-47d0-80d3-277bad7d2e3d",
+      "99832cb3-ed18-4a30-b493-7cd3ae24c559",
+      "99d20507-9528-4cb2-be98-16378b6e9be0",
+      "9a149f75-c2c1-4c31-bc71-2e2d0fda3652",
+      "9c087d41-2294-4f2c-903a-cd32f221fb1e",
+      "a2b537a6-22ee-4381-a056-0790d1c38182",
+      "ab5d3e16-d329-4eda-8573-5779117f9b15",
+      "ac377efe-a7e0-4fe8-80eb-900db55bbe08",
+      "acba3fef-d1cd-4b33-afbc-bdf4589b3ff2",
+      "adec44a4-82f2-4406-942c-49287a670e68",
+      "b28cc7a2-60b7-4e97-ae19-0353e9b14334",
+      "bd9a4087-7524-4927-ba71-20e6a601f4c6",
+      "bdde735f-53fc-4f30-9143-9e742a1d7834",
+      "bf17b0a5-29a0-4bf5-aa1b-103af112f4aa",
+      "c1ffd2bc-3d42-4330-83f4-22ff221e1b03",
+      "c4090562-a512-4e6b-9067-18bbad25b3d5",
+      "c9104762-b09d-4f8c-925c-e0f6cded25f8",
+      "ca16a4eb-db84-47d5-b15d-44d6aa570956",
+      "cca9c8a8-5470-4da9-bc96-5e805ba20938",
+      "cd402cbb-b427-44be-944d-25a69655cfc5",
+      "ce08314c-878b-46a2-aa73-2997fcaa84fd",
+      "e12dfb73-eb3a-4b17-a228-66a00270b50d",
+      "e3f4ceb2-87b3-4bba-885b-a05d2d6c6e65",
+      "e55e9cb7-f2a7-4efe-9f3e-0cba02886f8a",
+      "e5e5655a-bcbe-438f-a138-79774d842c86",
+      "e9601e11-39ce-4b7d-b6c7-a1d25adba2ab",
+      "e9811510-1505-4870-936d-39b4d0645d5d",
+      "e9d06b99-dec8-4fa6-9988-c51b9564d500",
+      "ebd8bdca-cb8b-4444-9a04-238c2d72f52b",
+      "f1613545-319f-4333-b7e6-b7ecacbc17c4",
+      "f2b96cbc-8690-4779-94f5-c743fa203a74",
+      "f5a86013-97b9-46df-a0d2-10d72cd145bb",
+      "fcce3d71-5f33-4580-9bf8-970a3aa18f26"
+    ],
+    "receiver_ids": [
+      "023bc723-ac78-4e5c-adf8-4028386b76ca",
+      "042cf92b-d5aa-4296-99e0-e0b8dc04d473",
+      "09d6ebe4-c8dd-47c1-a811-90d14e211ad3",
+      "0a195cbb-36ce-4abf-b12a-b6addaca6cfc",
+      "19fde971-9ecb-4917-965b-0dc879acbd10",
+      "1aa359d7-944f-4660-bc2d-7bf939cae9e7",
+      "1b451252-bc84-4f61-9297-d14e29eafa99",
+      "1f2b3802-0439-406f-a000-1b52129902a1",
+      "211a4715-3fda-4f85-9e84-5cfb5dec6d9b",
+      "27ae7e3a-494f-4a04-952f-7e3d490c5afc",
+      "2af2f408-dd66-4ce2-8a01-4bce6d34d15b",
+      "30d8cfbe-e6e7-4c1b-b746-d45332671d1a",
+      "32af0a68-4a99-4805-8d0f-0d30510b8a70",
+      "39149aef-20f3-4fbb-87e5-758bef14686a",
+      "3b4fa24f-fe15-4b0c-8fe7-dc65d0345f47",
+      "3e71a8cc-83c8-4473-9c25-09f2614b6d19",
+      "4132f95c-4200-4d1c-8929-37cba34ffa3d",
+      "4432b7c5-0b8d-4f41-8994-063bb7ef936b",
+      "4498b78d-4f8a-4727-bdad-dcc7d8021cb2",
+      "4543e2db-04ea-45e3-bad9-809a62f4b10c",
+      "47164f19-0201-4d09-b649-2e92f63b6c57",
+      "47a54994-b20d-45c0-b1ad-69a7a9c3a5fc",
+      "48d598b1-7c62-48a5-bf69-cc01da516767",
+      "50341946-2b0c-40af-b9bf-c6d06a9785f7",
+      "52965add-ab36-4aa5-923d-9750d979d341",
+      "56b48bb4-f87c-48da-a226-28f367bb14b8",
+      "580a9dc9-ed08-4f72-8187-d7d764b7be15",
+      "5da468ae-85b3-4c22-bc32-a9a239fe6c80",
+      "634399f5-0756-4664-85dd-2031e51d812b",
+      "63f474a1-7e1e-42f7-aab4-e6888d23078d",
+      "64e24f14-ed12-4741-bf45-00b9c2c17b34",
+      "6c3affab-6425-4e6b-88ba-789598a5d166",
+      "6e44399a-6ec2-4b34-bafa-ed7d0f40efcc",
+      "719bdb8f-721d-4e62-b37e-ded0c01943b9",
+      "7465d4e0-f46a-46fd-ad6b-55e06da381bd",
+      "75541826-e8c8-4f2b-aba8-f156f6a92720",
+      "7c4a9a68-9797-4204-99b4-f086f68afcf8",
+      "7d113e40-5fec-4daf-8e26-4d0faf14620e",
+      "7ec2ef59-81d1-4a89-b1b0-d77dfb2c6d5c",
+      "80a3d4ff-a921-4ac4-94ae-294d8610148b",
+      "8431b4a1-421e-4da1-a83c-12b325afe0d9",
+      "85c208d4-424a-45a6-8bc9-3307e2f9c3ab",
+      "8a171d06-16ea-4abc-b5fb-465892e9b5da",
+      "8b28d2cb-e831-4637-99ce-c55d62269a41",
+      "8e59f51b-e7dc-4e31-bb40-14c576cc7f37",
+      "9242620f-7b6b-471b-bf39-202627344065",
+      "9321c79a-f169-4f7c-8399-a7e6984b4be2",
+      "934ed202-8cfe-48fb-b2dc-945e3f1c63a9",
+      "94d8ede9-80d1-4952-834a-12dc46d6dc67",
+      "97fcba7b-07f3-47d0-80d3-277bad7d2e3d",
+      "99832cb3-ed18-4a30-b493-7cd3ae24c559",
+      "99d20507-9528-4cb2-be98-16378b6e9be0",
+      "9a149f75-c2c1-4c31-bc71-2e2d0fda3652",
+      "9c087d41-2294-4f2c-903a-cd32f221fb1e",
+      "a2b537a6-22ee-4381-a056-0790d1c38182",
+      "ab5d3e16-d329-4eda-8573-5779117f9b15",
+      "ac377efe-a7e0-4fe8-80eb-900db55bbe08",
+      "acba3fef-d1cd-4b33-afbc-bdf4589b3ff2",
+      "adec44a4-82f2-4406-942c-49287a670e68",
+      "b28cc7a2-60b7-4e97-ae19-0353e9b14334",
+      "bd9a4087-7524-4927-ba71-20e6a601f4c6",
+      "bdde735f-53fc-4f30-9143-9e742a1d7834",
+      "bf17b0a5-29a0-4bf5-aa1b-103af112f4aa",
+      "c1ffd2bc-3d42-4330-83f4-22ff221e1b03",
+      "c4090562-a512-4e6b-9067-18bbad25b3d5",
+      "c9104762-b09d-4f8c-925c-e0f6cded25f8",
+      "ca16a4eb-db84-47d5-b15d-44d6aa570956",
+      "cca9c8a8-5470-4da9-bc96-5e805ba20938",
+      "cd402cbb-b427-44be-944d-25a69655cfc5",
+      "ce08314c-878b-46a2-aa73-2997fcaa84fd",
+      "e12dfb73-eb3a-4b17-a228-66a00270b50d",
+      "e3f4ceb2-87b3-4bba-885b-a05d2d6c6e65",
+      "e55e9cb7-f2a7-4efe-9f3e-0cba02886f8a",
+      "e5e5655a-bcbe-438f-a138-79774d842c86",
+      "e9601e11-39ce-4b7d-b6c7-a1d25adba2ab",
+      "e9811510-1505-4870-936d-39b4d0645d5d",
+      "e9d06b99-dec8-4fa6-9988-c51b9564d500",
+      "ebd8bdca-cb8b-4444-9a04-238c2d72f52b",
+      "f1613545-319f-4333-b7e6-b7ecacbc17c4",
+      "f2b96cbc-8690-4779-94f5-c743fa203a74",
+      "f5a86013-97b9-46df-a0d2-10d72cd145bb",
+      "fcce3d71-5f33-4580-9bf8-970a3aa18f26"
+    ],
+    "missing_receiver_ids": [],
+    "unexpected_receiver_ids": [],
+    "unconfirmed_outbox_ids": [],
+    "invalid_receipts": [],
+    "duplicate_receiver_count": 0,
+    "e2e": {
+      "n": 82,
+      "p50_ms": 234,
+      "p95_ms": 346,
+      "p99_ms": 376
+    },
+    "critical_e2e": {
+      "n": 80,
+      "p50_ms": 234,
+      "p95_ms": 328,
+      "p99_ms": 364
+    }
+  },
+  "outage": null,
+  "telecom_recovered_after_retry_ids": [],
+  "fallback": {
+    "replacement_count": 0,
+    "confirmed_email": 0,
+    "confirmed_ui": 0,
+    "confirmed_original_ids": [],
+    "loss_count_after_verified_replacements": 0
+  }
+}

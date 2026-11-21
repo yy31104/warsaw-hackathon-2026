@@ -1,11 +1,17 @@
 from contextlib import asynccontextmanager
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from psycopg.rows import dict_row
+from psycopg.types.json import Jsonb
 
 from alerting.clock import SYSTEM
+from alerting.contracts import Outcome
 from alerting.db import pool
+from alerting.routing.directory import by_id
+from alerting.rules.scheduler import alert_with_next_escalation
+from alerting.rules.silences import SILENCE_COLUMNS, SilenceDraft, active_rows
 from alerting.rules.storage import alert_changed, audit, close_settings, get_db, get_settings
+from alerting.runbooks.approvals import pending_count, pending_for_alert
 
 
 @asynccontextmanager
@@ -46,6 +52,48 @@ def require_member(alert, actor, settings):
     return team
 
 
+@router.get("/silences")
+async def silences(team: str | None = None, db=Depends(get_db)):
+    async with db.connection() as conn:
+        return {"items": await active_rows(conn, SYSTEM.now(), team=team)}
+
+
+@router.post("/silences", status_code=201)
+async def create_silence(draft: SilenceDraft, x_user: str = Header(...), db=Depends(get_db)):
+    now = SYSTEM.now()
+    if draft.expires_at <= now:
+        raise HTTPException(422, "Silence expiry must be in the future")
+    require_member({"team_id": draft.team_id}, x_user, await get_settings(db))
+    async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+        await cur.execute(
+            f"""insert into silences (team_id,matcher,include_critical,created_by,created_at,expires_at)
+                values (%s,%s,%s,%s,%s,%s) returning {SILENCE_COLUMNS}""",
+            (draft.team_id, Jsonb(draft.match), draft.include_critical, x_user, now, draft.expires_at),
+        )
+        row = await cur.fetchone()
+        await audit(cur, x_user, "silence.create", "silence", row["id"], {
+            "team_id": draft.team_id,
+            "expires_at": draft.expires_at.isoformat(),
+            "include_critical": draft.include_critical,
+        })
+        return row
+
+
+@router.delete("/silences/{id}", status_code=204)
+async def delete_silence(id: int, x_user: str = Header(...), db=Depends(get_db)):
+    settings = await get_settings(db)
+    async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+        await cur.execute("select team_id,revoked_at from silences where id=%s for update", (id,))
+        row = await cur.fetchone()
+        if row is None:
+            raise HTTPException(404, "Silence not found")
+        require_member(row, x_user, settings)
+        if row["revoked_at"] is None:
+            await cur.execute("update silences set revoked_at=%s where id=%s", (SYSTEM.now(), id))
+            await audit(cur, x_user, "silence.delete", "silence", id, {"team_id": row["team_id"]})
+    return Response(status_code=204)
+
+
 @router.get("/alerts")
 async def alerts(
     team: str | None = None, status: str | None = None, q: str | None = None, db=Depends(get_db)
@@ -74,7 +122,21 @@ async def alerts(
 @router.get("/alerts/{id}")
 async def detail(id: int, db=Depends(get_db)):
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-        alert = public_alert(await get_alert(cur, id))
+        settings = await get_settings(db, conn=conn)
+        row = await alert_with_next_escalation(cur, id, settings)
+        if row is None:
+            raise HTTPException(404, "Alert not found")
+        alert = {
+            **public_alert(row),
+            "representative_event_id": row["representative_event_id"],
+            "next_escalation": row["next_escalation"],
+        }
+        pending = await pending_for_alert(cur, id)
+        if pending:
+            team = by_id(settings.directory["teams"]).get(alert["team_id"], {})
+            for run in pending:
+                run["approvers"] = team.get("approvers", [])
+        alert["pending_actions"] = pending
         await cur.execute(
             """select o.event_id,o.seen_at,e.fields from alert_occurrences o join events e on e.id=o.event_id
             where o.alert_id=%s order by event_id""",
@@ -87,12 +149,21 @@ async def detail(id: int, db=Depends(get_db)):
                 from notifications where alert_id=%s
             union all select d.finished_at,'notification',concat(n.channel,' → ',n.recipient,': ',d.outcome,' (attempt ',d.attempt,')')
                 from delivery_attempts d join notifications n on n.id=d.notification_id where n.alert_id=%s and d.finished_at is not null
-            union all select at,'audit',concat(actor,' ',action) from audit_log where target_kind='alert' and target_id=%s
+            union all select at,'audit',concat(actor,' ',action) from audit_log
+                where (target_kind='alert' and target_id=%s)
+                   or (target_kind='sender' and action='approval.locked'
+                       and detail->'alert_ids' @> jsonb_build_array(%s::bigint))
             order by ts""",
-            (id, id, id, str(id)),
+            (id, id, id, str(id), id),
         )
         alert["timeline"] = await cur.fetchall()
         return alert
+
+
+@router.get("/stats/pending-approvals")
+async def pending_approvals(team: str | None = None, db=Depends(get_db)):
+    async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+        return await pending_count(cur, team)
 
 
 async def change(db, id, actor, resolve):
@@ -147,10 +218,16 @@ async def explain(id: int, db=Depends(get_db)):
             (id,),
         )
         decisions = await cur.fetchall()
-        outcome = next((d["outcome"] for d in decisions if d["outcome"] != "NO_MATCH"), None)
-        keys = [key for d in decisions for key in (d["reason"] or {}).get("notifications", [])]
+        live = [
+            decision
+            for decision in decisions
+            if decision["outcome"] != Outcome.SHADOW_MATCH
+            and not (decision["reason"] or {}).get("shadow")
+        ]
+        outcome = next((d["outcome"] for d in live if d["outcome"] != "NO_MATCH"), None)
+        keys = [key for d in live for key in (d["reason"] or {}).get("notifications", [])]
         buckets = [
-            key for d in decisions for key in (d["reason"] or {}).get("throttle_buckets", [])
+            key for d in live for key in (d["reason"] or {}).get("throttle_buckets", [])
         ]
         await cur.execute(
             """select id,alert_id,kind,channel,recipient,state from notifications
@@ -164,5 +241,5 @@ async def explain(id: int, db=Depends(get_db)):
             ),
             "decisions": decisions,
             "notifications": await cur.fetchall(),
-            "outcome": outcome or ("NO_MATCH" if decisions else event["status"].upper()),
+            "outcome": outcome or ("NO_MATCH" if live else event["status"].upper()),
         }

@@ -1,0 +1,59 @@
+{
+  "families": [
+    "gpt-6-luna",
+    "gpt-6.2-sol"
+  ],
+  "models": {
+    "gpt-6-luna": "gpt-6-luna",
+    "gpt-6.2-sol": "gpt-6.2-sol"
+  },
+  "output_cap": 1536,
+  "production_sha256": "6b859356322ce370f7ce5015e24927e716ad356d08e1898d3ca6602757eb77c8",
+  "rates_sha256": "deedefd837d933ba14eb45e6b6b766b00ad3fe1164b3a04628d27051659bc05a",
+  "fixtures_manifest_sha256": "0392974a44d194856491a3a0cfc48e119345a26b22a9bef62a3d105bdc2bdd45",
+  "scorer_sha256": "b4f1499477e6278c832dbac09c9598015d94d3cac2caed297b1294eefbfda7f0",
+  "split": "heldback",
+  "fixtures_sha256": {
+    "heldback_schemas.json": "f10e5f67f9d70b9a4c3e632f02690b7a174a373d287516187172566bd5d4f6b3",
+    "heldback_runbooks.json": "1b318aeeb4284181427053807e77ace3c3bc53d329244dbc48c34534a91cdd1d"
+  },
+  "phase": "final",
+  "source_revision": "92f0e5c06bd927383aa909bbaabb008d392def8b",
+  "runner_revision": "92f0e5c06bd927383aa909bbaabb008d392def8b",
+  "pricing": {
+    "gpt-6-luna": {
+      "input_per_million": "0.10",
+      "cached_input_per_million": "0.01",
+      "cache_write_per_million": "0.125",
+      "output_per_million": "0.50",
+      "max_context_tokens": 1050000,
+      "long_context_above": 272000,
+      "source": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+      "verified_utc": "2026-11-21"
+    },
+    "gpt-6.2-sol": {
+      "input_per_million": "2.00",
+      "cached_input_per_million": "0.10",
+      "cache_write_per_million": "2.50",
+      "output_per_million": "10.00",
+      "max_context_tokens": 922000,
+      "long_context_above": 272000,
+      "source": "https://developers.openai.com/api/docs/models/gpt-6.2-sol",
+      "verified_utc": "2026-11-21"
+    }
+  },
+  "inventory": {
+    "gpt-6-luna": {
+      "listed_family": true,
+      "listed_snapshots": [],
+      "selected": "gpt-6-luna"
+    },
+    "gpt-6.2-sol": {
+      "listed_family": true,
+      "listed_snapshots": [],
+      "selected": "gpt-6.2-sol"
+    }
+  },
+  "inventory_error": null,
+  "budget_usd": "5"
+}

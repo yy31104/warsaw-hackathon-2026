@@ -2,6 +2,7 @@
 
 from datetime import timedelta
 from secrets import randbelow
+from typing import Literal
 
 import httpx
 from fastapi import HTTPException
@@ -19,7 +20,33 @@ from alerting.routing import plan
 from alerting.routing.directory import by_id
 from alerting.rules.storage import alert_changed, audit, emit, enqueue
 from alerting.runbooks.actions import REGISTRY
+from alerting.runbooks.actions.network import check_execution
 from alerting.runbooks.render import render
+
+
+# These two reads must agree with the expiry check in decide(), even before cleanup runs.
+PENDING_APPROVAL = "r.state='pending_approval' and r.approval_expires_at > %s"
+
+
+async def pending_for_alert(cur, alert_id):
+    await cur.execute(
+        f"""select r.id as run_id, r.action, r.requested_by, r.state as status, r.created_at
+            from action_runs r where r.alert_id=%s and {PENDING_APPROVAL}
+            order by r.created_at, r.id""",
+        (alert_id, SYSTEM.now()),
+    )
+    return await cur.fetchall()
+
+
+async def pending_count(cur, team):
+    query = f"""select count(*) as pending_approval_count from action_runs r
+                join alerts a on a.id=r.alert_id where {PENDING_APPROVAL}"""
+    params = [SYSTEM.now()]
+    if team:
+        query += " and a.team_id=%s"
+        params.append(team)
+    await cur.execute(query, params)
+    return await cur.fetchone()
 
 
 def public(row):
@@ -46,8 +73,18 @@ async def runbook_for(cur, alert, settings):
     await cur.execute("select fields from events where id=%s", (alert["representative_event_id"],))
     event = await cur.fetchone()
     await cur.execute(
-        "select step_index,action,state from action_runs where alert_id=%s and runbook_id=%s order by id",
-        (alert["id"], book["id"]),
+        """select r.id as run_id, r.step_index, r.action, r.requested_by,
+                  case when r.state='pending_approval' and r.approval_expires_at<=%s
+                       then 'expired' else r.state end as state,
+                  case when r.state <> 'rejected' then r.approved_by end as approved_by,
+                  coalesce(executions.n, 0) as execution_count
+           from action_runs r left join (
+               select detail->>'run_id' as run_id, count(*) as n from audit_log
+               where target_kind='alert' and target_id=%s and action='action.execute'
+               group by detail->>'run_id'
+           ) executions on executions.run_id=r.id::text
+           where r.alert_id=%s and r.runbook_id=%s order by r.id""",
+        (SYSTEM.now(), str(alert["id"]), alert["id"], book["id"]),
     )
     team = by_id(settings.directory["teams"]).get(alert["team_id"], {})
     return render(
@@ -77,7 +114,7 @@ async def request_run(cur, alert, step, actor, settings):
             (now, now),
         )
     for _ in range(32):
-        code = f"{randbelow(10000):04d}" if required else None
+        code = f"{randbelow(1_000_000):06d}" if required else None
         await cur.execute(
             """insert into action_runs(alert_id,runbook_id,step_index,action,params,approval,
             state,approval_code,approval_expires_at,requested_by,resolves_alert)
@@ -92,7 +129,7 @@ async def request_run(cur, alert, step, actor, settings):
                 step["approval"],
                 "pending_approval" if required else "requested",
                 code,
-                now + timedelta(minutes=10) if required else None,
+                now + timedelta(minutes=5) if required else None,
                 actor,
                 step.get("resolves_alert", False),
             ),
@@ -103,7 +140,7 @@ async def request_run(cur, alert, step, actor, settings):
     else:
         raise HTTPException(503, "Approval codes busy")
     if required:
-        text = f"Approve {step['action']} for alert {alert['id']}? Reply YES {code} or NO {code} within 10 minutes."
+        text = f"Approve {step['action']} for alert {alert['id']}? Reply YES {code} or NO {code} within 5 minutes."
         msg = RenderedMessage(title="Runbook approval", body=text, short=text)
         intents = [
             NotificationIntent(
@@ -179,8 +216,12 @@ async def execute(db, run_id, actor, settings):
     ctx = ActionContext(
         alert=alert, event_fields=alert.get("event_fields") or {}, actor=actor, run_id=run_id
     )
+    uncertain = False
     try:
         result = await REGISTRY[run["action"]].execute(run["params"], ctx)
+    except httpx.TimeoutException:
+        uncertain = True
+        result = ActionResult(ok=False, error="Receiver timed out; check execution before retry")
     except (KeyError, ValueError, httpx.HTTPError) as exc:
         result = ActionResult(ok=False, error=str(exc))
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
@@ -203,23 +244,127 @@ async def execute(db, run_id, actor, settings):
         await cur.execute(
             """update action_runs set state=%s,result=%s,updated_at=now()
             where id=%s returning *""",
-            ("succeeded" if result.ok else "failed", Jsonb(result.model_dump()), run_id),
+            (
+                "unknown" if uncertain else "succeeded" if result.ok else "failed",
+                Jsonb(result.model_dump()),
+                run_id,
+            ),
         )
         row = await cur.fetchone()
         await audit(
             cur, actor, "action.execute", "alert", alert["id"], {"run_id": run_id, "ok": result.ok}
         )
-        if result.ok and (run["resolves_alert"] or result.resolves_alert):
-            await cur.execute(
-                """update alerts set status='resolved',resolved_by='system',resolved_at=now(),
-                resolve_reason='runbook',updated_at=now() where id=%s and status<>'resolved' returning *""",
-                (alert["id"],),
-            )
-            updated = await cur.fetchone()
-            if updated:
-                await audit(
-                    cur, "system", "alert.resolve", "alert", alert["id"], {"run_id": run_id}
-                )
-                await alert_changed(cur, updated)
+        await resolve_on_success(cur, result, run, alert)
         await changed(cur, row, alert["team_id"])
         return public(row)
+
+
+async def resolve_on_success(cur, result, run, alert):
+    if result.ok and (run["resolves_alert"] or result.resolves_alert):
+        await cur.execute(
+            """update alerts set status='resolved',resolved_by='system',resolved_at=now(),
+            resolve_reason='runbook',updated_at=now() where id=%s and status<>'resolved' returning *""",
+            (alert["id"],),
+        )
+        updated = await cur.fetchone()
+        if updated:
+            await audit(cur, "system", "alert.resolve", "alert", alert["id"], {"run_id": run["id"]})
+            await alert_changed(cur, updated)
+
+
+async def verify_run(db, run_id, actor, *, operation: Literal["check", "reconcile", "retry"]):
+    from alerting.api.routes_alerts import require_member
+    from alerting.rules.storage import get_settings
+
+    settings = await get_settings(db)
+    async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+        await cur.execute("select * from action_runs where id=%s", (run_id,))
+        run = await cur.fetchone()
+        if not run:
+            raise HTTPException(404, "Run not found")
+        await cur.execute("select * from alerts where id=%s", (run["alert_id"],))
+        alert = await cur.fetchone()
+        unknown = run["state"] == "unknown"
+        reconciling = operation == "reconcile" or (operation == "check" and unknown)
+        if reconciling:
+            team = by_id(settings.directory["teams"]).get(alert["team_id"], {})
+            if actor != run["requested_by"] and actor not in team.get("approvers", []):
+                raise HTTPException(403, "The action requester or a team approver is required")
+            if not unknown:
+                raise HTTPException(409, "Only an unknown run can be reconciled")
+        else:
+            require_member(alert, actor, settings)
+            if unknown:
+                raise HTTPException(409, "Reconcile the unknown action before retrying")
+        if run["state"] not in {"unknown", "failed", "succeeded"}:
+            raise HTTPException(409, "Run is not ready for verification")
+    if run["action"] == "escalate" and not reconciling:
+        # This internal action completes in the same transaction as its notification outbox.
+        return public(run)
+    try:
+        receipt = await check_execution(run_id)
+    except (httpx.HTTPError, ValueError) as exc:
+        raise HTTPException(503, "Receiver verification unavailable") from exc
+    async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+        await cur.execute("select id from alerts where id=%s for update", (alert["id"],))
+        await cur.execute(
+            """select * from action_runs where alert_id=%s and runbook_id=%s and step_index=%s
+                         order by id desc limit 1 for update""",
+            (alert["id"], run["runbook_id"], run["step_index"]),
+        )
+        latest = await cur.fetchone()
+        if not latest or latest["id"] != run_id or latest["updated_at"] != run["updated_at"]:
+            raise HTTPException(409, "Run changed; check the latest result")
+        receiver_state = receipt["state"] if receipt else "not_found"
+        await audit(
+            cur,
+            actor,
+            "action.reconcile" if reconciling else "action.verify",
+            "alert",
+            alert["id"],
+            {"run_id": run_id, "receiver_state": receiver_state},
+        )
+        if reconciling and receiver_state not in ("succeeded", "failed"):
+            message = (
+                f"The receiver has no receipt for action-{run_id}."
+                if receipt is None else f"The receipt for action-{run_id} reports {receiver_state}."
+            )
+            return {**public(run), "message": f"{message} The outcome is still unknown."}
+        if receipt:
+            state = receipt["state"]
+            if state not in ("succeeded", "failed"):
+                return public(run)
+            result = ActionResult.model_validate(receipt["result"])
+            if result.ok != (state == "succeeded"):
+                raise HTTPException(503, "Inconsistent execution receipt")
+            await cur.execute(
+                "update action_runs set state=%s,result=%s,updated_at=now() where id=%s returning *",
+                (state, Jsonb(result.model_dump()), run_id),
+            )
+            current = await cur.fetchone()
+            await resolve_on_success(cur, result, run, alert)
+            await changed(cur, current, alert["team_id"])
+        else:
+            state, current = run["state"], run
+        if operation != "retry" or state == "succeeded":
+            return public(current)
+        step = {
+            "index": run["step_index"],
+            "action": run["action"],
+            "params": run["params"],
+            "approval": run["approval"],
+            "resolves_alert": run["resolves_alert"],
+        }
+        new = await request_run(cur, alert, step, actor, settings)
+        if new["state"] == "pending_approval":
+            return new
+        next_id = new["id"]
+        await audit(
+            cur,
+            actor,
+            "action.retry",
+            "alert",
+            alert["id"],
+            {"run_id": run_id, "next_run_id": next_id},
+        )
+    return await execute(db, next_id, actor, settings)

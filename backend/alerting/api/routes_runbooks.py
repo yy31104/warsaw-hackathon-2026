@@ -1,10 +1,15 @@
-from fastapi import APIRouter, Depends, Header, HTTPException
-from psycopg.rows import dict_row
-from pydantic import BaseModel, Field
+from typing import Annotated
 
-from alerting.api.routes_alerts import get_alert, require_member
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from psycopg.rows import dict_row
+from psycopg_pool import AsyncConnectionPool
+from pydantic import BaseModel, Field, StrictBool
+
+from alerting.api.routes_alerts import get_alert, public_alert, require_member
+from alerting.memory import ResolutionNote
+from alerting.memory import store as memory
 from alerting.rules.storage import get_db, get_settings
-from alerting.runbooks.approvals import decide, execute, request_run, runbook_for
+from alerting.runbooks.approvals import decide, execute, request_run, runbook_for, verify_run
 
 router = APIRouter(prefix="/v1", tags=["runbooks"])
 
@@ -29,6 +34,20 @@ async def start(id: int, body: StepRequest, x_user: str = Header(...), db=Depend
         steps = (await runbook_for(cur, alert, settings))["steps"]
         if body.step_index >= len(steps):
             raise HTTPException(422, "Unknown step")
+        await cur.execute(
+            """select id,state from action_runs where alert_id=%s and runbook_id=%s and step_index=%s
+                              and state in ('requested','approved','running','unknown','failed','succeeded') order by id desc limit 1""",
+            (id, alert["runbook_id"], body.step_index),
+        )
+        previous = await cur.fetchone()
+        if previous:
+            message = (
+                "Reconcile the unknown action before retrying"
+                if previous["state"] == "unknown" else "Check the prior result and confirm a retry"
+            )
+            raise HTTPException(
+                409, {"message": message, "run_id": previous["id"]},
+            )
         row = await request_run(cur, alert, steps[body.step_index], x_user, settings)
     if row["state"] == "requested":
         return await execute(db, row["id"], x_user, settings)
@@ -50,3 +69,54 @@ async def approve(id: int, x_user: str = Header(...), db=Depends(get_db)):
 @router.post("/action-runs/{id}/reject")
 async def reject(id: int, x_user: str = Header(...), db=Depends(get_db)):
     return await decision(db, id, x_user, False)
+
+
+class RetryRequest(BaseModel):
+    confirm: StrictBool
+
+
+@router.post("/action-runs/{id}/check-result")
+async def check_result(id: int, x_user: str = Header(...), db=Depends(get_db)):
+    return await verify_run(db, id, x_user, operation="check")
+
+
+@router.post("/action-runs/{id}/reconcile")
+async def reconcile(id: int, x_user: str = Header(...), db=Depends(get_db)):
+    return await verify_run(db, id, x_user, operation="reconcile")
+
+
+@router.post("/action-runs/{id}/retry")
+async def retry(id: int, body: RetryRequest, x_user: str = Header(...), db=Depends(get_db)):
+    if not body.confirm:
+        raise HTTPException(409, "An operator must explicitly confirm the retry")
+    return await verify_run(db, id, x_user, operation="retry")
+
+
+@router.post("/alerts/{id}/resolve-with-note")
+async def resolve_with_note(
+    id: int,
+    body: ResolutionNote,
+    x_user: Annotated[str, Header()],
+    db: Annotated[AsyncConnectionPool, Depends(get_db)],
+):
+    """Resolve with a verified note, or attach the original resolver's note to a manual resolution."""
+    settings = await get_settings(db)
+    async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+        alert = await get_alert(cur, id, lock=True)
+        require_member(alert, x_user, settings)
+        return public_alert(await memory.resolve_with_note(cur, alert, x_user, body, settings))
+
+
+@router.get("/alerts/{id}/similar")
+async def similar(
+    id: int,
+    x_user: Annotated[str, Header()],
+    db: Annotated[AsyncConnectionPool, Depends(get_db)],
+    limit: Annotated[int, Query(ge=1, le=50)] = 5,
+):
+    """Return the team's historical hints, strongest match first and newest resolution first within a match."""
+    settings = await get_settings(db)
+    async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+        alert = await get_alert(cur, id)
+        require_member(alert, x_user, settings)
+        return {"hints": await memory.similar(cur, alert, limit)}

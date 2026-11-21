@@ -37,6 +37,8 @@ async def test_mock_ops_and_suggested_escalation(api, database, monkeypatch):
 
     def receive(req):
         requests.append(req.url.path)
+        if req.url.path.startswith("/executions/"):
+            return httpx.Response(200, json={"state": "failed", "result": {"ok": False}})
         if req.url.path == "/health":
             return httpx.Response(200, json={"healthy": True})
         return httpx.Response(503)
@@ -48,14 +50,24 @@ async def test_mock_ops_and_suggested_escalation(api, database, monkeypatch):
     )
     await seed(database)
     await process_batch(database, Settings.load())
-    for step in [1, 1]:
-        res = await api.post(
-            "/v1/alerts/1/actions", json={"step_index": step}, headers={"X-User": "sam"}
-        )
-        assert res.json()["state"] == "failed"
+    failed = await api.post(
+        "/v1/alerts/1/actions", json={"step_index": 1}, headers={"X-User": "sam"}
+    )
+    assert failed.json()["state"] == "failed"
+    retried = await api.post(
+        f"/v1/action-runs/{failed.json()['id']}/retry",
+        json={"confirm": True},
+        headers={"X-User": "sam"},
+    )
+    assert retried.json()["state"] == "failed"
     assert (await api.get("/v1/alerts/1/runbook")).json()["steps"][2]["suggested"]
     assert (
         await api.post("/v1/alerts/1/actions", json={"step_index": 0}, headers={"X-User": "sam"})
     ).json()["state"] == "succeeded"
     assert (await api.get("/v1/alerts/1")).json()["resolved_by"] == "system"
-    assert requests == ["/workflows/WF-0/retry", "/workflows/WF-0/retry", "/health"]
+    assert requests == [
+        "/workflows/WF-0/retry",
+        "/executions/action-1",
+        "/workflows/WF-0/retry",
+        "/health",
+    ]

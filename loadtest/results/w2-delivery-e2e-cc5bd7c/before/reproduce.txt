@@ -1,0 +1,6 @@
+Batch m11-11210324-24866
+Commit d7a6884813f7270ee75482da113390ed68cb9f5b
+From the repository root
+docker compose --ansi never -p w0w2-before build api fake-telecom
+/opt/homebrew/opt/python@3.12/bin/python3.12 loadtest/run_saturation.py --output /private/tmp/gs-w0-round3.UbUmhI/m4-pair/loadtest/results/w2-delivery-e2e-cc5bd7c/before --rates 700 --keys 1000 --workers 4 --duration 60 --critical-rate 2 --delivery-workers 1 --ingest-workers 2 --drain-seconds 20 --image-project w0w2-before
+Each run includes an exact commands.json and two untouched terminal traces.

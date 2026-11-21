@@ -1,0 +1,5 @@
+CI head 09d577ac74bcc04ad899bd36ed754e9415e00c5d
+GitHub job 136742336303
+test	Tests	2026-11-21T05:16:20.7560129Z ##[group]Run uv sync && uv run pytest -q
+test	Tests	2026-11-21T05:16:20.7560553Z uv sync && uv run pytest -q
+test	Tests	2026-11-21T05:20:05.3505134Z 798 passed in 221.18s (0:03:41)

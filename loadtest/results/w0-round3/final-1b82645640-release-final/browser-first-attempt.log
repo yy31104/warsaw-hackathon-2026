@@ -1,0 +1,50 @@
+
+> alert-funnel-ui@0.1.0 test:console
+> node e2e/console.mjs
+
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
+  [
+    'phone',
++   'phone',
++   'phone',
++   'phone',
++   'phone',
++   'phone',
++   'phone',
++   'phone',
+    'sms',
++   'sms',
++   'sms',
++   'sms',
++   'sms',
++   'sms',
++   'sms',
++   'sms'
+  ]
+
+    at file://<w0>/final-release/main/frontend/e2e/console.mjs:223:12
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async test (file://<w0>/final-release/main/frontend/e2e/console.mjs:53:5)
+    at async file://<w0>/final-release/main/frontend/e2e/console.mjs:195:3 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [
+    'phone', 'phone', 'phone',
+    'phone', 'phone', 'phone',
+    'phone', 'phone', 'sms',
+    'sms',   'sms',   'sms',
+    'sms',   'sms',   'sms',
+    'sms'
+  ],
+  expected: [ 'phone', 'sms' ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.0.0

@@ -1,0 +1,235 @@
+{
+  "source": "Isolated Compose, production frontend VITE_MOCK=0",
+  "when": "2026-11-21T04:55:30.986Z",
+  "tests": {
+    "A · live critical incident and acknowledge": {
+      "status": "PASS",
+      "seconds": 0.94
+    },
+    "B · Lee approves persisted retry in a separate context": {
+      "status": "PASS",
+      "seconds": 0.66
+    },
+    "Timeline · one plain row per delivery and raw history in More details": {
+      "status": "PASS",
+      "seconds": 0.04
+    },
+    "C and F · unknown JSON verified and routed with assist off": {
+      "status": "PASS",
+      "seconds": 0.92
+    },
+    "D · rule typo suggestion and versioned publish": {
+      "status": "PASS",
+      "seconds": 0.27
+    },
+    "E · structured runbook validation blocks publish until fixed": {
+      "status": "PASS",
+      "seconds": 0.18
+    },
+    "On call · preference sliders persist": {
+      "status": "PASS",
+      "seconds": 0.09
+    },
+    "Health · live counters and dated benchmark provenance": {
+      "status": "PASS",
+      "seconds": 0.04
+    },
+    "Now · one fallback tile or four live response tiles": {
+      "status": "PASS",
+      "seconds": 0.24
+    },
+    "Now · four tiles with an example response and a missing sample": {
+      "status": "PASS",
+      "seconds": 0.26
+    },
+    "Intro · auto-enter and session replay": {
+      "status": "PASS",
+      "seconds": 6.56
+    },
+    "Screenshots · four layouts across eight views": {
+      "status": "PASS",
+      "seconds": 3.13
+    },
+    "Network · genuine API, no fixtures or browser errors": {
+      "status": "PASS",
+      "seconds": 0
+    }
+  },
+  "measurements": {
+    "incident": {
+      "alert_id": 3,
+      "event_id": 8,
+      "occurrence_count": 2,
+      "provider_channels": [
+        "phone",
+        "sms"
+      ],
+      "acked_by": "sam",
+      "next_escalation": null
+    },
+    "approval": {
+      "run_id": 1,
+      "state": "succeeded",
+      "approved_by": "lee"
+    },
+    "timeline": {
+      "call": {
+        "id": "abba536d-2c2e-48a4-8ced-915731968ca4",
+        "alert_id": 3,
+        "kind": "initial",
+        "recipient": "sam",
+        "channel": "phone",
+        "state": "delivered",
+        "attempts": 1,
+        "fallback_of": null,
+        "attempt_log": [
+          {
+            "error": null,
+            "attempt": 1,
+            "outcome": "delivered",
+            "latency_ms": 96
+          }
+        ]
+      },
+      "label": "Call to Sam · delivered in 0.10 s",
+      "sms": "SMS to Sam · delivered"
+    },
+    "source": {
+      "unknown_event_id": 10,
+      "next_event_id": 11,
+      "schema": "format-c1c1373d2c8e",
+      "schema_name": "Clearing trade messages",
+      "deciding_field": "amount_minor",
+      "expected_recipients": [
+        "rita",
+        "team:rates"
+      ],
+      "reprocessed": 1,
+      "amount": 2500000,
+      "delivered_to": "rita",
+      "channel": "email"
+    },
+    "response_metrics": {
+      "api_status": 200,
+      "tiles": 4,
+      "stats": {
+        "n_alerts": 1,
+        "tta_p50_s": 0.296055,
+        "tta_p95_s": 0.296055,
+        "mtta_s": 0.465242,
+        "mttr_s": 1.161307,
+        "ack_rate": 1,
+        "unrouted": 0,
+        "notifications_per_alert": 3,
+        "no_action_rate": 0,
+        "interruptions": [
+          {
+            "user": "sam",
+            "count": 2
+          },
+          {
+            "user": "lee",
+            "count": 1
+          }
+        ],
+        "sample_counts": {
+          "n_alerts": 1,
+          "tta_p50_s": 1,
+          "tta_p95_s": 1,
+          "mtta_s": 1,
+          "mttr_s": 1,
+          "ack_rate": 1,
+          "unrouted": 0,
+          "notifications_per_alert": 1,
+          "no_action_rate": 1,
+          "interruptions": 3
+        },
+        "window": "24h"
+      }
+    }
+  },
+  "screenshots": [
+    "desktop-dark/sources-quiet-test.jpg",
+    "desktop-dark/now-response-live.jpg",
+    "desktop-dark/now-response-example.jpg",
+    "desktop-light/intro.jpg",
+    "desktop-light/now.jpg",
+    "desktop-light/incident.jpg",
+    "desktop-light/sources.jpg",
+    "desktop-light/rules.jpg",
+    "desktop-light/runbooks.jpg",
+    "desktop-light/on-call.jpg",
+    "desktop-light/health.jpg",
+    "desktop-dark/intro.jpg",
+    "desktop-dark/now.jpg",
+    "desktop-dark/incident.jpg",
+    "desktop-dark/sources.jpg",
+    "desktop-dark/rules.jpg",
+    "desktop-dark/runbooks.jpg",
+    "desktop-dark/on-call.jpg",
+    "desktop-dark/health.jpg",
+    "phone-light/intro.jpg",
+    "phone-light/now.jpg",
+    "phone-light/incident.jpg",
+    "phone-light/sources.jpg",
+    "phone-light/rules.jpg",
+    "phone-light/runbooks.jpg",
+    "phone-light/on-call.jpg",
+    "phone-light/health.jpg",
+    "phone-dark/intro.jpg",
+    "phone-dark/now.jpg",
+    "phone-dark/incident.jpg",
+    "phone-dark/sources.jpg",
+    "phone-dark/rules.jpg",
+    "phone-dark/runbooks.jpg",
+    "phone-dark/on-call.jpg",
+    "phone-dark/health.jpg"
+  ],
+  "api": {
+    "GET /metrics → 200": 6,
+    "GET /ops-health → 200": 6,
+    "GET /v1/alerts/3 → 200": 36,
+    "GET /v1/alerts/3/notifications → 200": 21,
+    "GET /v1/alerts/3/runbook → 200": 21,
+    "GET /v1/alerts/7 → 200": 12,
+    "GET /v1/alerts/7/notifications → 200": 4,
+    "GET /v1/alerts/7/runbook → 200": 4,
+    "GET /v1/alerts?team=payments&status=open → 200": 10,
+    "GET /v1/alerts?team=platform&status=open → 200": 11,
+    "GET /v1/alerts?team=settlements → 200": 21,
+    "GET /v1/alerts?team=settlements&status=open → 200": 47,
+    "GET /v1/assist/status → 200": 52,
+    "GET /v1/events/10 → 200": 3,
+    "GET /v1/events/12/explain → 200": 4,
+    "GET /v1/events/13 → 200": 15,
+    "GET /v1/events/9/explain → 200": 20,
+    "GET /v1/rules → 200": 17,
+    "GET /v1/runbooks → 200": 7,
+    "GET /v1/schema-issues → 200": 23,
+    "GET /v1/stats/funnel?window=24h → 200": 27,
+    "GET /v1/stats/pending-approvals?team=payments → 200": 10,
+    "GET /v1/stats/pending-approvals?team=platform → 200": 9,
+    "GET /v1/stats/pending-approvals?team=settlements → 200": 46,
+    "GET /v1/stats/response?window=24h&team=settlements → 200": 10,
+    "GET /v1/stream?team=payments → 200": 5,
+    "GET /v1/stream?team=platform → 200": 5,
+    "GET /v1/stream?team=settlements → 200": 23,
+    "GET /v1/teams → 200": 62,
+    "GET /v1/users/anna/preferences → 200": 6,
+    "POST /v1/action-runs/1/approve → 200": 1,
+    "POST /v1/alerts/3/ack → 200": 1,
+    "POST /v1/alerts/3/actions → 200": 1,
+    "POST /v1/rules/check → 200": 1,
+    "POST /v1/rules/console-review-mwpxpibx/preview → 200": 1,
+    "POST /v1/runbooks → 201": 1,
+    "POST /v1/runbooks/structure → 200": 1,
+    "POST /v1/schemas/preview?fingerprint=amount_minor%2Cpriority_mwpxpibx%2Cref_mwpxpibx%2Cvendor_feed → 200": 1,
+    "POST /v1/schemas/suggest → 200": 5,
+    "POST /v1/schemas/verify → 200": 3,
+    "POST /v1/schemas?fingerprint=amount_minor%2Cpriority_mwpxpibx%2Cref_mwpxpibx%2Cvendor_feed&base_version=0 → 200": 1,
+    "PUT /v1/rules/console-review-mwpxpibx → 200": 1,
+    "PUT /v1/users/anna/preferences → 200": 1
+  },
+  "unexpected": [],
+  "pageErrors": []
+}

@@ -1,0 +1,1227 @@
+{
+  "commit": "1b82645640736f48f31da6f41945cfae8cd93b0b",
+  "scorecard_commit": "770e729b5762dde79d11d4755153d3e25f782223",
+  "working_tree_changes": [],
+  "clock": "2026-11-20T10:00:00+00:00",
+  "fixture_sha256": {
+    "dev": "45947ee8adebd471d664ad9745be8c53da9dde44e53a7e6fb65c81022b2e05f7",
+    "held-out": "73d56cade6e8e227fe5c57d022c2b16db1f3c1f713cb5829b50921d332a4f113"
+  },
+  "cases": [
+    {
+      "id": "dev-notional-in-major-units",
+      "split": "dev",
+      "oracle": {
+        "amount": 1,
+        "summary": "payload.reason"
+      },
+      "expected": [
+        {
+          "rules": [
+            "rates-big-rejects"
+          ],
+          "routes": [
+            [
+              "rita",
+              "email"
+            ],
+            [
+              "team:rates",
+              "ui"
+            ]
+          ],
+          "critical": false
+        }
+      ],
+      "critical": false,
+      "ask_all": {
+        "status": "INVARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [
+              "rates-big-rejects"
+            ],
+            "alerts": [
+              {
+                "rule_id": "rates-big-rejects",
+                "severity": "warning",
+                "priority": "P2",
+                "alert_key": "MAJOR-1"
+              }
+            ],
+            "deliveries": [
+              {
+                "recipient": "rita",
+                "channel": "email"
+              },
+              {
+                "recipient": "team:rates",
+                "channel": "ui"
+              }
+            ]
+          }
+        ],
+        "total_combinations": 1,
+        "evaluated_combinations": 1,
+        "warnings": [],
+        "runtime_ms": 2.796375,
+        "asked": [
+          "amount",
+          "summary"
+        ],
+        "questions_for_mean": 2,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      },
+      "adaptive": {
+        "status": "VARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [
+              "rates-big-rejects"
+            ],
+            "alerts": [
+              {
+                "rule_id": "rates-big-rejects",
+                "severity": "warning",
+                "priority": "P2",
+                "alert_key": "MAJOR-1"
+              }
+            ],
+            "deliveries": [
+              {
+                "recipient": "rita",
+                "channel": "email"
+              },
+              {
+                "recipient": "team:rates",
+                "channel": "ui"
+              }
+            ]
+          }
+        ],
+        "total_combinations": 4,
+        "evaluated_combinations": 4,
+        "warnings": [],
+        "runtime_ms": 1.01925,
+        "asked": [
+          "amount"
+        ],
+        "questions_for_mean": 1,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      }
+    },
+    {
+      "id": "dev-notional-in-minor-units",
+      "split": "dev",
+      "oracle": {
+        "amount": 0.01,
+        "producer": "meta.producer"
+      },
+      "expected": [
+        {
+          "rules": [],
+          "routes": [],
+          "critical": false
+        }
+      ],
+      "critical": false,
+      "ask_all": {
+        "status": "INVARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [],
+            "alerts": [],
+            "deliveries": []
+          }
+        ],
+        "total_combinations": 1,
+        "evaluated_combinations": 1,
+        "warnings": [],
+        "runtime_ms": 0.518,
+        "asked": [
+          "amount",
+          "producer"
+        ],
+        "questions_for_mean": 2,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      },
+      "adaptive": {
+        "status": "VARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [],
+            "alerts": [],
+            "deliveries": []
+          }
+        ],
+        "total_combinations": 4,
+        "evaluated_combinations": 4,
+        "warnings": [],
+        "runtime_ms": 1.043708,
+        "asked": [
+          "amount"
+        ],
+        "questions_for_mean": 1,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      }
+    },
+    {
+      "id": "dev-settlement-independent-fields",
+      "split": "dev",
+      "oracle": {
+        "unit": 0.001,
+        "summary": "operatorNote"
+      },
+      "expected": [
+        {
+          "rules": [
+            "settlements-wf-failed"
+          ],
+          "routes": [
+            [
+              "sam",
+              "phone"
+            ],
+            [
+              "sam",
+              "sms"
+            ],
+            [
+              "team:settlements",
+              "ui"
+            ]
+          ],
+          "critical": false
+        }
+      ],
+      "critical": false,
+      "ask_all": {
+        "status": "INVARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [
+              "settlements-wf-failed"
+            ],
+            "alerts": [
+              {
+                "rule_id": "settlements-wf-failed",
+                "severity": "error",
+                "priority": "P1",
+                "alert_key": "order-settlement|validate|INVALID_BOOK"
+              }
+            ],
+            "deliveries": [
+              {
+                "recipient": "sam",
+                "channel": "phone"
+              },
+              {
+                "recipient": "sam",
+                "channel": "sms"
+              },
+              {
+                "recipient": "team:settlements",
+                "channel": "ui"
+              }
+            ]
+          }
+        ],
+        "total_combinations": 1,
+        "evaluated_combinations": 1,
+        "warnings": [],
+        "runtime_ms": 0.526209,
+        "asked": [
+          "unit",
+          "summary"
+        ],
+        "questions_for_mean": 2,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      },
+      "adaptive": {
+        "status": "INVARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [
+              "settlements-wf-failed"
+            ],
+            "alerts": [
+              {
+                "rule_id": "settlements-wf-failed",
+                "severity": "error",
+                "priority": "P1",
+                "alert_key": "order-settlement|validate|INVALID_BOOK"
+              }
+            ],
+            "deliveries": [
+              {
+                "recipient": "sam",
+                "channel": "phone"
+              },
+              {
+                "recipient": "sam",
+                "channel": "sms"
+              },
+              {
+                "recipient": "team:settlements",
+                "channel": "ui"
+              }
+            ]
+          }
+        ],
+        "total_combinations": 4,
+        "evaluated_combinations": 4,
+        "warnings": [],
+        "runtime_ms": 1.115417,
+        "asked": [],
+        "questions_for_mean": 0,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      }
+    },
+    {
+      "id": "dev-monitor-service-alias",
+      "split": "dev",
+      "oracle": {
+        "workload": "labels.workload",
+        "code": "labels.code"
+      },
+      "expected": [
+        {
+          "rules": [
+            "anna-payments-critical"
+          ],
+          "routes": [
+            [
+              "anna",
+              "sms"
+            ]
+          ],
+          "critical": true
+        }
+      ],
+      "critical": true,
+      "ask_all": {
+        "status": "INVARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [
+              "anna-payments-critical"
+            ],
+            "alerts": [
+              {
+                "rule_id": "anna-payments-critical",
+                "severity": "critical",
+                "priority": "P0",
+                "alert_key": "ReserveExhausted|observability-bridge|central"
+              }
+            ],
+            "deliveries": [
+              {
+                "recipient": "anna",
+                "channel": "sms"
+              }
+            ]
+          }
+        ],
+        "total_combinations": 1,
+        "evaluated_combinations": 1,
+        "warnings": [],
+        "runtime_ms": 1.266541,
+        "asked": [
+          "workload",
+          "code"
+        ],
+        "questions_for_mean": 2,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      },
+      "adaptive": {
+        "status": "VARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [
+              "anna-payments-critical"
+            ],
+            "alerts": [
+              {
+                "rule_id": "anna-payments-critical",
+                "severity": "critical",
+                "priority": "P0",
+                "alert_key": "ReserveExhausted|observability-bridge|central"
+              }
+            ],
+            "deliveries": [
+              {
+                "recipient": "anna",
+                "channel": "sms"
+              }
+            ]
+          }
+        ],
+        "total_combinations": 4,
+        "evaluated_combinations": 4,
+        "warnings": [
+          "may page critical: keep in review"
+        ],
+        "runtime_ms": 0.853208,
+        "asked": [
+          "workload"
+        ],
+        "questions_for_mean": 1,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      }
+    },
+    {
+      "id": "dev-warning-grade",
+      "split": "dev",
+      "oracle": {
+        "grade": "warning",
+        "delay": 1
+      },
+      "expected": [
+        {
+          "rules": [],
+          "routes": [],
+          "critical": false
+        }
+      ],
+      "critical": false,
+      "ask_all": {
+        "status": "INVARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [],
+            "alerts": [],
+            "deliveries": []
+          }
+        ],
+        "total_combinations": 1,
+        "evaluated_combinations": 1,
+        "warnings": [],
+        "runtime_ms": 0.400292,
+        "asked": [
+          "grade",
+          "delay"
+        ],
+        "questions_for_mean": 2,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      },
+      "adaptive": {
+        "status": "VARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [],
+            "alerts": [],
+            "deliveries": []
+          }
+        ],
+        "total_combinations": 4,
+        "evaluated_combinations": 4,
+        "warnings": [
+          "may page critical: keep in review"
+        ],
+        "runtime_ms": 1.084334,
+        "asked": [
+          "grade"
+        ],
+        "questions_for_mean": 1,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      }
+    },
+    {
+      "id": "dev-pricing-digest",
+      "split": "dev",
+      "oracle": {
+        "grade": "warning",
+        "latency": 1
+      },
+      "expected": [
+        {
+          "rules": [
+            "pricing-warn-logs"
+          ],
+          "routes": [],
+          "critical": false
+        }
+      ],
+      "critical": false,
+      "ask_all": {
+        "status": "INVARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [
+              "pricing-warn-logs"
+            ],
+            "alerts": [
+              {
+                "rule_id": "pricing-warn-logs",
+                "severity": "warning",
+                "priority": "P2",
+                "alert_key": "BOND-6"
+              }
+            ],
+            "deliveries": []
+          }
+        ],
+        "total_combinations": 1,
+        "evaluated_combinations": 1,
+        "warnings": [],
+        "runtime_ms": 0.4655,
+        "asked": [
+          "grade",
+          "latency"
+        ],
+        "questions_for_mean": 2,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      },
+      "adaptive": {
+        "status": "VARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [
+              "pricing-warn-logs"
+            ],
+            "alerts": [
+              {
+                "rule_id": "pricing-warn-logs",
+                "severity": "warning",
+                "priority": "P2",
+                "alert_key": "BOND-6"
+              }
+            ],
+            "deliveries": []
+          }
+        ],
+        "total_combinations": 4,
+        "evaluated_combinations": 4,
+        "warnings": [],
+        "runtime_ms": 0.7735,
+        "asked": [
+          "grade"
+        ],
+        "questions_for_mean": 1,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      }
+    },
+    {
+      "id": "dev-timezone-contact-window",
+      "split": "dev",
+      "oracle": {
+        "timezone": "UTC",
+        "summary": "annotations.summary"
+      },
+      "expected": [
+        {
+          "rules": [
+            "anna-payments-critical"
+          ],
+          "routes": [
+            [
+              "anna",
+              "sms"
+            ]
+          ],
+          "critical": true
+        },
+        {
+          "rules": [
+            "anna-payments-critical"
+          ],
+          "routes": [
+            [
+              "anna",
+              "email"
+            ]
+          ],
+          "critical": true
+        }
+      ],
+      "critical": true,
+      "ask_all": {
+        "status": "INVARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [
+              "anna-payments-critical"
+            ],
+            "alerts": [
+              {
+                "rule_id": "anna-payments-critical",
+                "severity": "critical",
+                "priority": "P0",
+                "alert_key": "LedgerPressure|payments-api|east"
+              }
+            ],
+            "deliveries": [
+              {
+                "recipient": "anna",
+                "channel": "sms"
+              }
+            ]
+          },
+          {
+            "sample_index": 1,
+            "matched_rule_ids": [
+              "anna-payments-critical"
+            ],
+            "alerts": [
+              {
+                "rule_id": "anna-payments-critical",
+                "severity": "critical",
+                "priority": "P0",
+                "alert_key": "FundsQueueLong|payments-api|east"
+              }
+            ],
+            "deliveries": [
+              {
+                "recipient": "anna",
+                "channel": "email"
+              }
+            ]
+          }
+        ],
+        "total_combinations": 1,
+        "evaluated_combinations": 1,
+        "warnings": [],
+        "runtime_ms": 0.695875,
+        "asked": [
+          "timezone",
+          "summary"
+        ],
+        "questions_for_mean": 2,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      },
+      "adaptive": {
+        "status": "VARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [
+              "anna-payments-critical"
+            ],
+            "alerts": [
+              {
+                "rule_id": "anna-payments-critical",
+                "severity": "critical",
+                "priority": "P0",
+                "alert_key": "LedgerPressure|payments-api|east"
+              }
+            ],
+            "deliveries": [
+              {
+                "recipient": "anna",
+                "channel": "sms"
+              }
+            ]
+          },
+          {
+            "sample_index": 1,
+            "matched_rule_ids": [
+              "anna-payments-critical"
+            ],
+            "alerts": [
+              {
+                "rule_id": "anna-payments-critical",
+                "severity": "critical",
+                "priority": "P0",
+                "alert_key": "FundsQueueLong|payments-api|east"
+              }
+            ],
+            "deliveries": [
+              {
+                "recipient": "anna",
+                "channel": "email"
+              }
+            ]
+          }
+        ],
+        "total_combinations": 4,
+        "evaluated_combinations": 4,
+        "warnings": [
+          "may page critical: keep in review"
+        ],
+        "runtime_ms": 1.334,
+        "asked": [
+          "timezone"
+        ],
+        "questions_for_mean": 1,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      }
+    },
+    {
+      "id": "dev-world-cap",
+      "split": "dev",
+      "oracle": {
+        "amount": 0.001,
+        "service": "meta.producer",
+        "summary": "meta.note",
+        "error": "payload.code"
+      },
+      "expected": [
+        {
+          "rules": [],
+          "routes": [],
+          "critical": false
+        }
+      ],
+      "critical": false,
+      "ask_all": {
+        "status": "INVARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [],
+            "alerts": [],
+            "deliveries": []
+          }
+        ],
+        "total_combinations": 1,
+        "evaluated_combinations": 1,
+        "warnings": [],
+        "runtime_ms": 0.414375,
+        "asked": [
+          "amount",
+          "service",
+          "summary",
+          "error"
+        ],
+        "questions_for_mean": 4,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      },
+      "adaptive": {
+        "status": "INCOMPLETE",
+        "selected_outcome": null,
+        "total_combinations": 81,
+        "evaluated_combinations": 0,
+        "warnings": [],
+        "runtime_ms": 0.243375,
+        "asked": [],
+        "questions_for_mean": 4,
+        "routing_correct": false,
+        "matched_rules_correct": false,
+        "critical_miss": false
+      }
+    },
+    {
+      "id": "final-monitor-ownership",
+      "split": "held-out",
+      "oracle": {
+        "grade": "critical",
+        "owner": "labels.owner_service",
+        "summary": "annotations.detail"
+      },
+      "expected": [
+        {
+          "rules": [
+            "anna-payments-critical"
+          ],
+          "routes": [
+            [
+              "anna",
+              "sms"
+            ]
+          ],
+          "critical": true
+        }
+      ],
+      "critical": true,
+      "ask_all": {
+        "status": "INVARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [
+              "anna-payments-critical"
+            ],
+            "alerts": [
+              {
+                "rule_id": "anna-payments-critical",
+                "severity": "critical",
+                "priority": "P0",
+                "alert_key": "QueueReserveLow|monitor-edge|north"
+              }
+            ],
+            "deliveries": [
+              {
+                "recipient": "anna",
+                "channel": "sms"
+              }
+            ]
+          }
+        ],
+        "total_combinations": 1,
+        "evaluated_combinations": 1,
+        "warnings": [],
+        "runtime_ms": 0.603917,
+        "asked": [
+          "grade",
+          "owner",
+          "summary"
+        ],
+        "questions_for_mean": 3,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      },
+      "adaptive": {
+        "status": "VARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [
+              "anna-payments-critical"
+            ],
+            "alerts": [
+              {
+                "rule_id": "anna-payments-critical",
+                "severity": "critical",
+                "priority": "P0",
+                "alert_key": "QueueReserveLow|monitor-edge|north"
+              }
+            ],
+            "deliveries": [
+              {
+                "recipient": "anna",
+                "channel": "sms"
+              }
+            ]
+          }
+        ],
+        "total_combinations": 8,
+        "evaluated_combinations": 8,
+        "warnings": [
+          "may page critical: keep in review"
+        ],
+        "runtime_ms": 1.352916,
+        "asked": [
+          "grade",
+          "owner"
+        ],
+        "questions_for_mean": 2,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      }
+    },
+    {
+      "id": "final-two-rejected-blocks",
+      "split": "held-out",
+      "oracle": {
+        "amount": 0.01,
+        "reason": "meta.reasonCode"
+      },
+      "expected": [
+        {
+          "rules": [],
+          "routes": [],
+          "critical": false
+        },
+        {
+          "rules": [
+            "rates-big-rejects"
+          ],
+          "routes": [
+            [
+              "rita",
+              "email"
+            ],
+            [
+              "team:rates",
+              "ui"
+            ]
+          ],
+          "critical": false
+        }
+      ],
+      "critical": false,
+      "ask_all": {
+        "status": "INVARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [],
+            "alerts": [],
+            "deliveries": []
+          },
+          {
+            "sample_index": 1,
+            "matched_rule_ids": [
+              "rates-big-rejects"
+            ],
+            "alerts": [
+              {
+                "rule_id": "rates-big-rejects",
+                "severity": "warning",
+                "priority": "P2",
+                "alert_key": "BLOCK-B"
+              }
+            ],
+            "deliveries": [
+              {
+                "recipient": "rita",
+                "channel": "email"
+              },
+              {
+                "recipient": "team:rates",
+                "channel": "ui"
+              }
+            ]
+          }
+        ],
+        "total_combinations": 1,
+        "evaluated_combinations": 1,
+        "warnings": [],
+        "runtime_ms": 0.53725,
+        "asked": [
+          "amount",
+          "reason"
+        ],
+        "questions_for_mean": 2,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      },
+      "adaptive": {
+        "status": "VARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [],
+            "alerts": [],
+            "deliveries": []
+          },
+          {
+            "sample_index": 1,
+            "matched_rule_ids": [
+              "rates-big-rejects"
+            ],
+            "alerts": [
+              {
+                "rule_id": "rates-big-rejects",
+                "severity": "warning",
+                "priority": "P2",
+                "alert_key": "BLOCK-B"
+              }
+            ],
+            "deliveries": [
+              {
+                "recipient": "rita",
+                "channel": "email"
+              },
+              {
+                "recipient": "team:rates",
+                "channel": "ui"
+              }
+            ]
+          }
+        ],
+        "total_combinations": 6,
+        "evaluated_combinations": 6,
+        "warnings": [],
+        "runtime_ms": 1.742834,
+        "asked": [
+          "amount"
+        ],
+        "questions_for_mean": 1,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      }
+    },
+    {
+      "id": "final-staging-dry-run",
+      "split": "held-out",
+      "oracle": {
+        "grade": "warning",
+        "owner": "workflowName",
+        "timezone": "Europe/Warsaw"
+      },
+      "expected": [
+        {
+          "rules": [],
+          "routes": [],
+          "critical": false
+        }
+      ],
+      "critical": false,
+      "ask_all": {
+        "status": "INVARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [],
+            "alerts": [],
+            "deliveries": []
+          }
+        ],
+        "total_combinations": 1,
+        "evaluated_combinations": 1,
+        "warnings": [],
+        "runtime_ms": 0.389792,
+        "asked": [
+          "grade",
+          "owner",
+          "timezone"
+        ],
+        "questions_for_mean": 3,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      },
+      "adaptive": {
+        "status": "INVARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [],
+            "alerts": [],
+            "deliveries": []
+          }
+        ],
+        "total_combinations": 8,
+        "evaluated_combinations": 8,
+        "warnings": [],
+        "runtime_ms": 1.143,
+        "asked": [],
+        "questions_for_mean": 0,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      }
+    },
+    {
+      "id": "final-settlement-page",
+      "split": "held-out",
+      "oracle": {
+        "grade": "critical",
+        "timeout": 0.001,
+        "summary": "error.message"
+      },
+      "expected": [
+        {
+          "rules": [
+            "settlements-wf-failed"
+          ],
+          "routes": [
+            [
+              "sam",
+              "phone"
+            ],
+            [
+              "sam",
+              "sms"
+            ],
+            [
+              "team:settlements",
+              "ui"
+            ]
+          ],
+          "critical": true
+        }
+      ],
+      "critical": true,
+      "ask_all": {
+        "status": "INVARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [
+              "settlements-wf-failed"
+            ],
+            "alerts": [
+              {
+                "rule_id": "settlements-wf-failed",
+                "severity": "critical",
+                "priority": "P0",
+                "alert_key": "order-settlement|send-confirmation|NO_CONFIRM"
+              }
+            ],
+            "deliveries": [
+              {
+                "recipient": "sam",
+                "channel": "phone"
+              },
+              {
+                "recipient": "sam",
+                "channel": "sms"
+              },
+              {
+                "recipient": "team:settlements",
+                "channel": "ui"
+              }
+            ]
+          }
+        ],
+        "total_combinations": 1,
+        "evaluated_combinations": 1,
+        "warnings": [],
+        "runtime_ms": 0.452542,
+        "asked": [
+          "grade",
+          "timeout",
+          "summary"
+        ],
+        "questions_for_mean": 3,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      },
+      "adaptive": {
+        "status": "VARIANT",
+        "selected_outcome": [
+          {
+            "sample_index": 0,
+            "matched_rule_ids": [
+              "settlements-wf-failed"
+            ],
+            "alerts": [
+              {
+                "rule_id": "settlements-wf-failed",
+                "severity": "critical",
+                "priority": "P0",
+                "alert_key": "order-settlement|send-confirmation|NO_CONFIRM"
+              }
+            ],
+            "deliveries": [
+              {
+                "recipient": "sam",
+                "channel": "phone"
+              },
+              {
+                "recipient": "sam",
+                "channel": "sms"
+              },
+              {
+                "recipient": "team:settlements",
+                "channel": "ui"
+              }
+            ]
+          }
+        ],
+        "total_combinations": 8,
+        "evaluated_combinations": 8,
+        "warnings": [
+          "may page critical: keep in review"
+        ],
+        "runtime_ms": 1.647333,
+        "asked": [
+          "grade"
+        ],
+        "questions_for_mean": 1,
+        "routing_correct": true,
+        "matched_rules_correct": true,
+        "critical_miss": false
+      }
+    }
+  ],
+  "summary": {
+    "dev": {
+      "ask_all": {
+        "cases": 8,
+        "critical_cases": 2,
+        "routing_correct": 8,
+        "matched_rules_correct": 8,
+        "critical_misses": 0,
+        "incomplete": 0,
+        "errors": 0,
+        "questions_asked": 18,
+        "mean_questions": 2.25,
+        "p50_ms": 0.518,
+        "p95_ms": 2.796375
+      },
+      "adaptive": {
+        "cases": 8,
+        "critical_cases": 2,
+        "routing_correct": 7,
+        "matched_rules_correct": 7,
+        "critical_misses": 0,
+        "incomplete": 1,
+        "errors": 0,
+        "questions_asked": 6,
+        "mean_questions": 1.25,
+        "p50_ms": 1.01925,
+        "p95_ms": 1.334
+      }
+    },
+    "held-out": {
+      "ask_all": {
+        "cases": 4,
+        "critical_cases": 2,
+        "routing_correct": 4,
+        "matched_rules_correct": 4,
+        "critical_misses": 0,
+        "incomplete": 0,
+        "errors": 0,
+        "questions_asked": 11,
+        "mean_questions": 2.75,
+        "p50_ms": 0.452542,
+        "p95_ms": 0.603917
+      },
+      "adaptive": {
+        "cases": 4,
+        "critical_cases": 2,
+        "routing_correct": 4,
+        "matched_rules_correct": 4,
+        "critical_misses": 0,
+        "incomplete": 0,
+        "errors": 0,
+        "questions_asked": 4,
+        "mean_questions": 1,
+        "p50_ms": 1.352916,
+        "p95_ms": 1.742834
+      }
+    }
+  },
+  "measurement": [
+    "Each case has one ground-truth interpretation. Ask-all reveals every answer and evaluates that single world. Adaptive follows only the oracle's branch of the engine's minimax tree.",
+    "Routing requires exact immediate recipient/channel pairs on every sample in a case. Rule matches are scored separately. A labelled critical case misses if any protected sample lacks a critical alert or an expected delivery.",
+    "Unresolved cases remain in the correctness and critical denominators. Their question charge is every unknown. The case table also shows the actual number asked.",
+    "Each case runs ask-all first. Runtime is one local monotonic measurement per case and method, including analysis and oracle traversal, excluding setup, scoring and file I/O. The percentiles use nearest rank."
+  ],
+  "held_out_targets": {
+    "Lower mean question count than ask-all": true,
+    "All four cases routed correctly": true,
+    "Zero critical misses": true
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "commit": "356ea3cf93a7d2193424d605833c10db8ffee545",
+  "project": "w0-console-check-pr44",
+  "port_map": {
+    "POSTGRES_PORT": "49614",
+    "RABBITMQ_PORT": "49615",
+    "RABBITMQ_MANAGEMENT_PORT": "49616",
+    "SMTP_PORT": "49617",
+    "MAILPIT_PORT": "49618",
+    "TELECOM_PORT": "49619",
+    "MOCK_OPS_PORT": "49620",
+    "API_PORT": "49621",
+    "FRONTEND_PORT": "49622"
+  },
+  "utc": "2026-11-21T04:58:47.328357+00:00",
+  "checks": {
+    "npm-ci": {
+      "command": [
+        "npm",
+        "ci",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "exit": 0,
+      "seconds": 1.883
+    },
+    "frontend-build": {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exit": 0,
+      "seconds": 4.022
+    },
+    "compose-start": {
+      "command": [
+        "docker",
+        "compose",
+        "-p",
+        "w0-console-check-pr44",
+        "up",
+        "-d",
+        "--build",
+        "--wait"
+      ],
+      "exit": 0,
+      "seconds": 25.281
+    },
+    "console-browser": {
+      "command": [
+        "npm",
+        "run",
+        "test:console"
+      ],
+      "exit": 0,
+      "seconds": 14.223
+    },
+    "compose-cleanup": {
+      "command": [
+        "docker",
+        "compose",
+        "-p",
+        "w0-console-check-pr44",
+        "down",
+        "--volumes",
+        "--timeout",
+        "7"
+      ],
+      "exit": 0,
+      "seconds": 9.11
+    }
+  }
+}
