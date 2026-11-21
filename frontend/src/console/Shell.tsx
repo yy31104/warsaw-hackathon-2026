@@ -7,16 +7,18 @@ import {request} from '../api';
 import type {Directory} from '../types';
 import {canReview, useConsoleQueue} from './data';
 import {Intro, readSession, writeSession} from './Intro';
+import {Tour} from './Tour';
 import {Card, Icon, personName, teamName, timeLabel, useClock} from './ui';
 import './console.css';
 
 const pages = [
-  {path: '/', title: 'Now', icon: 'now'},
-  {path: '/sources', title: 'Sources', icon: 'sources'},
-  {path: '/rules', title: 'Rules', icon: 'rules'},
-  {path: '/runbooks', title: 'Runbooks', icon: 'runbooks'},
-  {path: '/oncall', title: 'On call', icon: 'oncall'},
-  {path: '/health', title: 'Health', icon: 'health'},
+  {path: '/', title: 'Now', icon: 'now', group: 'Respond', note: 'What needs you right now'},
+  {path: '/incidents', title: 'Incidents', icon: 'incidents', group: 'Respond', note: 'Everything that fired'},
+  {path: '/sources', title: 'Sources', icon: 'sources', group: 'Set up', note: 'Teach it a new format'},
+  {path: '/rules', title: 'Rules', icon: 'rules', group: 'Set up', note: 'What pages who'},
+  {path: '/runbooks', title: 'Runbooks', icon: 'runbooks', group: 'Set up', note: 'What to do when it fires'},
+  {path: '/oncall', title: 'On call', icon: 'oncall', group: 'Set up', note: 'Who picks up the phone'},
+  {path: '/health', title: 'Health', icon: 'health', group: 'Check', note: 'Is it keeping up?'},
 ] as const;
 const legacyTitles: Record<string, string> = {
   '/alerts': 'Incidents', '/approvals': 'Approvals', '/overview': 'Overview', '/onboarding': 'Mapping',
@@ -51,6 +53,7 @@ export function ConsoleShell({children, live, teams, setActor, setTeam}: {
   const {pathname} = useLocation();
   const [watched, setWatched] = useState(() => Boolean(readSession(introKey)));
   const [replay, setReplay] = useState(false);
+  const [tour, setTour] = useState<number | null>(null);
   const close = useCallback(() => {
     writeSession(introKey, 'seen');
     setWatched(true);
@@ -62,22 +65,31 @@ export function ConsoleShell({children, live, teams, setActor, setTeam}: {
   const queue = useConsoleQueue(team, feedEnabled);
   const badge = (queue.open.data?.length ?? 0) + queue.actions.filter(({action}) => canReview(action, actor)).length;
   const incident = /^\/a\/(\d+)(?:\/details)?$/.exec(pathname);
-  const title = legacyTitles[pathname] ?? pages.find(page => page.path === pathname
-    || (page.path !== '/' && pathname.startsWith(page.path + '/')))?.title ?? 'Console';
+  const page = pages.find(item => item.path === pathname || (item.path !== '/' && pathname.startsWith(item.path + '/')));
+  const title = legacyTitles[pathname] ?? page?.title ?? 'Console';
+  const note = legacyTitles[pathname] ? undefined : page?.note;
 
   return <div className="console">
     <a className="cf-skip" href="#console-content">Skip to content</a>
     <nav className="cf-rail" aria-label="Main navigation">
-      <Link to="/" className="cf-logo" aria-label="Alert Funnel"><Icon name="funnel"/></Link>
-      {pages.map(page => <NavLink key={page.path} to={page.path} end={page.path === '/'}>
-        <Icon name={page.icon}/>{page.title}
-        {page.path === '/' && badge > 0 && <span className="cf-badge" aria-label={`${badge} need you`}>{badge}</span>}
-      </NavLink>)}
-      <button className="cf-rail-intro" onClick={() => setReplay(true)}><Icon name="intro"/>Intro</button>
+      <Link to="/" className="cf-brand" aria-label="Alert Funnel"><span className="cf-logo"><Icon name="funnel"/></span>
+        <span className="cf-wordmark">Alert Funnel</span></Link>
+      {pages.map((item, index) => <div className="cf-rail-item" key={item.path}>
+        {item.group !== pages[index - 1]?.group && <span className="cf-rail-group" aria-hidden="true">{item.group}</span>}
+        <NavLink to={item.path} end={item.path === '/'}>
+          <Icon name={item.icon}/><span>{item.title}</span>
+          {item.path === '/' && badge > 0 && <span className="cf-badge" aria-label={`${badge} need you`}>{badge}</span>}
+        </NavLink>
+      </div>)}
+      <div className="cf-rail-foot">
+        <button className="cf-rail-intro" onClick={() => setReplay(true)}><Icon name="intro"/><span>Intro</span></button>
+        <button className="cf-rail-tour" onClick={() => setTour(0)}><Icon name="tour"/><span>Tour</span></button>
+      </div>
     </nav>
     <div className="cf-workspace">
       <header className="cf-top">
-        <h1>{incident ? <Link to="/"><Icon name="arrow"/> INC-{incident[1]}</Link> : title}</h1>
+        <h1>{incident ? <Link to="/"><Icon name="arrow"/> INC-{incident[1]}</Link> : title}
+          {!incident && note && <small className="cf-top-note">{note}</small>}</h1>
         <div className="cf-top-controls">
           <WarsawClock live={live}/>
           {assistant.data && <span className="cf-assist">{assistant.data.enabled
@@ -99,6 +111,7 @@ export function ConsoleShell({children, live, teams, setActor, setTeam}: {
         <PageErrorBoundary key={pathname}>{children}</PageErrorBoundary>
       </main>
     </div>
-    {(replay || (pathname === '/' && !watched)) && <Intro close={close}/>}
+    {(replay || (pathname === '/' && !watched && tour === null)) && <Intro close={close} tour={() => setTour(0)}/>}
+    {tour !== null && <Tour step={tour} setStep={setTour}/>}
   </div>;
 }

@@ -23,6 +23,7 @@ import {Sources} from './console/Sources';
 import {ConsoleRules} from './console/Rules';
 import {ConsoleRunbooks} from './console/Runbooks';
 import {OnCall} from './console/OnCall';
+import {Incidents} from './console/Incidents';
 import {Health} from './console/Health';
 import {detailQuery,representativeExplainPath} from './console/data';
 import {LegacyLink} from './console/ui';
@@ -90,6 +91,7 @@ function App(){
      <Route path="/sources" element={<Sources/>}/>
      <Route path="/rules" element={<ConsoleRules/>}/>
      <Route path="/runbooks" element={<ConsoleRunbooks/>}/>
+     <Route path="/incidents" element={<Incidents/>}/>
      <Route path="/oncall" element={<OnCall/>}/>
      <Route path="/health" element={<Health/>}/>
      <Route path="/rules/proposals" element={<Legacy back="/rules" label="Rules"><ProposalPage/></Legacy>}/>

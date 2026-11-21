@@ -134,7 +134,7 @@ export function Now() {
           <time className="cf-age" dateTime={alert.first_seen_at}>{ageLabel(alert.first_seen_at)}</time>
         </Link>)}
         {all.isSuccess && !incidents.length && <p className="cf-empty-row">No incidents here.</p>}
-        <div className="cf-foot cf-actions"><LegacyLink to="/alerts">Search incidents</LegacyLink><LegacyLink to="/overview">Overview</LegacyLink></div>
+        <div className="cf-foot cf-actions"><LegacyLink to="/incidents">All incidents</LegacyLink><LegacyLink to="/overview">Overview</LegacyLink></div>
       </Card>
       <div className="cf-stack">
         <Card title="Waiting for approval" meta={pending.isSuccess ? `${pending.data.pending_approval_count} · live` : undefined}>
@@ -154,7 +154,7 @@ export function Now() {
             return <div className="cf-side-row" key={item.id}><Avatar name={name}/><strong>{name}</strong>
               <span className="cf-meta">{teamName(item.id, directory)}</span></div>;
           })}
-          <LegacyLink to="/oncall">On-call preferences</LegacyLink>
+          <LegacyLink to="/oncall">Who’s on call</LegacyLink>
         </Card>
       </div>
     </div>
