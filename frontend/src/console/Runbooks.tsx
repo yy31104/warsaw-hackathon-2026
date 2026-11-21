@@ -64,7 +64,7 @@ function Editor({book, onSaved}: {book: Book | null; onSaved: (book: Book) => vo
   return <div className="cf-stack">
     {Boolean(error) && requestProblems(error).length === 0 && <Failure error={error}/>}
     <div className="cf-grid">
-      <Card title="As written" meta={readOnly ? 'File managed' : book ? `v${book.version}` : undefined}>
+      <Card className="cf-runbook-original" title="As written" meta={readOnly ? 'File managed' : book ? `v${book.version}` : undefined}>
         <div className="cf-form-row">
           <label className="cf-field">Runbook ID<input value={id} disabled={Boolean(book) || busy} onChange={event => {
             setId(event.target.value); setError(null);
@@ -133,13 +133,13 @@ export function ConsoleRunbooks() {
     : items.find(item => item.id === selection) ?? items[0] ?? null;
   return <div className="cf-stack">
     <Failure error={books.error}/>
-    <div className="cf-actions">
+    <div className="cf-actions cf-runbook-toolbar">
       <label className="cf-field cf-picker">Runbook<select value={book?.id ?? ''} onChange={event => setSelection(event.target.value)}>
-        <option value="">New runbook</option>
+        {!book && <option value="" disabled>Select an existing runbook</option>}
         {published && !items.some(item => item.id === published.id) && <option value={published.id}>{published.id}</option>}
         {items.map(item => <option value={item.id} key={item.id}>{item.id}</option>)}
       </select></label>
-      <button className="cf-btn" onClick={() => setSelection('')}>New runbook</button>
+      <button className="cf-btn" onClick={() => setSelection('')}>Create runbook</button>
       <LegacyLink to="/runbooks/catalogue">Catalogue</LegacyLink>
     </div>
     {books.isPending && selection !== '' ? <p>Loading runbooks…</p> : <Editor

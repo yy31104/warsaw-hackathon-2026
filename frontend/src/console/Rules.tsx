@@ -170,7 +170,6 @@ export function ConsoleRules() {
   return <div className="cf-stack">
     <nav className="cf-tabs" aria-label="Rule tools">
       <strong aria-current="page">Rules</strong><LegacyLink to="/rules/proposals">Proposals</LegacyLink>
-      <LegacyLink to="/rules/advanced">Advanced editor</LegacyLink>
     </nav>
     <Failure error={rules.error || (requestProblems(error).length === 0 ? error : null)}/>
     <Problems items={requestProblems(error)}/>
@@ -180,8 +179,9 @@ export function ConsoleRules() {
           <div><strong>{item.id}</strong><small>{ownerLabel(item.owner, directory)} · v{item.version} · {item.origin === 'file' ? 'config file' : 'made here'}</small></div>
           <Chip tone={!item.enabled ? 'amber' : 'neutral'}>{item.enabled ? 'Enabled' : 'Paused'}</Chip>
         </button>)}
-        <div className="cf-foot"><button className="cf-btn primary" onClick={start}>New rule</button></div>
       </Card>
+      <div className="cf-stack">
+        <Card title="Create rule with editor" className="cf-create-rule-entry"><p>Select conditions, recipients and channels step by step.</p><button className="cf-btn primary" onClick={start}>Create rule with editor</button></Card>
       <Card title="Describe a rule">
         <label className="cf-field">Rule in words<textarea rows={4} value={text} placeholder="e.g. Call the settlements on-call by phone when a production settlement workflow fails"
           onChange={event => setText(event.target.value)}/></label>
@@ -191,6 +191,7 @@ export function ConsoleRules() {
           setAssistant(result);
         })}>Draft rule</button>
       </Card>
+      </div>
     </div>}
     {draft && <>
       <div className="cf-actions">

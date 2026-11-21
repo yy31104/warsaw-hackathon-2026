@@ -614,3 +614,54 @@
 .cf-story-verb { overflow-wrap: normal; white-space: nowrap; }
 .cf-all-handled small { display: block; margin-top: 2px; color: var(--cf-muted); font-size: 12.5px; }
 .cf-all-handled small a { color: inherit; }
+
+/* Equal header rows keep metric values aligned when titles wrap. */
+.cf-response-tiles > .cf-card { display: grid; grid-template-rows: subgrid; grid-row: span 3; gap: 0; }
+.cf-response-tiles { row-gap: 0; }
+.cf-response-tiles .cf-card-head { align-self: start; }
+@supports not (grid-template-rows: subgrid) {
+  .cf-response-tiles .cf-card-head { min-height: 92px; }
+}
+
+.cf-create-rule-entry .cf-card-head { margin-bottom: 24px; }
+.cf-create-rule-entry p { margin: 0 0 24px; line-height: 1.65; }
+.cf-create-rule-entry { padding-block: 28px; }
+
+.cf-list-controls { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; padding: 8px 0 22px; }
+.cf-list-controls .cf-field { margin:0; min-width:190px; }
+.cf-list-count { text-align:right; }
+.cf-list-count small, .cf-list-times small { display:block; color:var(--cf-ink2); font-size:12px; line-height:1.65; }
+.cf-operations-list .cf-incident-row { padding-block:22px; }
+.cf-operations-list .cf-incident-row > div:first-of-type > small { line-height:1.7; margin-top:7px; }
+@media(max-width:640px){ .cf-list-controls > .cf-actions { width:100%; } .cf-list-count small { font-size:10px; } }
+
+.cf-operations-list > .cf-card-head { flex-wrap:wrap; justify-content:flex-start; gap:16px; }
+.cf-inline-sort { margin:0; display:flex; flex-direction:row; align-items:center; gap:10px; }
+.cf-inline-sort select { width:auto; min-width:180px; }
+.cf-operations-list > .cf-card-head .cf-search { margin-left:auto; }
+
+.cf-operations-list > .cf-card-head { align-items:center; }
+.cf-operations-list .cf-inline-sort { display:flex; flex-direction:row; align-items:center; flex-shrink:0; white-space:nowrap; margin:0; }
+.cf-operations-list .cf-inline-sort select { margin:0; height:44px; }
+.cf-operations-list > .cf-card-head .cf-search { height:44px; margin-block:0; }
+
+.cf-operations-list > .cf-card-head .cf-segment { height:36px; box-sizing:border-box; align-items:stretch; }
+.cf-operations-list > .cf-card-head .cf-segment button { line-height:20px; padding-block:2px; }
+.cf-operations-list > .cf-card-head .cf-search,
+.cf-operations-list .cf-inline-sort select { height:36px; min-height:36px; box-sizing:border-box; padding-block:4px; }
+
+.cf-runbook-toolbar { align-items:flex-end; gap:24px; margin-bottom:12px; }
+.cf-runbook-toolbar .cf-field { margin:0; gap:10px; }
+.cf-runbook-toolbar .cf-picker select { height:44px; box-sizing:border-box; padding-block:8px; }
+.cf-runbook-toolbar > .cf-btn { height:44px; display:inline-flex; align-items:center; box-sizing:border-box; }
+.cf-runbook-toolbar > a { min-height:44px; display:inline-flex; align-items:center; }
+@media(max-width:640px){ .cf-runbook-toolbar { gap:16px; } }
+
+.cf-operations-list > .cf-card-head { margin-bottom:28px; }
+.cf-operations-list > .cf-card-head .cf-segment { height:32px; padding:2px; }
+.cf-operations-list > .cf-card-head .cf-search,
+.cf-operations-list .cf-inline-sort select { height:32px; min-height:32px; padding-block:2px; }
+
+.cf-runbook-original .cf-form-row { margin-bottom:24px; gap:24px; }
+.cf-runbook-original .cf-card-head { margin-bottom:24px; }
+.cf-runbook-original > .cf-field { gap:12px; margin-bottom:24px; }
