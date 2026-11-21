@@ -1,0 +1,20 @@
+{
+  "before": {
+    "verified_inside_offer": 2238,
+    "offer_sends_per_second": 37.3,
+    "verified_count": 2240,
+    "offer_or_drain_seconds": 60.2,
+    "verified_per_second_offer_or_drain": 37.20930232558139,
+    "receiver_active_seconds": 59.834,
+    "verified_per_second_receiver_span": 37.42019587525487
+  },
+  "after": {
+    "verified_inside_offer": 2238,
+    "offer_sends_per_second": 37.3,
+    "verified_count": 2240,
+    "offer_or_drain_seconds": 60.218,
+    "verified_per_second_offer_or_drain": 37.19817994619549,
+    "receiver_active_seconds": 59.907,
+    "verified_per_second_receiver_span": 37.37459729247
+  }
+}

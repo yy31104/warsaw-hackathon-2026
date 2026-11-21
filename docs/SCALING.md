@@ -31,6 +31,35 @@ With 1,000 distinct normal alerts routed to one recipient, normal receiver p99 s
 
 Of **3,782,880** scheduled events, RabbitMQ confirmed **3,775,341**. The difference of **7,539** was dropped at the generator before broker acceptance. The publisher recorded **zero errors** and ingestion recorded **zero rejections**. The bounded observation can leave broker-confirmed events and expected receiver receipts pending. A claim of permanent downstream loss or lossless eventual delivery would require following those IDs to terminal state. [Aggregate counts](../loadtest/results/saturation-ae69a28/REPORT.md) · [Per-run reconciliation and pending counts](../loadtest/results/saturation-ae69a28/runs.csv)
 
+### Delivery batching · end-to-end
+
+Apple M4 Pro, main `d7a6884` before and PR #36 `cc5bd7c` after. Each run offered 700 normal plus 2 critical events/s across 1,000 normal keys for 60 s, followed by up to 20 s of drain. Two AMQP consumers, four normal rule workers, one critical rule worker and one delivery worker ran in each trial. Both used workload SHA-256 `5804a2c054511b70324d863286d262bcbb02b3c8949b1a6feee529841dc5b4be`. Provider receipts are verified by ID, channel, recipient and generation time through fake-telecom. Other local containers remained available. [Pre-registered target](./SCORECARD.md) · [Machine and Docker inventory](../loadtest/results/w2-delivery-e2e-cc5bd7c/host.json) · [Before · main](../loadtest/results/w2-delivery-e2e-cc5bd7c/before/m11-11210324-24866-r700-k1000-w4/summary.json) · [After · #36](../loadtest/results/w2-delivery-e2e-cc5bd7c/after/m11-11210326-bb859-r700-k1000-w4/summary.json)
+
+| Measurement | Before · main | After · #36 |
+| --- | ---: | ---: |
+| Normal p50 / p95 / p99 (ms), received / expected | 17969 / 26922 / 27424 (2,000 / 2,000) | 3292 / 5577 / 5738 (2,000 / 2,000) |
+| Critical p50 / p95 / p99 (ms), received / expected | 195 / 336 / 547 (240 / 240) | 219 / 317 / 356 (240 / 240) |
+| Delivery pending · early / middle / late median | 1,033 / 0.0 / 0.0 | 0 / 0.0 / 0.0 |
+| Verified sends/s over the 60 s offer | 37.30 | 37.30 |
+| Verified sends/s over the offer and any receipt drain | 37.21 | 37.20 |
+| Verified sends/s during the active receiver span | 37.42 | 37.37 |
+| PostgreSQL mean / peak CPU (one core = 100%) | 94.8% / 146.1% (N=12) | 63.1% / 121.1% (N=13) |
+| Offered / generator-not-submitted / confirmed | 42,120 / 0 / 42,120 | 42,120 / 0 / 42,120 |
+| Accepted events pending processing at cutoff | 0 | 0 |
+
+The active receiver span divides the inter-receipt count by elapsed time from the first to the last verified receipt. Early, middle and late queue medians use the three steady blocks after the initial 10 s. Missing receipts have no latency sample. [Send-rate denominators](../loadtest/results/w2-delivery-e2e-cc5bd7c/w0-sends.json) · [Before · main](../loadtest/results/w2-delivery-e2e-cc5bd7c/before/m11-11210324-24866-r700-k1000-w4/summary.json) · [After · #36](../loadtest/results/w2-delivery-e2e-cc5bd7c/after/m11-11210326-bb859-r700-k1000-w4/summary.json)
+
+Pre-registered targets on the after trial. Normal p99 <5 s **FAIL**. Critical p99 <1 s **PASS**. Complete unique receiver coverage **PASS**. [After · #36](../loadtest/results/w2-delivery-e2e-cc5bd7c/after/m11-11210326-bb859-r700-k1000-w4/summary.json)
+
+### Delivery batching · micro-benchmark
+
+The W2 micro-benchmark timed a pre-populated outbox on the same Mac with a 5 ms in-process SMS provider. Its mixed workload was one team and 2,000 due notifications. This measures the delivery worker and the database, with every notification available at the start. See the separate end-to-end trial above for the queue, rules and receiver path. [W2 method and raw results](https://github.com/yy31104/warsaw-hackathon-2026/pull/36)
+
+| Delivery workers | Measured sends/s, baseline → batch | Normal p99, received / expected, baseline → batch | Critical p99, received / expected, baseline → batch |
+| ---: | ---: | --- | --- |
+| 1 | 58.83 → 691.72 | 33.708 s (1,960/1,960) → 2.857 s (1,960/1,960) | 0.711 s (40/40) → 0.089 s (40/40) |
+| 4 | 82.41 → 749.20 | 24.036 s (1,960/1,960) → 2.650 s (1,960/1,960) | 0.450 s (40/40) → 0.094 s (40/40) |
+
 ## Apple M4 Pro cross-machine check
 
 On the second host, one normal rule worker processed a 60-second, 1,000-key offer. Each row reports throughput across the **entire offer window** and latency to the mock SMS/phone receiver. CPU is mean PostgreSQL usage as a percentage of one core. All accepted events and expected receipts reconciled after drain in both trials. The Mac used a later source commit, omitted critical traffic, and had desktop apps running. These runs independently check which queue grows. They cannot establish a hardware speed ratio or critical latency. [Mac configuration](../loadtest/results/saturation-10c398e-m4-pro/machine.json) · [Generator command](../loadtest/results/saturation-10c398e-m4-pro/k1000-w1-r700/run.json)

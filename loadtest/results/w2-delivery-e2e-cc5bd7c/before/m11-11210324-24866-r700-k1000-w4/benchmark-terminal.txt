@@ -1,0 +1,24 @@
+RUN ID m11-11210324-24866-r700-k1000-w4
+2026-11-21T03:24:47.483010+00:00
+> docker compose --ansi never -p m11-11210324-24866-r700-k1000-w4 -f /private/tmp/gs-w0-round3.UbUmhI/w2-before/docker-compose.yml -f /private/tmp/gs-w0-round3.UbUmhI/m4-pair/loadtest/results/w2-delivery-e2e-cc5bd7c/before/compose.measurement.json run --rm -T --no-deps --name m11-11210324-24866-r700-k1000-w4-generator --volume /private/tmp/gs-w0-round3.UbUmhI/w2-before/loadtest:/app/loadtest:ro --volume /private/tmp/gs-w0-round3.UbUmhI/w2-before/fixtures:/app/fixtures:ro --volume /private/tmp/gs-w0-round3.UbUmhI/m4-pair/loadtest/results/w2-delivery-e2e-cc5bd7c/before/m11-11210324-24866-r700-k1000-w4:/bench-output rule-worker python -m loadtest.saturation_trial --output /bench-output --run-id m11-11210324-24866-r700-k1000-w4 --tag m11-k1000-r700 --duration 60 --drain-seconds 20 --normal-workers 4 --normal-rate 700 --normal-keys 1000 --ingest-workers 2 --critical-rate 2 --max-in-flight 2000
+
+ Container m11-11210324-24866-r700-k1000-w4-generator Creating 
+ Container m11-11210324-24866-r700-k1000-w4-generator Created 
+RUN ID m11-11210324-24866-r700-k1000-w4
+Offer 700 normal/s + 2/s critical for 60s | 4 normal workers | 1,000 normal keys
+Offer started. Backlog samples below are live.
+   0.0s | accepted       0  processed       0  broker ready       0  DB pending       0
+  10.1s | accepted   7,020  processed   7,019  broker ready       0  DB pending       1
+  20.2s | accepted  14,110  processed  14,110  broker ready       0  DB pending       0
+  30.3s | accepted  21,218  processed  21,200  broker ready       0  DB pending      18
+  40.5s | accepted  28,123  processed  27,961  broker ready       0  DB pending     162
+  50.7s | accepted  35,591  processed  35,486  broker ready       0  DB pending     105
+  60.8s | accepted  42,120  processed  42,120  broker ready       0  DB pending       0
+RUN ID m11-11210324-24866-r700-k1000-w4 | PASS measurement
+Inside offer: 702.0 ingested/s, 701.4 processed/s.
+Confirmed 42,120/42,120 | dropped 0 | publish errors 0 | rejected 0
+Pipeline backlog no sustained growth | peak 245 | verified phone/SMS 2,240/2,240
+Normal p50/p95/p99 (ms): 17969/26922/27424  N=2000
+Critical p50/p95/p99 (ms): 195/336/547  N=240
+
+Exit code 0

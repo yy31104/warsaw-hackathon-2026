@@ -1,0 +1,94 @@
+ Image w0w2-after-fake-telecom Building 
+ Image w0w2-after-backend:local Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.04kB done
+#1 DONE 0.0s
+
+#2 [fake-telecom internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.01kB done
+#2 DONE 0.0s
+
+#3 [api internal] load build definition from Dockerfile
+#3 transferring dockerfile: 607B done
+#3 DONE 0.0s
+
+#4 [fake-telecom internal] load metadata for docker.io/library/python:3.12-slim
+#4 DONE 0.0s
+
+#5 [api 1/6] FROM docker.io/library/python:3.12-slim@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea
+#5 resolve docker.io/library/python:3.12-slim@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea done
+#5 DONE 0.0s
+
+#6 [fake-telecom internal] load build context
+#6 transferring context: 341.23kB done
+#6 DONE 0.0s
+
+#7 [api internal] load build context
+#7 transferring context: 763.67kB 0.0s done
+#7 DONE 0.0s
+
+#8 [fake-telecom 3/8] COPY backend/pyproject.toml backend/uv.lock ./
+#8 CACHED
+
+#9 [fake-telecom 2/8] WORKDIR /deps
+#9 CACHED
+
+#10 [fake-telecom 7/8] COPY mocks/fake_telecom/app.py mocks/fake_telecom/inbox.py mocks/fake_telecom/index.html ./mocks/fake_telecom/
+#10 CACHED
+
+#11 [fake-telecom 5/8] WORKDIR /app
+#11 CACHED
+
+#12 [fake-telecom 6/8] COPY backend/alerting/clock.py ./alerting/clock.py
+#12 CACHED
+
+#13 [fake-telecom 4/8] RUN pip install --no-cache-dir uv && uv sync --frozen --no-dev --no-install-project --no-cache
+#13 CACHED
+
+#14 [fake-telecom 8/8] RUN useradd --system --create-home gateway && install -d -o gateway -g gateway /data
+#14 CACHED
+
+#15 [api 2/6] WORKDIR /app
+#15 CACHED
+
+#16 [api 3/6] COPY backend/pyproject.toml backend/uv.lock ./
+#16 CACHED
+
+#17 [api 4/6] RUN pip install --no-cache-dir uv && uv sync --frozen --no-dev --no-install-project --no-cache
+#17 CACHED
+
+#18 [api 5/6] COPY backend/alerting ./alerting
+#18 DONE 0.1s
+
+#19 [fake-telecom] exporting to image
+#19 exporting layers done
+#19 exporting manifest sha256:b5ae0cd2b4b7f10c47327ba7d0f578b323448739708252f6f6e62001850ac3ee done
+#19 exporting config sha256:480025f1c0a9c0483e53a1c6883dca15aead40c32165bbe34db16fa2e5edc480 done
+#19 exporting attestation manifest sha256:8367a5b75c33fb6d03d3dcbef6e6f04e925471712c943d91b92b923d204bf92a
+#19 exporting attestation manifest sha256:8367a5b75c33fb6d03d3dcbef6e6f04e925471712c943d91b92b923d204bf92a 0.0s done
+#19 exporting manifest list sha256:a9f377541e8a34750879e1e6e1f085cab2bd6d09964bc68ffccb5f07b74c68f4 done
+#19 naming to docker.io/library/w0w2-after-fake-telecom:latest done
+#19 unpacking to docker.io/library/w0w2-after-fake-telecom:latest done
+#19 DONE 0.1s
+
+#20 [fake-telecom] resolving provenance for metadata file
+#20 DONE 0.0s
+
+#21 [api 6/6] RUN useradd --system --create-home alerting
+#21 DONE 0.3s
+
+#22 [api] exporting to image
+#22 exporting layers 0.1s done
+#22 exporting manifest sha256:897ab57f5cf347970d61c2338e4855a6f6f7cd0be251c08dcaf45df44b583c26 done
+#22 exporting config sha256:b62f8d596b7f771a957c1a82293670316e8db80bd9b2be7930fb7242f6c1913a done
+#22 exporting attestation manifest sha256:855217d0b6aa5eb9484ffc8b9bb281a49bc10ba34df8e4839fbb81c061266cd8 0.0s done
+#22 exporting manifest list sha256:a33420d6fc584ae596ddfbb21ee9e416290937b60386a2d730afc9ef4e74ab82
+#22 exporting manifest list sha256:a33420d6fc584ae596ddfbb21ee9e416290937b60386a2d730afc9ef4e74ab82 done
+#22 naming to docker.io/library/w0w2-after-backend:local done
+#22 unpacking to docker.io/library/w0w2-after-backend:local 0.0s done
+#22 DONE 0.2s
+
+#23 [api] resolving provenance for metadata file
+#23 DONE 0.0s
+ Image w0w2-after-backend:local Built 
+ Image w0w2-after-fake-telecom Built 
