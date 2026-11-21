@@ -1,6 +1,7 @@
 import asyncio
 import shutil
 import sys
+from pathlib import Path
 from unittest.mock import AsyncMock
 
 import pytest
@@ -64,24 +65,52 @@ async def test_watcher_keeps_last_committed_parser_and_accepts_a_corrected_edit(
             """, (SOURCE,))
             return await rows.fetchall()
 
+    async def ingested():
+        async with inbox_pool.connection() as conn:
+            events = await (await conn.execute(
+                "SELECT raw FROM events WHERE source_id=%s ORDER BY id", (SOURCE,),
+            )).fetchall()
+            rejections = await (await conn.execute(
+                "SELECT kind, reason FROM ingest_rejections WHERE source_id=%s ORDER BY id", (SOURCE,),
+            )).fetchall()
+        return events, rejections
+
     edit_parser(UNSUPPORTED)
     with pytest.raises(ValueError, match=rf"(?i){SOURCE}.*lookbehind"):
         await loader.sync_files(inbox_pool, force=True)
     assert await versions() == []
 
     edit_parser(ORIGINAL)
-    async with loader.watch_config(inbox_pool):
-        assert await versions() == [(1, True, ORIGINAL)]
-        # Let watchfiles subscribe before synchronizing on the attempted bad reload.
-        await asyncio.sleep(0.25)
-        edit_parser(UNSUPPORTED)
-        async with asyncio.timeout(6):
-            while not any(record.exc_info and SOURCE in str(record.exc_info[1]) for record in caplog.records):
-                await asyncio.sleep(0.05)
-        assert "lookbehind" in caplog.text.lower()
-        assert await versions() == [(1, True, ORIGINAL)]
+    (source,) = files.sources()
+    path = Path(source["path"])
+    path.write_bytes(b"station=NORTH\n")
+    with logtail.LogTail(path, source) as tail:
+        async with loader.watch_config(inbox_pool):
+            assert await versions() == [(1, True, ORIGINAL)]
+            assert await tail.poll(None, inbox_pool)
+            # Let watchfiles subscribe before synchronizing on the attempted bad reload.
+            await asyncio.sleep(0.25)
+            edit_parser(UNSUPPORTED)
+            async with asyncio.timeout(6):
+                while not any(record.exc_info and SOURCE in str(record.exc_info[1]) for record in caplog.records):
+                    await asyncio.sleep(0.05)
+            assert "lookbehind" in caplog.text.lower()
+            assert await versions() == [(1, True, ORIGINAL)]
 
-        edit_parser(UPDATED)
-        async with asyncio.timeout(6):
-            while await versions() != [(1, False, ORIGINAL), (2, True, UPDATED)]:
-                await asyncio.sleep(0.05)
+            with path.open("ab") as stream:
+                stream.write(b"station=SOUTH\n")
+            assert await tail.poll(None, inbox_pool)
+            previous_events = [({"station": "NORTH"},), ({"station": "SOUTH"},)]
+            assert await ingested() == (previous_events, [])
+
+            edit_parser(UPDATED)
+            async with asyncio.timeout(6):
+                while await versions() != [(1, False, ORIGINAL), (2, True, UPDATED)]:
+                    await asyncio.sleep(0.05)
+
+            with path.open("ab") as stream:
+                stream.write(b"reading=17\n")
+            assert await tail.poll(None, inbox_pool)
+            assert not await tail.poll(None, inbox_pool)
+
+    assert await ingested() == (previous_events + [({"reading": "17"},)], [])

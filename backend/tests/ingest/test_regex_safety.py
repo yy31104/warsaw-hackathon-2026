@@ -38,19 +38,30 @@ def test_exact_limit_is_allowed_and_one_more_is_rejected(at_limit, extra):
     assert isinstance(reason, str) and reason.strip()
 
 
-def test_safe_fullmatch_returns_the_pricing_groups_and_none_on_a_nonmatch():
+@pytest.mark.parametrize("compiled", [False, True], ids=["text", "compiled"])
+def test_safe_fullmatch_returns_the_pricing_groups_and_none_on_a_nonmatch(compiled):
     parser = next(source["parser"] for source in files.sources() if source["id"] == "pricing-logs")
     path = Path(__file__).resolve().parents[3] / "fixtures/events/pricing-engine.log"
     line = path.read_text(encoding="utf-8").splitlines()[0]
     assert is_safe_pattern(parser["pattern"]) == (True, None)
-    match = safe_fullmatch(parser["pattern"], line)
+    pattern = re.compile(parser["pattern"]) if compiled else parser["pattern"]
+    match = safe_fullmatch(pattern, line)
     assert isinstance(match, re.Match)
     assert match.groupdict() == {
         "timestamp": "2026-10-23T09:14:01.002Z", "level": "INFO", "instance": "pricing-engine-1",
         "kv": 'instrument=EURUSD latency_ms=120 msg="quote published"',
     }
-    assert safe_fullmatch(parser["pattern"], "ordinary prose") is None
-    assert parse_log_line(line, parser)["msg"] == "quote published"
+    assert safe_fullmatch(pattern, "ordinary prose") is None
+    assert parse_log_line(line, {**parser, "pattern": pattern})["msg"] == "quote published"
+
+
+def test_compiled_patterns_keep_flags_and_are_subject_to_the_same_safety_check():
+    pattern = r"(?P<station>\w+)"
+    assert safe_fullmatch(pattern, "café") is not None
+    assert safe_fullmatch(re.compile(pattern, re.ASCII), "café") is None
+    assert safe_fullmatch(re.compile(pattern, re.ASCII), "cafe")["station"] == "cafe"
+    with pytest.raises(InvalidEvent, match="Lookbehind"):
+        safe_fullmatch(re.compile(r"(?<=a)b"), "b")
 
 
 def test_unsafe_pattern_raises_the_ingest_error():
