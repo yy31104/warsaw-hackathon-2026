@@ -3,7 +3,7 @@ import {request} from './api';
 import {Card, channelName, Chip, Failure} from './console/ui';
 
 type Fields = Record<string, unknown>;
-type Draft = Fields & {aliases?: Record<string, string>};
+type Draft = Fields & {id: string; name: string; aliases?: Record<string, string>};
 type Suggestion = {draft: Draft; rationale?: Record<string, string>};
 type Candidate = {value: string | number; source: string; label?: string};
 type Hypothesis = {id: string; kind: string; path: string; label?: string; candidates: Candidate[]};
@@ -66,7 +66,10 @@ export function StabilityPanel({draft, positive, quiet, source, transport, actor
     setAnswers({});
     try {
       const samples = [positive, quiet].filter(text => text.trim()).map(text => ({event: readSample(text), source, transport}));
-      setResult(await request<Result>('/schemas/stability', actor, {draft, samples, hypotheses: priorAliases(draft, suggestion)}));
+      const previewDraft = {...draft, name: draft.name.trim() || suggestion?.draft.name || draft.id};
+      setResult(await request<Result>('/schemas/stability', actor, {
+        draft: previewDraft, samples, hypotheses: priorAliases(draft, suggestion),
+      }));
     } catch (problem) {
       setError(problem);
     } finally {

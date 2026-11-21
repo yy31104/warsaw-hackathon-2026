@@ -16,3 +16,14 @@
 ## W2 delivery batching result
 
 **Normal receiver p99 <5 s · FAIL.** On the pre-registered Apple M4 Pro workload and the same workload hash, normal receiver p99 was 27.424 s before batching (2,000 received / 2,000 expected) and 5.738 s after batching (2,000 / 2,000). Critical receiver p99 was 0.547 s before (240 / 240) and 0.356 s after (240 / 240), meeting the <1 s target. [Paired end-to-end trials](SCALING.md#delivery-batching--end-to-end)
+
+## Decision stability result
+
+| Split | Method | Mean questions per case | Routing correct | Critical misses | INCOMPLETE | Runtime p50 / p95 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Development (8) | Ask all | 2.25 | 8/8 | 0/2 | 0 | 0.453 / 1.918 ms |
+| Development (8) | Adaptive minimax | 1.25 | 7/8 | 0/2 | 1 | 0.776 / 1.544 ms |
+| Held-out (4) | Ask all | 2.75 | 4/4 | 0/2 | 0 | 0.486 / 0.760 ms |
+| Held-out (4) | Adaptive minimax | 1.00 | 4/4 | 0/2 | 0 | 1.383 / 1.713 ms |
+
+**Held-out targets · PASS.** The Apple M4 Pro run used 12 synthetic cases and 14 samples, with one timed run per method and case. The development case with 81 interpretations returned `INCOMPLETE` at the 64-combination cap. It counts against correctness and is charged the full number of questions. [Case results and method](../loadtest/results/stability-cb87120d1055/summary.md) · [Raw measurements](../loadtest/results/stability-cb87120d1055/report.json)
