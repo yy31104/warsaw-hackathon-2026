@@ -61,7 +61,7 @@ function ReviewIssue({issue, retain}: {issue: Issue; retain: () => void}) {
   const [error, setError] = useState('');
   const fingerprint = encodeURIComponent(issue.fingerprint);
   const team = directory.teams.find(item => item.id === directory.fallback_team);
-  const mayPublish = team?.members.includes(actor) || team?.approvers.includes(actor);
+  const mayPublish = team?.members.includes(actor) || team?.approvers?.includes(actor);
   const sample = useQuery({queryKey: ['event-sample', issue.sample_event_id],
     queryFn: () => request<EventSample>(`/events/${issue.sample_event_id}`)});
 

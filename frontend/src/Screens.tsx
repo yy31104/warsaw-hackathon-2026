@@ -132,9 +132,62 @@ function PreferenceEditor(){
    <table><thead><tr><th>Severity</th><th>Channels</th></tr></thead><tbody>
     {directory.default_preferences.map(preference=><tr key={preference.min_severity}><td>{preference.min_severity}</td><td>{preference.channels.join(' + ')}</td></tr>)}
    </tbody></table>
-   {directory.teams.map(team=><div className="row" key={team.id}><strong>{team.id}</strong><span>{team.members.join(', ')} · Approvers: {team.approvers.join(', ')}</span></div>)}
+   {directory.teams.map(team=><div className="row" key={team.id}>
+    <strong>{team.id}</strong>
+    <span>{team.members.join(', ')} · Approvers: {team.approvers?.join(', ') || 'None assigned'}</span>
+   </div>)}
   </Panel>
  </>;
 }
 export function Onboarding(){const{actor,admin,notice}=useApp();const navigate=useNavigate();const[show,setShow]=useState(false),[saved,setSaved]=useState(store.schemaSaved),[draft,setDraft]=useState<typeof suggestion.draft>(()=>{try{return JSON.parse(localStorage.getItem('af-schema-draft')??'null')??suggestion.draft;}catch{return suggestion.draft;}}),[error,setError]=useState('');const data=useQuery({queryKey:['schema-issues'],queryFn:()=>MOCK_MODE?issues:request<typeof issues>('/schema-issues')});const issue=data.data?.items[0];return <><PageTitle title="Format onboarding" description="Inspect a sample, review the mapping, then create a routing rule."/><ErrorBox error={error||data.error}/>{issue?<><Panel title="1. Inspect unknown format"><Badge>{saved?'Mapping confirmed':'Needs review'}</Badge><p>{issue.source_id} · {issue.event_count} events</p><table><thead><tr><th>Field path</th><th>Type</th><th>Sample</th></tr></thead><tbody>{Object.entries(issue.sample_fields).map(([k,v])=><tr key={k}><td>{k}</td><td>{typeof v}</td><td>{String(v)}</td></tr>)}</tbody></table><Button onClick={async()=>{try{if(!MOCK_MODE){const result=await request<typeof suggestion>('/schemas/suggest',actor,{sample:issue.sample_fields});setDraft(result.draft);}setShow(true);}catch(e){setError(String(e));}}}>Suggest mapping {MOCK_MODE?'(mock)':''}</Button></Panel>{show&&<Panel title="2. Review mapping"><Badge color="orange">{MOCK_MODE?'Mock AI suggestion · fixture':'Draft suggestion'}</Badge><TextInput label="Schema ID" value={draft.id} onChange={e=>setDraft({...draft,id:e.target.value})}/><TextInput label="Name template" value={draft.name} onChange={e=>setDraft({...draft,name:e.target.value})}/>{(['severity','service','environment','time','error_code','message'] as const).map(alias=><TextInput key={alias} label={`$${alias} alias`} description={suggestion.rationale[alias as keyof typeof suggestion.rationale]} value={(draft.aliases as Record<string,string>)[alias]??''} onChange={e=>setDraft({...draft,aliases:{...draft.aliases,[alias]:e.target.value}})}/>)}<Select label="Default severity" data={['critical','error','warning','info','unknown']} value={draft.severity_default} onChange={v=>setDraft({...draft,severity_default:v??'error'})}/><SchemaVerification aliases={draft.aliases} defaultSeverity={draft.severity_default}/><details><summary>Detection and grouping</summary><Data value={draft}/></details><Button disabled={saved||(!admin&&actor!=='ops')} onClick={async()=>{try{if(!draft.id.trim())throw new Error('Schema ID is required');if(!MOCK_MODE)await request('/schemas',actor,draft);store.schemaSaved=true;localStorage.setItem('af-schema-draft',JSON.stringify(draft));persist();record(`${actor} confirmed schema ${draft.id}`,'schema');setSaved(true);notice('Schema mapping confirmed');}catch(e){setError(String(e));}}}>Confirm mapping</Button>{!admin&&actor!=='ops'&&<p>Mapping confirmation is available to platform ops or Admin simulation. You may inspect and draft suggestions.</p>}</Panel>}{saved&&<Panel title="3. Route new events"><Button onClick={()=>navigate('/rules',{state:{sample:issue.sample_fields}})}>Create rule from this sample</Button><p>First routed alert: NOT RUN. Real ingest and routing are not connected in mock mode.</p></Panel>}</>:<p>{data.isPending?'Loading…':'No unknown formats need review.'}</p>}</>;}
-export function Dashboard(){const state=useSession();const data=useQuery({queryKey:['funnel'],queryFn:()=>MOCK_MODE?funnel:request<typeof funnel>('/stats/funnel?window=15m')});const d=data.data?{...data.data,...(MOCK_MODE?{alerts_open:state.alerts.filter(a=>a.status!=='resolved').length,critical:state.alerts.filter(a=>a.status!=='resolved'&&a.severity==='critical').length,notifications:{delivered:state.notifications.filter(n=>n.state==='delivered').length,retrying:state.notifications.filter(n=>n.state==='retrying').length,failed:state.notifications.filter(n=>n.state==='failed').length}}:{})}:undefined;return <><PageTitle title="Funnel dashboard" description="A concise view of volume, grouping and delivery health."/><ErrorBox error={data.error}/>{d&&<><Alert color="gray">{MOCK_MODE?'Raw / accepted / throughput are fixture snapshots; incident and delivery counts reflect this mock session. Not measured performance.':'API-reported values.'} Window: {d.window} · Benchmark: NOT RUN.</Alert><Panel title="Events → alerts → notifications"><div className="funnel">{[['Raw events',d.raw],['Accepted',d.accepted],['Open incidents',d.alerts_open],['Delivered',d.notifications.delivered]].map(([label,value])=><div className={label==='Open incidents'||label==='Critical'?'attention-metric':''} key={label}><strong>{Number(value).toLocaleString()}</strong><span>{label}</span></div>)}</div><p>These counts represent different entities, not conversion rates.</p></Panel><Panel title="Critical alerts · attention"><strong className="critical-count">{d.critical}</strong><p>Severity classification, separate from the event-to-notification flow.</p></Panel><Panel title="Processing health"><div className="stats">{[['Ingest / s',d.ingest_per_s],['Processed / s',d.processed_per_s],['Backlog',d.backlog],['Oldest pending / s',d.oldest_pending_s]].map(([label,value])=><div key={label}><strong>{value}</strong>{label}</div>)}</div></Panel><Panel title="Delivery"><div className="row"><span>Delivered</span><strong>{d.notifications.delivered}</strong></div><div className="row"><span>Retrying notifications</span><strong>{d.notifications.retrying}</strong></div><div className="row"><span>Failed</span><strong>{d.notifications.failed}</strong></div><p>Retries in the last five minutes: {'retries_5m' in d?String(d.retries_5m):'—'} · Duplicates: {d.duplicates} · Needs review: {d.needs_review}</p></Panel></>}</>;}
+export function Dashboard() {
+ const state=useSession();
+ const metrics=useQuery({
+  queryKey:['funnel'],
+  queryFn:()=>MOCK_MODE?funnel:request<typeof funnel & {processing_backlog?:number; retries_5m?:number}>('/stats/funnel?window=15m'),
+ });
+ const d=metrics.data;
+ const active=MOCK_MODE?state.alerts.filter(alert=>alert.status!=='resolved'):undefined;
+ const notifications=MOCK_MODE?{
+  delivered:state.notifications.filter(n=>n.state==='delivered').length,
+  retrying:state.notifications.filter(n=>n.state==='retrying').length,
+  failed:state.notifications.filter(n=>n.state==='failed').length,
+ }:d?.notifications;
+ return <>
+  <PageTitle title="Event funnel" description="Follow events from intake to delivery across all teams."
+   action={<Button variant="default" loading={metrics.isFetching} onClick={()=>void metrics.refetch()}>Refresh snapshot</Button>}/>
+  <ErrorBox error={metrics.error}/>
+  {metrics.isPending&&<p>Loading service metrics…</p>}
+  {d&&notifications&&<>
+   <section className="funnel-report" aria-labelledby="intake-heading">
+    <div className="box-heading"><h2 id="intake-heading">Event intake</h2><span className="window-label">Last {d.window}</span></div>
+    <ol className="intake-stages">
+     {[
+       ['Received',d.raw,'All incoming messages'],
+       ['Accepted',d.accepted,'Distinct events stored'],
+       ['Matched',d.matched,'Events that matched a rule'],
+     ].map(([label,count,meaning])=><li key={label}><span>{label}</span><strong>{Number(count).toLocaleString()}</strong><small>{meaning}</small></li>)}
+    </ol>
+    <div className="intake-foot"><span>Duplicate messages <b>{d.duplicates.toLocaleString()}</b></span>
+     <span>Events needing review <b>{d.needs_review.toLocaleString()}</b></span></div>
+   </section>
+   <div className="report-pair">
+    <section className="report-card"><div className="box-heading"><h2>Response workload</h2><span className="window-label">Current</span></div>
+     <dl><div><dt>Active alerts</dt><dd>{(active?.length??d.alerts_open).toLocaleString()}</dd></div>
+      <div><dt>Critical alerts</dt><dd>{(active?.filter(a=>a.severity==='critical').length??d.critical).toLocaleString()}</dd></div></dl>
+    </section>
+    <section className="report-card"><div className="box-heading"><h2>Notification delivery</h2><span className="window-label">{MOCK_MODE?'Demo session':`Last ${d.window}`}</span></div>
+     <dl>{[['Delivered',notifications.delivered],['Retrying',notifications.retrying],['Failed',notifications.failed]].map(([label,count])=>
+      <div key={label}><dt>{label}</dt><dd>{Number(count).toLocaleString()}</dd></div>)}</dl>
+    </section>
+   </div>
+   <section className="report-card"><div className="box-heading"><h2>Processing health</h2><span className="window-label">Service snapshot</span></div>
+    <dl className="health-readings">{[
+      ['Incoming events / s',d.ingest_per_s],['Processed events / s',d.processed_per_s],['Delivery backlog',d.backlog],
+      ['Oldest pending delivery (s)',d.oldest_pending_s],...('retries_5m' in d?[['Retries in last 5 min',d.retries_5m]]:[]),
+     ].map(([label,count])=><div key={String(label)}><dt>{String(label)}</dt><dd>{typeof count==='number'?count.toLocaleString():'—'}</dd></div>)}</dl>
+   </section>
+   {MOCK_MODE&&<p className="muted">Intake and throughput use sample data. Alert and delivery counts come from the demo session.</p>}
+  </>}
+ </>;
+}

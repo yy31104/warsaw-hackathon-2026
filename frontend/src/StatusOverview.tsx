@@ -1,7 +1,19 @@
-import {useEffect,useRef,useState,type CSSProperties} from 'react';
-// Bounded square-root scaling keeps small changes visible without letting large counts dominate.
-function countSize(count:number|null,base:number,growth:number,maximum:number):CSSProperties{return {'--count-size':`${Math.min(maximum,base+Math.sqrt(Math.max(0,count??0))*growth)}px`} as CSSProperties;}
 import {Link} from 'react-router-dom';
 import type {Alert} from './model';
-export function AnimatedValue({value}:{value:number|null}){const[display,setDisplay]=useState(value);const previous=useRef(value);useEffect(()=>{const start=previous.current;previous.current=value;if(value==null||start==null||window.matchMedia('(prefers-reduced-motion: reduce)').matches){setDisplay(value);return;}const begin=performance.now();let frame=0;const tick=(now:number)=>{const t=Math.min((now-begin)/450,1);setDisplay(Math.round(start+(value-start)*(1-Math.pow(1-t,3))));if(t<1)frame=requestAnimationFrame(tick);};frame=requestAnimationFrame(tick);return()=>cancelAnimationFrame(frame);},[value]);return <span className="animated-value" aria-label={value==null?'Unknown':String(value)}>{display??'—'}</span>;}
-export function StatusOverview({alerts,pending,risks,loading}:{alerts:Alert[];pending:number|null;risks:number|null;loading:boolean}){const error=alerts.filter(a=>['error','critical'].includes(a.severity)).length;const warning=alerts.filter(a=>a.severity==='warning').length;const other=alerts.length-error-warning;const critical=alerts.filter(a=>a.severity==='critical').length;const circumference=2*Math.PI*51;const parts=[{count:error,color:'var(--motion-pink)'},{count:warning,color:'var(--motion-orange)'},{count:other,color:'var(--motion-purple)'}];let offset=0;return <section className="status-landscape" aria-label="Operational status overview"><Link className="status-main" to="/alerts"><div className="status-orbit" style={countSize(loading?null:alerts.length,100,18,210)}><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="51" fill="none" stroke="var(--line)" strokeWidth="5"/>{parts.map((part,i)=>{const length=alerts.length?part.count/alerts.length*circumference:0;const current=offset;offset+=length;return <circle key={i} cx="60" cy="60" r="51" fill="none" stroke={part.color} strokeWidth="5" strokeDasharray={`${Math.max(0,length-5)} ${circumference}`} strokeDashoffset={-current} transform="rotate(-90 60 60)"/>;})}</svg><strong><AnimatedValue value={loading?null:alerts.length}/></strong></div><div><span className="status-eyebrow">YOUR LIVE WORKSPACE</span><h2>Active alerts</h2><div className="severity-legend"><span><i className="legend-error"/>{error} error / critical</span><span><i className="legend-warning"/>{warning} warning</span><span><i className="legend-other"/>{other} other</span></div></div><span className="status-arrow" aria-hidden="true">↗</span></Link><div className="right-status-cluster"><Link className="right-count right-critical" style={countSize(loading?null:critical,108,8,132)} to="/alerts?severity=critical"><strong><AnimatedValue value={loading?null:critical}/></strong><span>Critical</span></Link><Link className="right-count right-delivery" style={countSize(risks,92,8,114)} to="/dashboard"><strong><AnimatedValue value={risks}/></strong><span>Delivery risks</span></Link><Link className="right-count right-pending" style={countSize(pending,122,10,156)} to="/approvals"><strong><AnimatedValue value={pending}/></strong><span>Pending<br/>approvals</span></Link></div></section>;}
+
+export function StatusOverview({alerts}: {alerts?: Alert[]}) {
+  const metrics = [
+    {label: 'Active alerts', value: alerts?.length, to: '/alerts?status=active', tone: 'all'},
+    {label: 'Critical alerts', value: alerts?.filter(a => a.severity === 'critical').length, to: '/alerts?status=active&severity=critical', tone: 'critical'},
+    {label: 'Acknowledged', value: alerts?.filter(a => a.status === 'acknowledged').length, to: '/alerts?status=acknowledged', tone: 'ack'},
+    {label: 'Occurrences', value: alerts?.reduce((total, a) => total + a.occurrence_count, 0), tone: 'count'},
+  ];
+  return <section className="metrics-strip" aria-label="Current team alert totals">
+    {metrics.map(metric => {
+      const body = <><span className="metric-name"><i data-tone={metric.tone}/>{metric.label}</span>
+        <strong>{metric.value?.toLocaleString() ?? '—'}</strong></>;
+      return metric.to ? <Link key={metric.label} to={metric.to} className="metric-cell">{body}</Link>
+        : <div key={metric.label} className="metric-cell" title="Distinct failure occurrences across active alerts">{body}</div>;
+    })}
+  </section>;
+}

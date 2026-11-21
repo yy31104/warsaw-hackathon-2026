@@ -7,6 +7,6 @@ export type Preference={when?:string;min_severity:string;channels:string[]};
 export type Directory = {
   fallback_team?: string;
   default_preferences: Preference[];
-  teams: {id: string; members: string[]; approvers: string[]; oncall?: {primary: string}; required_channels?: Record<string, string[]>}[];
+  teams: {id: string; members: string[]; approvers?: string[]; oncall?: {primary: string}; required_channels?: Record<string, string[]>}[];
   users: {id: string; name: string; timezone: string; contacts?: Record<string, string>; preferences?: Preference[]}[];
 };
