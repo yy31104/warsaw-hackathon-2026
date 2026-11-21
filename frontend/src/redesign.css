@@ -407,3 +407,28 @@ body,.horizontal-shell,.horizontal-shell button,.horizontal-shell input,.horizon
 .scene-detail-list>p{margin:12px 0}
 
 .scene-scroll-hint{display:flex;justify-content:flex-end;align-items:center;gap:12px;font-size:11px;color:var(--secondary);padding:0 2px 8px;border-bottom:1px solid var(--line)}.scene-scroll-hint>span:last-child{color:var(--accent)}
+
+.scene-detail-list{scrollbar-width:thin;scrollbar-color:var(--motion-purple) var(--surface-raised);scrollbar-gutter:stable}
+.scene-detail-list::-webkit-scrollbar{width:6px}.scene-detail-list::-webkit-scrollbar-track{background:var(--surface-raised);border-radius:6px}.scene-detail-list::-webkit-scrollbar-thumb{background:var(--motion-purple);border-radius:6px}
+
+.scene-alert-scroll .scene-detail-list{max-height:none;overflow:visible;padding-right:4px;scrollbar-gutter:auto}.scene-alert-scroll .mantine-ScrollArea-scrollbar{background:var(--surface-raised);border-radius:6px}.scene-alert-scroll .mantine-ScrollArea-thumb{background:var(--motion-purple);border-radius:6px}
+
+.scene-glass-popover{overflow-x:hidden}.scene-detail-list a,.scene-event-detail{min-width:0;overflow-wrap:anywhere}.scene-alert-scroll .mantine-ScrollArea-scrollbar[data-orientation="horizontal"]{display:none}.scene-alert-scroll .mantine-ScrollArea-viewport>div{min-width:0!important;display:block!important}
+.multi-alert-trends{padding:28px 0;width:100%}.multi-alert-trends svg{width:100%;height:auto;max-height:400px;display:block;margin:28px 0}.trend-series-controls{display:flex;gap:24px;flex-wrap:wrap;margin:24px 0}.trend-series-controls button{background:none;border:0;color:var(--ink);font:inherit;font-size:13px;cursor:pointer}.trend-series-controls i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px}.trend-series-controls button[aria-pressed=false]{opacity:.4}.trend-inspect{display:flex;align-items:center;gap:20px;font-size:12px}.trend-inspect input{flex:1;accent-color:var(--motion-purple)}.trend-readout{display:flex;flex-wrap:wrap;gap:24px;font-size:12px;margin-top:18px}.trend-readout time{color:var(--quiet)}
+
+.trend-point-preview{display:flex;flex-direction:column;gap:6px;padding:4px;font-family:'Open Sans',sans-serif;letter-spacing:.025em}.trend-point-preview>span{font-size:12px}.trend-point-preview strong{font-size:14px;font-weight:400}.trend-point-preview small{font-size:10px;opacity:.8}
+.multi-alert-trends svg polyline{opacity:.65;transition:opacity .2s;filter:drop-shadow(0 0 3px #b494fa15)}.multi-alert-trends svg g:hover>polyline{opacity:.9}.multi-alert-trends svg g>line{opacity:.3}.multi-alert-trends svg>line{opacity:.4}
+@media(prefers-reduced-motion:reduce){.multi-alert-trends svg polyline{transition:none}}
+
+.multi-alert-trends .multi-trend-flow{stroke-dasharray:8 5;animation:trend-flow 9s linear infinite}.multi-trend-pulse{transform-box:fill-box;transform-origin:center;animation:trend-arrival 2.6s ease-out infinite;pointer-events:none}
+@media(prefers-reduced-motion:reduce){.multi-alert-trends .multi-trend-flow,.multi-trend-pulse{animation:none}.multi-trend-pulse{display:none}}
+
+.trend-glass-tooltip{background:color-mix(in srgb,var(--surface) 65%,transparent)!important;color:var(--ink)!important;border:1px solid color-mix(in srgb,var(--motion-purple) 25%,transparent);border-radius:12px!important;backdrop-filter:blur(18px);box-shadow:0 8px 24px #0002;padding:10px 14px!important}.trend-glass-arrow{background:color-mix(in srgb,var(--surface) 70%,transparent)!important}.multi-trend-pulse{stroke-opacity:.5}
+:root[data-mantine-color-scheme=light] .trend-glass-tooltip{background:rgba(255,255,255,.75)!important;box-shadow:0 8px 24px #7255a914}
+
+.multi-alert-trends .multi-trend-flow{stroke-dasharray:1;stroke-dashoffset:0;animation:trend-draw-in 2.4s cubic-bezier(.2,.6,.3,1) both}
+.reveal-pending .multi-trend-flow{animation-play-state:paused!important}
+@keyframes trend-draw-in{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@media(prefers-reduced-motion:reduce){.multi-alert-trends .multi-trend-flow{animation:none;stroke-dashoffset:0}}
+
+.multi-alert-trends path.multi-trend-flow{opacity:.65;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 3px #b494fa15)}
