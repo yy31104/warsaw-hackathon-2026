@@ -42,7 +42,11 @@ def cancel_recovery(row):
     row.update(resolve_pending_at=None, resolve_due_at=None, resolve_episode=None, resolve_event_id=None)
 
 
-async def load_team_silences(conn, at):
+def confirmed_recovery(row):
+    return row["resolve_event_id"] is not None and row["resolve_episode"] == row["latest_episode"]
+
+
+async def load_team_silences(conn, at, *, team=None):
     try:
         from alerting.rules.silences import load_active
     except ModuleNotFoundError as exc:
@@ -50,14 +54,22 @@ async def load_team_silences(conn, at):
             raise
         return {}
     windows = {}
-    for silence in await load_active(conn, at):
+    for silence in await load_active(conn, at, team=team):
         windows.setdefault(silence.team_id, []).append(silence)
     return windows
 
 
+def timer_silence(windows, row, fields, at):
+    if team_windows := windows.get(row["team_id"]):
+        from alerting.rules.silences import active_silence
+
+        return active_silence(team_windows, fields, at, severity=row["severity"])
+    return None
+
+
 async def finish_recovery(cur, row, now):
     # The scheduler holds the same alert row lock as the event worker and the acknowledge endpoint.
-    if row["resolve_event_id"] is None or row["resolve_episode"] != row["latest_episode"]:
+    if not confirmed_recovery(row):
         await cur.execute(
             """update alerts set resolve_pending_at=null,resolve_due_at=null,
                resolve_episode=null,resolve_event_id=null where id=%s""",
@@ -111,7 +123,28 @@ def timer_policies(rules, directory):
     return policies
 
 
-async def escalate(cur, row, rule, fields, settings, clock):
+# Used by both the scheduler's batch claim and the read-only alert detail.
+TIMER_ANCHORS = """
+    left join events recovery on recovery.id=a.resolve_event_id
+    left join lateral (
+      select d.created_at as received,(d.reason->>'eligible_at')::timestamptz as eligible_at
+      from decisions d where p.id is not null and d.alert_id=a.id
+        and d.reason->>'notification_cause'='first_eligible_after_silence'
+      order by d.id limit 1) first_allowed on true
+    cross join lateral (select
+      extract(epoch from case
+        when a.occurrence_count>0 and a.last_notified_at is null and a.count_since_notify=0 then null
+        when %(live)s then coalesce(first_allowed.received,a.created_at)
+        else coalesce(first_allowed.eligible_at,a.first_seen_at,a.created_at) end) as opened_epoch,
+      case when %(live)s and recovery.trace ? 'demo_clock'
+        then recovery.received_at + (a.resolve_due_at-a.resolve_pending_at)
+        else a.resolve_due_at end as recovery_due) anchor
+    cross join lateral (select case when a.status='open' and a.escalation_stage<2 then
+      anchor.opened_epoch + (a.escalation_stage+1)*p.unacked end as unacked_at) escalation
+"""
+
+
+async def escalation_plan(cur, row, rule, fields, settings, clock, *, reserve_throttle):
     team = by_id(settings.directory["teams"]).get(row["team_id"], {})
     if row["escalation_stage"] == 0:
         step = "secondary"
@@ -122,10 +155,52 @@ async def escalate(cur, row, rule, fields, settings, clock):
         people = team.get("approvers", [])
     targets = [{"to": f"user:{person}", "channels": "preferences"} for person in people]
     routing = await delivery_plan(
-        cur, row, "escalation", {**rule, "route": targets}, fields, settings, clock
+        cur, row, "escalation", {**rule, "route": targets}, fields, settings, clock,
+        reserve_throttle=reserve_throttle,
     )
     # The route planner's generic critical fallback is not a secondary or designated approver.
-    intents = [i for i in routing.intents if i.recipient in people]
+    return step, people, [i for i in routing.intents if i.recipient in people]
+
+
+async def alert_with_next_escalation(cur, alert_id, settings, clock=SYSTEM):
+    rules = {r["id"]: r for r, _ in settings.ruleset.rules}
+    await cur.execute(
+        f"""select a.*,e.fields as event_fields,e.trace,e.schema_id,anchor.recovery_due,
+                   to_timestamp(escalation.unacked_at) as escalation_at
+            from alerts a left join events e on e.id=a.representative_event_id
+            left join jsonb_to_recordset(%(policies)s) as p(id text,unacked bigint) on p.id=a.rule_id
+            {TIMER_ANCHORS}
+            where a.id=%(id)s""",
+        {"id": alert_id, "policies": Jsonb(timer_policies(rules, settings.directory)), "live": clock is SYSTEM},
+    )
+    row = await cur.fetchone()
+    if row is None:
+        return None
+    row["next_escalation"] = None
+    at = row["escalation_at"]
+    if at is None:
+        return row
+    fields = {**(row["event_fields"] or {}), "gen_sent_at": (row["trace"] or {}).get("gen_sent_at")}
+    windows = await load_team_silences(cur.connection, at, team=row["team_id"])
+    # Keep the original release time for a delayed poll, and respect any current hold on an overdue step.
+    for check_at in (at, clock.now()):
+        planning_at = max(at, check_at)
+        while silence := timer_silence(windows, row, fields, planning_at):
+            at = planning_at = silence.expires_at
+    if row["recovery_due"] is not None and row["recovery_due"] <= planning_at and confirmed_recovery(row):
+        return row
+    level, _, intents = await escalation_plan(
+        cur, row, rules[row["rule_id"]], fields, settings, FixedClock(planning_at), reserve_throttle=False,
+    )
+    row["next_escalation"] = {
+        "at": at, "level": level, "targets": sorted({i.recipient for i in intents}),
+        "channels": sorted({i.channel.value for i in intents}),
+    }
+    return row
+
+
+async def escalate(cur, row, rule, fields, settings, clock):
+    step, people, intents = await escalation_plan(cur, row, rule, fields, settings, clock, reserve_throttle=True)
     for intent in intents:
         scope_to_open_alert(intent)
         intent.rendered.meta["escalation_step"] = step
@@ -173,48 +248,33 @@ async def tick(db, settings=None, clock=SYSTEM, stop=None):
             return missed
         active_ids = [str(w.id) for team in windows.values() for w in team if w.created_at <= now]
         await cur.execute(
-            """select a.*,e.fields as event_fields,e.trace,e.schema_id,anchor.recovery_due,
-                 t.unacked_at<=cutoff.epoch as escalate,t.ladder_at<=cutoff.epoch as advance
+            f"""select a.*,e.fields as event_fields,e.trace,e.schema_id,anchor.recovery_due,
+                 escalation.unacked_at<=cutoff.epoch as escalate,t.ladder_at<=cutoff.epoch as advance
                from alerts a
                left join events e on e.id=a.representative_event_id
-               left join events recovery on recovery.id=a.resolve_event_id
                left join jsonb_to_recordset(%(policies)s) as p(id text,unacked bigint,ladder bigint[],digest bool)
                  on p.id=a.rule_id
                cross join (select extract(epoch from %(now)s::timestamptz) as epoch) cutoff
-               left join lateral (
-                 select d.created_at as received,(d.reason->>'eligible_at')::timestamptz as eligible_at
-                 from decisions d where p.id is not null and d.alert_id=a.id
-                   and d.reason->>'notification_cause'='first_eligible_after_silence'
-                 order by d.id limit 1) first_allowed on true
-               cross join lateral (select
-                 extract(epoch from case
-                   when a.occurrence_count>0 and a.last_notified_at is null and a.count_since_notify=0 then null
-                   when %(live)s then coalesce(first_allowed.received,a.created_at)
-                   else coalesce(first_allowed.eligible_at,a.first_seen_at,a.created_at) end) as opened_epoch,
-                 case when %(live)s and recovery.trace ? 'demo_clock'
-                   then recovery.received_at + (a.resolve_due_at-a.resolve_pending_at)
-                   else a.resolve_due_at end as recovery_due) anchor
+               {TIMER_ANCHORS}
                left join lateral (select extract(epoch from
-                     (n.rendered#>>'{meta,ladder_started_at}')::timestamptz) as started_epoch
+                     (n.rendered#>>'{{meta,ladder_started_at}}')::timestamptz) as started_epoch
                  from notifications n where p.digest and a.status='open' and a.last_notified_at is not null
                    and p.ladder[a.ladder_stage+1] is not null and n.alert_id=a.id
                    and n.rendered->'meta' ? 'ladder_started_at'
                  order by n.created_at,n.id limit 1) first_digest on true
                cross join lateral (select
-                 case when a.escalation_stage<2 then anchor.opened_epoch +
-                   (a.escalation_stage+1)*p.unacked end as unacked_at,
                  (case when p.digest then first_digest.started_epoch else anchor.opened_epoch end)
                    + p.ladder[a.ladder_stage+1] as ladder_at) t
                where (a.status<>'resolved' and anchor.recovery_due<=%(now)s)
                   or (a.status='open' and least(extract(epoch from a.next_notify_at),
-                       t.unacked_at,t.ladder_at)<=cutoff.epoch
+                       escalation.unacked_at,t.ladder_at)<=cutoff.epoch
                       and (cardinality(%(silences)s::text[])=0 or not exists (
                         select 1 from audit_log l where l.target_kind='alert' and l.target_id=a.id::text
                           and l.action='alert.timer_silenced' and l.detail->>'silence_id'=any(%(silences)s)
                           and l.detail @> jsonb_build_object('event_id',a.representative_event_id,
                                                              'severity',a.severity,'team_id',a.team_id))))
                order by least(extract(epoch from a.next_notify_at),extract(epoch from anchor.recovery_due),
-                       t.unacked_at,t.ladder_at),a.id
+                       escalation.unacked_at,t.ladder_at),a.id
                limit 200 for update of a skip locked""",
             {"policies": Jsonb(timer_policies(rules, settings.directory)), "live": clock is SYSTEM,
              "now": now, "silences": active_ids},
@@ -228,17 +288,13 @@ async def tick(db, settings=None, clock=SYSTEM, stop=None):
                 continue
             rule = rules.get(row["rule_id"])
             fields = {**(row["event_fields"] or {}), "gen_sent_at": (row["trace"] or {}).get("gen_sent_at")}
-            if rule and (team_windows := windows.get(row["team_id"])):
-                from alerting.rules.silences import active_silence
-
-                silence = active_silence(team_windows, fields, now, severity=row["severity"])
-                if silence:
-                    # Skip this same evidence on later polls until the window expires or is revoked.
-                    await audit(cur, "system", "alert.timer_silenced", "alert", row["id"], {
-                        "silence_id": silence.id, "event_id": row["representative_event_id"],
-                        "severity": row["severity"], "team_id": row["team_id"],
-                    })
-                    continue
+            if rule and (silence := timer_silence(windows, row, fields, now)):
+                # Skip this same evidence on later polls until the window expires or is revoked.
+                await audit(cur, "system", "alert.timer_silenced", "alert", row["id"], {
+                    "silence_id": silence.id, "event_id": row["representative_event_id"],
+                    "severity": row["severity"], "team_id": row["team_id"],
+                })
+                continue
             if row["escalate"]:
                 await escalate(cur, row, rule, fields, settings, clock)
             if row["advance"]:

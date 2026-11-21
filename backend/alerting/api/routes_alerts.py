@@ -8,6 +8,7 @@ from alerting.clock import SYSTEM
 from alerting.contracts import Outcome
 from alerting.db import pool
 from alerting.routing.directory import by_id
+from alerting.rules.scheduler import alert_with_next_escalation
 from alerting.rules.silences import SILENCE_COLUMNS, SilenceDraft, active_rows
 from alerting.rules.storage import alert_changed, audit, close_settings, get_db, get_settings
 from alerting.runbooks.approvals import pending_count, pending_for_alert
@@ -121,10 +122,13 @@ async def alerts(
 @router.get("/alerts/{id}")
 async def detail(id: int, db=Depends(get_db)):
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-        alert = public_alert(await get_alert(cur, id))
+        settings = await get_settings(db, conn=conn)
+        row = await alert_with_next_escalation(cur, id, settings)
+        if row is None:
+            raise HTTPException(404, "Alert not found")
+        alert = {**public_alert(row), "next_escalation": row["next_escalation"]}
         pending = await pending_for_alert(cur, id)
         if pending:
-            settings = await get_settings(db, conn=conn)
             team = by_id(settings.directory["teams"]).get(alert["team_id"], {})
             for run in pending:
                 run["approvers"] = team.get("approvers", [])

@@ -28,6 +28,7 @@
     "error.code": "TIMEOUT"
   },
   "runbook_id": "settlement-timeout",
+  "next_escalation": null,
   "occurrence_count": 500,
   "first_seen_at": "2026-10-23T09:14:02.331Z",
   "last_seen_at": "2026-10-23T09:15:01.904Z",
