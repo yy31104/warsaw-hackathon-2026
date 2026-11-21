@@ -1,0 +1,600 @@
+[
+  {
+    "observed_at_ms": 1795226953361,
+    "accepted": 0,
+    "processed": 0,
+    "processing_backlog": 0,
+    "planned": 0,
+    "delivered": 0,
+    "delivery_backlog": 0,
+    "terminal": 0,
+    "failed": 0,
+    "attempts": 0,
+    "oldest_pending_s": 0.0,
+    "rabbit_ready": 0,
+    "pg_activity": []
+  },
+  {
+    "observed_at_ms": 1795226953364,
+    "accepted": 0,
+    "processed": 0,
+    "processing_backlog": 0,
+    "planned": 0,
+    "delivered": 0,
+    "delivery_backlog": 0,
+    "terminal": 0,
+    "failed": 0,
+    "attempts": 0,
+    "oldest_pending_s": 0.0,
+    "rabbit_ready": 0,
+    "pg_activity": []
+  },
+  {
+    "observed_at_ms": 1795226955373,
+    "accepted": 1404,
+    "processed": 1298,
+    "processing_backlog": 106,
+    "planned": 2006,
+    "delivered": 107,
+    "delivery_backlog": 1899,
+    "terminal": 107,
+    "failed": 0,
+    "attempts": 107,
+    "oldest_pending_s": 1.863541,
+    "rabbit_ready": 0,
+    "pg_activity": [
+      {
+        "type": "Running",
+        "event": "CPU or runnable",
+        "sessions": 1
+      }
+    ]
+  },
+  {
+    "observed_at_ms": 1795226957381,
+    "accepted": 2772,
+    "processed": 2705,
+    "processing_backlog": 67,
+    "planned": 2014,
+    "delivered": 193,
+    "delivery_backlog": 1821,
+    "terminal": 193,
+    "failed": 0,
+    "attempts": 193,
+    "oldest_pending_s": 3.872353,
+    "rabbit_ready": 0,
+    "pg_activity": [
+      {
+        "type": "Running",
+        "event": "CPU or runnable",
+        "sessions": 2
+      }
+    ]
+  },
+  {
+    "observed_at_ms": 1795226959396,
+    "accepted": 4177,
+    "processed": 4036,
+    "processing_backlog": 141,
+    "planned": 2022,
+    "delivered": 282,
+    "delivery_backlog": 1740,
+    "terminal": 282,
+    "failed": 0,
+    "attempts": 282,
+    "oldest_pending_s": 5.805191,
+    "rabbit_ready": 0,
+    "pg_activity": [
+      {
+        "type": "Running",
+        "event": "CPU or runnable",
+        "sessions": 1
+      }
+    ]
+  },
+  {
+    "observed_at_ms": 1795226961411,
+    "accepted": 5620,
+    "processed": 5475,
+    "processing_backlog": 145,
+    "planned": 2030,
+    "delivered": 375,
+    "delivery_backlog": 1655,
+    "terminal": 375,
+    "failed": 0,
+    "attempts": 375,
+    "oldest_pending_s": 7.658273,
+    "rabbit_ready": 0,
+    "pg_activity": [
+      {
+        "type": "Running",
+        "event": "CPU or runnable",
+        "sessions": 2
+      }
+    ]
+  },
+  {
+    "observed_at_ms": 1795226963424,
+    "accepted": 7055,
+    "processed": 6984,
+    "processing_backlog": 71,
+    "planned": 2038,
+    "delivered": 467,
+    "delivery_backlog": 1571,
+    "terminal": 467,
+    "failed": 0,
+    "attempts": 467,
+    "oldest_pending_s": 9.672451,
+    "rabbit_ready": 0,
+    "pg_activity": []
+  },
+  {
+    "observed_at_ms": 1795226965437,
+    "accepted": 8459,
+    "processed": 8353,
+    "processing_backlog": 106,
+    "planned": 2046,
+    "delivered": 568,
+    "delivery_backlog": 1478,
+    "terminal": 568,
+    "failed": 0,
+    "attempts": 568,
+    "oldest_pending_s": 11.625616,
+    "rabbit_ready": 0,
+    "pg_activity": [
+      {
+        "type": "IO",
+        "event": "WALSync",
+        "sessions": 1
+      }
+    ]
+  },
+  {
+    "observed_at_ms": 1795226967454,
+    "accepted": 9864,
+    "processed": 9653,
+    "processing_backlog": 211,
+    "planned": 2056,
+    "delivered": 656,
+    "delivery_backlog": 1400,
+    "terminal": 656,
+    "failed": 0,
+    "attempts": 656,
+    "oldest_pending_s": 13.640274,
+    "rabbit_ready": 0,
+    "pg_activity": [
+      {
+        "type": "Running",
+        "event": "CPU or runnable",
+        "sessions": 1
+      }
+    ]
+  },
+  {
+    "observed_at_ms": 1795226969467,
+    "accepted": 11302,
+    "processed": 11091,
+    "processing_backlog": 211,
+    "planned": 2062,
+    "delivered": 761,
+    "delivery_backlog": 1301,
+    "terminal": 761,
+    "failed": 0,
+    "attempts": 762,
+    "oldest_pending_s": 15.5296,
+    "rabbit_ready": 0,
+    "pg_activity": [
+      {
+        "type": "Running",
+        "event": "CPU or runnable",
+        "sessions": 1
+      }
+    ]
+  },
+  {
+    "observed_at_ms": 1795226971483,
+    "accepted": 12671,
+    "processed": 12600,
+    "processing_backlog": 71,
+    "planned": 2070,
+    "delivered": 869,
+    "delivery_backlog": 1201,
+    "terminal": 869,
+    "failed": 0,
+    "attempts": 869,
+    "oldest_pending_s": 17.516754,
+    "rabbit_ready": 0,
+    "pg_activity": []
+  },
+  {
+    "observed_at_ms": 1795226973499,
+    "accepted": 14110,
+    "processed": 14005,
+    "processing_backlog": 105,
+    "planned": 2080,
+    "delivered": 964,
+    "delivery_backlog": 1116,
+    "terminal": 964,
+    "failed": 0,
+    "attempts": 965,
+    "oldest_pending_s": 19.416081,
+    "rabbit_ready": 0,
+    "pg_activity": [
+      {
+        "type": "Running",
+        "event": "CPU or runnable",
+        "sessions": 3
+      }
+    ]
+  },
+  {
+    "observed_at_ms": 1795226975516,
+    "accepted": 15549,
+    "processed": 15481,
+    "processing_backlog": 68,
+    "planned": 2088,
+    "delivered": 1083,
+    "delivery_backlog": 1005,
+    "terminal": 1083,
+    "failed": 0,
+    "attempts": 1084,
+    "oldest_pending_s": 21.399008,
+    "rabbit_ready": 0,
+    "pg_activity": [
+      {
+        "type": "Running",
+        "event": "CPU or runnable",
+        "sessions": 2
+      }
+    ]
+  },
+  {
+    "observed_at_ms": 1795226977533,
+    "accepted": 16919,
+    "processed": 16777,
+    "processing_backlog": 142,
+    "planned": 2096,
+    "delivered": 1207,
+    "delivery_backlog": 889,
+    "terminal": 1207,
+    "failed": 0,
+    "attempts": 1208,
+    "oldest_pending_s": 23.279068,
+    "rabbit_ready": 0,
+    "pg_activity": []
+  },
+  {
+    "observed_at_ms": 1795226979550,
+    "accepted": 18357,
+    "processed": 18186,
+    "processing_backlog": 171,
+    "planned": 2104,
+    "delivered": 1323,
+    "delivery_backlog": 781,
+    "terminal": 1323,
+    "failed": 0,
+    "attempts": 1323,
+    "oldest_pending_s": 25.29624,
+    "rabbit_ready": 0,
+    "pg_activity": [
+      {
+        "type": "Client",
+        "event": "ClientRead",
+        "sessions": 2
+      },
+      {
+        "type": "Running",
+        "event": "CPU or runnable",
+        "sessions": 1
+      }
+    ]
+  },
+  {
+    "observed_at_ms": 1795226981565,
+    "accepted": 19762,
+    "processed": 19726,
+    "processing_backlog": 36,
+    "planned": 2112,
+    "delivered": 1457,
+    "delivery_backlog": 655,
+    "terminal": 1457,
+    "failed": 0,
+    "attempts": 1457,
+    "oldest_pending_s": 27.169653,
+    "rabbit_ready": 0,
+    "pg_activity": []
+  },
+  {
+    "observed_at_ms": 1795226983717,
+    "accepted": 21171,
+    "processed": 21130,
+    "processing_backlog": 41,
+    "planned": 2120,
+    "delivered": 1611,
+    "delivery_backlog": 509,
+    "terminal": 1611,
+    "failed": 0,
+    "attempts": 1611,
+    "oldest_pending_s": 29.134961,
+    "rabbit_ready": 0,
+    "pg_activity": [
+      {
+        "type": "Lock",
+        "event": "object",
+        "sessions": 1
+      },
+      {
+        "type": "Running",
+        "event": "CPU or runnable",
+        "sessions": 1
+      }
+    ]
+  },
+  {
+    "observed_at_ms": 1795226985732,
+    "accepted": 22674,
+    "processed": 22639,
+    "processing_backlog": 35,
+    "planned": 2128,
+    "delivered": 1818,
+    "delivery_backlog": 310,
+    "terminal": 1818,
+    "failed": 0,
+    "attempts": 1818,
+    "oldest_pending_s": 31.068724,
+    "rabbit_ready": 0,
+    "pg_activity": [
+      {
+        "type": "Running",
+        "event": "CPU or runnable",
+        "sessions": 2
+      }
+    ]
+  },
+  {
+    "observed_at_ms": 1795226987749,
+    "accepted": 24113,
+    "processed": 24010,
+    "processing_backlog": 103,
+    "planned": 2136,
+    "delivered": 2030,
+    "delivery_backlog": 106,
+    "terminal": 2030,
+    "failed": 0,
+    "attempts": 2030,
+    "oldest_pending_s": 32.925121,
+    "rabbit_ready": 0,
+    "pg_activity": [
+      {
+        "type": "Running",
+        "event": "CPU or runnable",
+        "sessions": 1
+      }
+    ]
+  },
+  {
+    "observed_at_ms": 1795226989768,
+    "accepted": 25517,
+    "processed": 25412,
+    "processing_backlog": 105,
+    "planned": 2144,
+    "delivered": 2144,
+    "delivery_backlog": 0,
+    "terminal": 2144,
+    "failed": 0,
+    "attempts": 2144,
+    "oldest_pending_s": 0.0,
+    "rabbit_ready": 0,
+    "pg_activity": []
+  },
+  {
+    "observed_at_ms": 1795226991787,
+    "accepted": 26956,
+    "processed": 26816,
+    "processing_backlog": 140,
+    "planned": 2152,
+    "delivered": 2152,
+    "delivery_backlog": 0,
+    "terminal": 2152,
+    "failed": 0,
+    "attempts": 2152,
+    "oldest_pending_s": 0.0,
+    "rabbit_ready": 0,
+    "pg_activity": [
+      {
+        "type": "Running",
+        "event": "CPU or runnable",
+        "sessions": 1
+      }
+    ]
+  },
+  {
+    "observed_at_ms": 1795226993809,
+    "accepted": 28362,
+    "processed": 28261,
+    "processing_backlog": 101,
+    "planned": 2160,
+    "delivered": 2160,
+    "delivery_backlog": 0,
+    "terminal": 2160,
+    "failed": 0,
+    "attempts": 2160,
+    "oldest_pending_s": 0.0,
+    "rabbit_ready": 0,
+    "pg_activity": []
+  },
+  {
+    "observed_at_ms": 1795226995829,
+    "accepted": 29764,
+    "processed": 29659,
+    "processing_backlog": 105,
+    "planned": 2168,
+    "delivered": 2168,
+    "delivery_backlog": 0,
+    "terminal": 2168,
+    "failed": 0,
+    "attempts": 2168,
+    "oldest_pending_s": 0.0,
+    "rabbit_ready": 0,
+    "pg_activity": []
+  },
+  {
+    "observed_at_ms": 1795226997847,
+    "accepted": 31203,
+    "processed": 31098,
+    "processing_backlog": 105,
+    "planned": 2176,
+    "delivered": 2176,
+    "delivery_backlog": 0,
+    "terminal": 2176,
+    "failed": 0,
+    "attempts": 2176,
+    "oldest_pending_s": 0.0,
+    "rabbit_ready": 0,
+    "pg_activity": []
+  },
+  {
+    "observed_at_ms": 1795226999869,
+    "accepted": 32643,
+    "processed": 32537,
+    "processing_backlog": 106,
+    "planned": 2184,
+    "delivered": 2184,
+    "delivery_backlog": 0,
+    "terminal": 2184,
+    "failed": 0,
+    "attempts": 2184,
+    "oldest_pending_s": 0.0,
+    "rabbit_ready": 0,
+    "pg_activity": []
+  },
+  {
+    "observed_at_ms": 1795227001890,
+    "accepted": 34012,
+    "processed": 33976,
+    "processing_backlog": 36,
+    "planned": 2192,
+    "delivered": 2192,
+    "delivery_backlog": 0,
+    "terminal": 2192,
+    "failed": 0,
+    "attempts": 2192,
+    "oldest_pending_s": 0.0,
+    "rabbit_ready": 0,
+    "pg_activity": []
+  },
+  {
+    "observed_at_ms": 1795227003912,
+    "accepted": 35451,
+    "processed": 35383,
+    "processing_backlog": 68,
+    "planned": 2202,
+    "delivered": 2200,
+    "delivery_backlog": 2,
+    "terminal": 2200,
+    "failed": 0,
+    "attempts": 2200,
+    "oldest_pending_s": 0.023624,
+    "rabbit_ready": 0,
+    "pg_activity": [
+      {
+        "type": "Running",
+        "event": "CPU or runnable",
+        "sessions": 2
+      }
+    ]
+  },
+  {
+    "observed_at_ms": 1795227005934,
+    "accepted": 36855,
+    "processed": 36714,
+    "processing_backlog": 141,
+    "planned": 2208,
+    "delivered": 2208,
+    "delivery_backlog": 0,
+    "terminal": 2208,
+    "failed": 0,
+    "attempts": 2208,
+    "oldest_pending_s": 0.0,
+    "rabbit_ready": 0,
+    "pg_activity": [
+      {
+        "type": "Running",
+        "event": "CPU or runnable",
+        "sessions": 1
+      }
+    ]
+  },
+  {
+    "observed_at_ms": 1795227007957,
+    "accepted": 38294,
+    "processed": 38223,
+    "processing_backlog": 71,
+    "planned": 2216,
+    "delivered": 2216,
+    "delivery_backlog": 0,
+    "terminal": 2216,
+    "failed": 0,
+    "attempts": 2216,
+    "oldest_pending_s": 0.0,
+    "rabbit_ready": 0,
+    "pg_activity": [
+      {
+        "type": "Client",
+        "event": "ClientRead",
+        "sessions": 1
+      }
+    ]
+  },
+  {
+    "observed_at_ms": 1795227009978,
+    "accepted": 39701,
+    "processed": 39663,
+    "processing_backlog": 38,
+    "planned": 2226,
+    "delivered": 2226,
+    "delivery_backlog": 0,
+    "terminal": 2226,
+    "failed": 0,
+    "attempts": 2226,
+    "oldest_pending_s": 0.0,
+    "rabbit_ready": 0,
+    "pg_activity": [
+      {
+        "type": "Running",
+        "event": "CPU or runnable",
+        "sessions": 1
+      }
+    ]
+  },
+  {
+    "observed_at_ms": 1795227012001,
+    "accepted": 41137,
+    "processed": 41067,
+    "processing_backlog": 70,
+    "planned": 2234,
+    "delivered": 2232,
+    "delivery_backlog": 2,
+    "terminal": 2232,
+    "failed": 0,
+    "attempts": 2232,
+    "oldest_pending_s": 0.075035,
+    "rabbit_ready": 0,
+    "pg_activity": []
+  },
+  {
+    "observed_at_ms": 1795227014024,
+    "accepted": 42120,
+    "processed": 42120,
+    "processing_backlog": 0,
+    "planned": 2240,
+    "delivered": 2240,
+    "delivery_backlog": 0,
+    "terminal": 2240,
+    "failed": 0,
+    "attempts": 2240,
+    "oldest_pending_s": 0.0,
+    "rabbit_ready": 0,
+    "pg_activity": []
+  }
+]

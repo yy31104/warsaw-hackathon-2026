@@ -1,0 +1,82 @@
+{
+  "source": "10c398e3c01aa2b292f6accbdcfac85fbdf0b8fc",
+  "duration_s": 60,
+  "normal_workers": 1,
+  "keys": 1000,
+  "offered_per_s": 1400,
+  "status": "PASS",
+  "problems": [],
+  "start_epoch_ms": 1795227999988,
+  "scheduled": 84000,
+  "confirmed_total": 84000,
+  "publisher_attempted_per_s": 1400.0,
+  "broker_confirmed_within_per_s": 1400.0,
+  "ingested_within_per_s": 1400.0,
+  "sustained_processed_per_s": 1007.8333333333334,
+  "drain_inclusive_processed_per_s": 984.6457039485305,
+  "ingested_total": 84000,
+  "processed_total": 84000,
+  "source_drops": 0,
+  "publish_errors": 0,
+  "missing_events_at_cutoff": 0,
+  "missing_receiver_slots_at_cutoff": 0,
+  "duplicate_receiver_count": 0,
+  "receiver_e2e": {
+    "n": 2000,
+    "p50_ms": 15165,
+    "p95_ms": 24906,
+    "p99_ms": 25704
+  },
+  "processed_e2e": {
+    "p50_ms": 12538.8369140625,
+    "p95_ms": 24095.694091796875,
+    "p99_ms": 25147.260986328125,
+    "n": 84000
+  },
+  "backlog": {
+    "db_at_15_30_45_60": [
+      6130,
+      12530,
+      18330,
+      23530
+    ],
+    "db_peak_1s": 23530,
+    "broker_confirmed_minus_ingested_at_15_30_45_60": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "peak_delivery": 1821,
+    "oldest_pending_s_peak": 24.378565,
+    "last_observed": {
+      "observed_at_ms": 1795228085373,
+      "accepted": 84000,
+      "processed": 84000,
+      "processing_backlog": 0,
+      "planned": 2000,
+      "delivered": 2000,
+      "delivery_backlog": 0,
+      "terminal": 2000,
+      "failed": 0,
+      "attempts": 2000,
+      "oldest_pending_s": 0.0
+    }
+  },
+  "cpu_pct_of_one_core_by_container": {
+    "w0m11-10c398e-delivery-worker-1": 9.44,
+    "w0m11-10c398e-fake-telecom-1": 10.21,
+    "w0m11-10c398e-ingest-amqp-1": 25.03,
+    "w0m11-10c398e-postgres-1": 96.68,
+    "w0m11-10c398e-rabbitmq-1": 27.41,
+    "w0m11-10c398e-rule-worker-1": 70.19,
+    "w0m11-10c398e-rule-worker-critical-1": 0.5,
+    "w0m11-10c398e-generator": 12.04
+  },
+  "cpu_samples_in_window": 29,
+  "cpu_sampled_s": 57.154,
+  "generator_max_schedule_lag_ms": 11,
+  "input_schedule_sha256": "285940e7e77ecb1303b0e0b200ee0ff2df4d22292270cb157f41aa4607095577",
+  "raw_sha256": "6156d25f848aa31fb795f5553aa69c6538207842caee3932eebda12edb00c743",
+  "confirmed_ids_absent_at_cutoff": 0
+}

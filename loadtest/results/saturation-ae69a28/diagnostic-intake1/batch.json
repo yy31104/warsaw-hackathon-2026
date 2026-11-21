@@ -1,0 +1,156 @@
+{
+  "batch_id": "m11-11210200-9f20c",
+  "commit": "ae69a2829f7ead5c42107375fb5346046250ec7c",
+  "planned_runs": 1,
+  "completed_runs": 1,
+  "runs": [
+    {
+      "run_id": "m11-11210200-9f20c-r5600-k1-w4",
+      "status": "PASS",
+      "measurement_errors": [],
+      "duration_s": 60,
+      "normal_workers": 4,
+      "ingest_workers": 1,
+      "normal_keys": 1,
+      "normal_offer_per_s": 5600,
+      "critical_offer_per_s": 2,
+      "started_at_ms": 1795226437119,
+      "offer_ended_at_ms": 1795226497119,
+      "sampled_until_ms": 1795226517185,
+      "workload_sha256": "07297d3b9834c764a89c84192bd67b2eeb3c64a13175b42bc6dd83f739f98e5e",
+      "scheduled": 336120,
+      "broker_confirmed": 330570,
+      "broker_confirmed_in_window": 330570,
+      "generator_dropped": 5550,
+      "publish_errors": 0,
+      "max_abs_offer_lag_ms": 88,
+      "p99_abs_offer_lag_ms": 41,
+      "accepted_in_window": 214260,
+      "accepted_in_window_per_s": 3571.0,
+      "processed_in_window": 213660,
+      "processed_in_window_per_s": 3561.0,
+      "processed_steady_per_s": 3533.2,
+      "accepted_after_drain": 287660,
+      "processed_after_drain": 287060,
+      "confirmed_not_stored_at_snapshot": 42910,
+      "rejected": 0,
+      "duplicate_inputs": 0,
+      "conflicting_inputs": 0,
+      "backlog": {
+        "warmup_s": 10,
+        "block_width_s": 16.666666666666668,
+        "minimum_growth_per_block": 1400.5,
+        "pipeline": {
+          "trend": "growing",
+          "block_medians": [
+            32842.0,
+            66307.0,
+            99808.5
+          ]
+        },
+        "rabbit_ready": {
+          "trend": "growing",
+          "block_medians": [
+            32442.0,
+            65948.0,
+            99608.5
+          ]
+        },
+        "processing_backlog": {
+          "trend": "no sustained growth",
+          "block_medians": [
+            400.0,
+            359.0,
+            200.0
+          ]
+        },
+        "delivery_backlog": {
+          "trend": "no sustained growth",
+          "block_medians": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "final_sample": {
+        "observed_at_ms": 1795226517184,
+        "accepted": 287460,
+        "processed": 286860,
+        "processing_backlog": 600,
+        "planned": 208,
+        "delivered": 208,
+        "delivery_backlog": 0,
+        "terminal": 208,
+        "failed": 0,
+        "attempts": 208,
+        "oldest_pending_s": 0.0,
+        "rabbit_ready": 43017,
+        "pg_activity": [
+          {
+            "type": "Lock",
+            "event": "advisory",
+            "sessions": 1
+          },
+          {
+            "type": "Running",
+            "event": "CPU or runnable",
+            "sessions": 1
+          }
+        ]
+      },
+      "peak_pipeline_backlog": 114731,
+      "peak_delivery_backlog": 2,
+      "peak_oldest_pending_s": 0.752672,
+      "postgres_active_wait_session_samples": {
+        "Lock:advisory": 8,
+        "Running:CPU or runnable": 29,
+        "IO:WALInitSync": 1,
+        "LWLock:WALWrite": 1,
+        "IO:WALWrite": 1,
+        "IO:DataFileWrite": 1,
+        "IO:DataFileRead": 1,
+        "IO:WALSync": 1
+      },
+      "postgres_peak_waiting_sessions": {
+        "Lock:advisory": 1,
+        "Running:CPU or runnable": 3,
+        "IO:WALInitSync": 1,
+        "LWLock:WALWrite": 1,
+        "IO:WALWrite": 1,
+        "IO:DataFileWrite": 1,
+        "IO:DataFileRead": 1,
+        "IO:WALSync": 1
+      },
+      "rule_decisions_after_drain": 1148240,
+      "notifications_expected": 242,
+      "notifications_verified": 208,
+      "notification_slots_without_verified_receipt": 34,
+      "duplicate_receipts": 0,
+      "invalid_receipts": 0,
+      "receiver_latency": {
+        "normal": {
+          "n": 2,
+          "p50_ms": 209,
+          "p95_ms": 226,
+          "p99_ms": 226
+        },
+        "critical": {
+          "n": 206,
+          "p50_ms": 14265,
+          "p95_ms": 27543,
+          "p99_ms": 28449
+        }
+      },
+      "evidence_written_at_ms": 1795226518817,
+      "postgres_docker_cpu_pct": {
+        "n": 12,
+        "mean": 107.5675,
+        "peak": 140.79
+      },
+      "actual_normal_workers": 4,
+      "actual_ingest_workers": 1,
+      "actual_delivery_workers": 1
+    }
+  ]
+}

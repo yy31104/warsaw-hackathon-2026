@@ -1,0 +1,1243 @@
+[
+  {
+    "run_id": "m11-11210120-1d623-r700-k1-w1",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 42000,
+        "confirmed": 42000,
+        "confirmed_in_window": 42000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 5.24,
+      "delivery-worker": 2.5,
+      "fake-telecom": 6.28,
+      "ingest-amqp": 16.76,
+      "mailpit": 0.01,
+      "postgres": 22.45,
+      "rabbitmq": 67.51,
+      "rule-worker": 13.23,
+      "rule-worker-critical": 1.39,
+      "scheduler": 0.07
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r1400-k1-w1",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 84000,
+        "confirmed": 84000,
+        "confirmed_in_window": 84000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 4.98,
+      "delivery-worker": 2.23,
+      "fake-telecom": 9.67,
+      "ingest-amqp": 25.82,
+      "mailpit": 0.0,
+      "postgres": 42.66,
+      "rabbitmq": 76.66,
+      "rule-worker": 23.44,
+      "rule-worker-critical": 1.38,
+      "scheduler": 0.03
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r2800-k1-w1",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 168000,
+        "confirmed": 168000,
+        "confirmed_in_window": 168000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 10.15,
+      "delivery-worker": 2.65,
+      "fake-telecom": 5.87,
+      "ingest-amqp": 50.41,
+      "mailpit": 0.01,
+      "postgres": 80.23,
+      "rabbitmq": 54.31,
+      "rule-worker": 46.75,
+      "rule-worker-critical": 1.72,
+      "scheduler": 0.09
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r5600-k1-w1",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 336000,
+        "confirmed": 336000,
+        "confirmed_in_window": 336000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 4.2,
+      "delivery-worker": 1.98,
+      "fake-telecom": 10.47,
+      "ingest-amqp": 65.32,
+      "mailpit": 0.0,
+      "postgres": 99.26,
+      "rabbitmq": 96.29,
+      "rule-worker": 57.71,
+      "rule-worker-critical": 1.34,
+      "scheduler": 0.09
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r700-k1-w2",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 42000,
+        "confirmed": 42000,
+        "confirmed_in_window": 42000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 7.44,
+      "delivery-worker": 2.84,
+      "fake-telecom": 8.65,
+      "ingest-amqp": 17.12,
+      "mailpit": 0.0,
+      "postgres": 25.36,
+      "rabbitmq": 55.14,
+      "rule-worker": 14.61,
+      "rule-worker-critical": 1.45,
+      "scheduler": 0.11
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r1400-k1-w2",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 84000,
+        "confirmed": 84000,
+        "confirmed_in_window": 84000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 6.62,
+      "delivery-worker": 2.16,
+      "fake-telecom": 8.56,
+      "ingest-amqp": 25.71,
+      "mailpit": 0.0,
+      "postgres": 43.48,
+      "rabbitmq": 56.58,
+      "rule-worker": 26.28,
+      "rule-worker-critical": 1.42,
+      "scheduler": 0.09
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r2800-k1-w2",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 168000,
+        "confirmed": 168000,
+        "confirmed_in_window": 167863
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 119
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 8.75,
+      "delivery-worker": 2.37,
+      "fake-telecom": 10.02,
+      "ingest-amqp": 47.03,
+      "mailpit": 0.0,
+      "postgres": 79.18,
+      "rabbitmq": 64.25,
+      "rule-worker": 44.37,
+      "rule-worker-critical": 1.37,
+      "scheduler": 0.1
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r5600-k1-w2",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 336000,
+        "confirmed": 335239,
+        "confirmed_in_window": 335239,
+        "dropped": 761
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 3.85,
+      "delivery-worker": 2.07,
+      "fake-telecom": 6.66,
+      "ingest-amqp": 64.85,
+      "mailpit": 0.01,
+      "postgres": 115.77,
+      "rabbitmq": 107.69,
+      "rule-worker": 65.97,
+      "rule-worker-critical": 1.23,
+      "scheduler": 0.09
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r700-k1-w4",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 42000,
+        "confirmed": 42000,
+        "confirmed_in_window": 42000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 3.34,
+      "delivery-worker": 2.52,
+      "fake-telecom": 7.15,
+      "ingest-amqp": 15.8,
+      "mailpit": 0.0,
+      "postgres": 23.34,
+      "rabbitmq": 62.53,
+      "rule-worker": 15.18,
+      "rule-worker-critical": 1.37,
+      "scheduler": 0.06
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r1400-k1-w4",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 84000,
+        "confirmed": 84000,
+        "confirmed_in_window": 84000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 5.53,
+      "delivery-worker": 2.54,
+      "fake-telecom": 7.72,
+      "ingest-amqp": 25.75,
+      "mailpit": 0.01,
+      "postgres": 43.56,
+      "rabbitmq": 65.7,
+      "rule-worker": 26.7,
+      "rule-worker-critical": 1.45,
+      "scheduler": 0.04
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r2800-k1-w4",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 168000,
+        "confirmed": 168000,
+        "confirmed_in_window": 168000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 7.16,
+      "delivery-worker": 2.34,
+      "fake-telecom": 8.33,
+      "ingest-amqp": 44.87,
+      "mailpit": 0.0,
+      "postgres": 77.79,
+      "rabbitmq": 64.72,
+      "rule-worker": 46.66,
+      "rule-worker-critical": 1.34,
+      "scheduler": 0.1
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r5600-k1-w4",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 336000,
+        "confirmed": 335480,
+        "confirmed_in_window": 335123,
+        "dropped": 520
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 119
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 5.98,
+      "delivery-worker": 2.06,
+      "fake-telecom": 9.02,
+      "ingest-amqp": 63.48,
+      "mailpit": 0.0,
+      "postgres": 115.09,
+      "rabbitmq": 91.77,
+      "rule-worker": 66.7,
+      "rule-worker-critical": 1.14,
+      "scheduler": 0.02
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r700-k1000-w1",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 42000,
+        "confirmed": 42000,
+        "confirmed_in_window": 42000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 8.14,
+      "delivery-worker": 13.86,
+      "fake-telecom": 12.42,
+      "ingest-amqp": 16.42,
+      "mailpit": 0.01,
+      "postgres": 75.63,
+      "rabbitmq": 56.38,
+      "rule-worker": 61.43,
+      "rule-worker-critical": 1.5,
+      "scheduler": 0.05
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r1400-k1000-w1",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 84000,
+        "confirmed": 84000,
+        "confirmed_in_window": 84000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 7.65,
+      "delivery-worker": 14.06,
+      "fake-telecom": 11.22,
+      "ingest-amqp": 25.7,
+      "mailpit": 0.0,
+      "postgres": 78.06,
+      "rabbitmq": 55.47,
+      "rule-worker": 60.45,
+      "rule-worker-critical": 1.4,
+      "scheduler": 0.07
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r2800-k1000-w1",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 168000,
+        "confirmed": 168000,
+        "confirmed_in_window": 168000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 5.35,
+      "delivery-worker": 14.84,
+      "fake-telecom": 13.96,
+      "ingest-amqp": 46.87,
+      "mailpit": 0.0,
+      "postgres": 96.66,
+      "rabbitmq": 77.8,
+      "rule-worker": 58.46,
+      "rule-worker-critical": 1.6,
+      "scheduler": 0.05
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r5600-k1000-w1",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 336000,
+        "confirmed": 335760,
+        "confirmed_in_window": 335760,
+        "dropped": 240
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 6.55,
+      "delivery-worker": 16.66,
+      "fake-telecom": 14.12,
+      "ingest-amqp": 62.21,
+      "mailpit": 0.0,
+      "postgres": 110.87,
+      "rabbitmq": 67.27,
+      "rule-worker": 62.08,
+      "rule-worker-critical": 1.24,
+      "scheduler": 0.06
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r700-k1000-w2",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 42000,
+        "confirmed": 42000,
+        "confirmed_in_window": 42000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 9.89,
+      "delivery-worker": 13.56,
+      "fake-telecom": 12.91,
+      "ingest-amqp": 16.43,
+      "mailpit": 0.0,
+      "postgres": 127.45,
+      "rabbitmq": 42.05,
+      "rule-worker": 67.22,
+      "rule-worker-critical": 1.58,
+      "scheduler": 0.1
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r1400-k1000-w2",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 84000,
+        "confirmed": 84000,
+        "confirmed_in_window": 84000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 9.1,
+      "delivery-worker": 14.41,
+      "fake-telecom": 9.45,
+      "ingest-amqp": 25.11,
+      "mailpit": 0.0,
+      "postgres": 128.27,
+      "rabbitmq": 68.4,
+      "rule-worker": 118.05,
+      "rule-worker-critical": 1.36,
+      "scheduler": 0.09
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r2800-k1000-w2",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 168000,
+        "confirmed": 168000,
+        "confirmed_in_window": 168000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 4.31,
+      "delivery-worker": 16.15,
+      "fake-telecom": 14.74,
+      "ingest-amqp": 50.62,
+      "mailpit": 0.0,
+      "postgres": 149.38,
+      "rabbitmq": 71.79,
+      "rule-worker": 120.95,
+      "rule-worker-critical": 1.6,
+      "scheduler": 0.11
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r5600-k1000-w2",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 336000,
+        "confirmed": 333800,
+        "confirmed_in_window": 333800,
+        "dropped": 2200
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 119,
+        "confirmed_in_window": 119,
+        "dropped": 1
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 7.51,
+      "delivery-worker": 16.87,
+      "fake-telecom": 11.95,
+      "ingest-amqp": 65.43,
+      "mailpit": 0.0,
+      "postgres": 151.38,
+      "rabbitmq": 100.71,
+      "rule-worker": 130.7,
+      "rule-worker-critical": 1.34,
+      "scheduler": 0.04
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r700-k1000-w4",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 42000,
+        "confirmed": 42000,
+        "confirmed_in_window": 42000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 9.45,
+      "delivery-worker": 14.36,
+      "fake-telecom": 11.95,
+      "ingest-amqp": 16.59,
+      "mailpit": 0.0,
+      "postgres": 97.38,
+      "rabbitmq": 49.55,
+      "rule-worker": 74.32,
+      "rule-worker-critical": 1.49,
+      "scheduler": 0.04
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r1400-k1000-w4",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 84000,
+        "confirmed": 84000,
+        "confirmed_in_window": 84000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 6.79,
+      "delivery-worker": 16.95,
+      "fake-telecom": 11.52,
+      "ingest-amqp": 26.82,
+      "mailpit": 0.0,
+      "postgres": 166.12,
+      "rabbitmq": 54.6,
+      "rule-worker": 159.87,
+      "rule-worker-critical": 1.51,
+      "scheduler": 0.08
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r2800-k1000-w4",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 168000,
+        "confirmed": 168000,
+        "confirmed_in_window": 168000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 7.87,
+      "delivery-worker": 19.82,
+      "fake-telecom": 13.32,
+      "ingest-amqp": 54.81,
+      "mailpit": 0.0,
+      "postgres": 221.74,
+      "rabbitmq": 67.67,
+      "rule-worker": 239.37,
+      "rule-worker-critical": 1.95,
+      "scheduler": 0.07
+    }
+  },
+  {
+    "run_id": "m11-11210120-1d623-r5600-k1000-w4",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 336000,
+        "confirmed": 332184,
+        "confirmed_in_window": 332184,
+        "dropped": 3816
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 119,
+        "confirmed_in_window": 119,
+        "dropped": 1
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 9.91,
+      "delivery-worker": 19.73,
+      "fake-telecom": 12.5,
+      "ingest-amqp": 64.28,
+      "mailpit": 0.01,
+      "postgres": 264.79,
+      "rabbitmq": 135.58,
+      "rule-worker": 258.44,
+      "rule-worker-critical": 1.38,
+      "scheduler": 0.06
+    }
+  },
+  {
+    "run_id": "m11-11210200-9f20c-r5600-k1-w4",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 336000,
+        "confirmed": 330451,
+        "confirmed_in_window": 330451,
+        "dropped": 5549
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 119,
+        "confirmed_in_window": 119,
+        "dropped": 1
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 8.05,
+      "delivery-worker": 2.02,
+      "fake-telecom": 6.77,
+      "ingest-amqp": 64.09,
+      "mailpit": 0.0,
+      "postgres": 107.57,
+      "rabbitmq": 93.23,
+      "rule-worker": 66.28,
+      "rule-worker-critical": 1.25,
+      "scheduler": 0.1
+    }
+  },
+  {
+    "run_id": "m11-11210202-ea57d-r5600-k1-w4",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 336000,
+        "confirmed": 332761,
+        "confirmed_in_window": 332761,
+        "dropped": 3239
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 119,
+        "confirmed_in_window": 119,
+        "dropped": 1
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 9.63,
+      "delivery-worker": 2.63,
+      "fake-telecom": 7.28,
+      "ingest-amqp": 99.68,
+      "mailpit": 0.0,
+      "postgres": 139.68,
+      "rabbitmq": 97.22,
+      "rule-worker": 68.55,
+      "rule-worker-critical": 1.46,
+      "scheduler": 0.08
+    }
+  },
+  {
+    "run_id": "m11-11210204-82ce5-r1400-k1000-w1",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 84000,
+        "confirmed": 84000,
+        "confirmed_in_window": 84000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 9.29,
+      "delivery-worker": 13.93,
+      "fake-telecom": 11.54,
+      "ingest-amqp": 24.91,
+      "mailpit": 0.0,
+      "postgres": 78.32,
+      "rabbitmq": 53.64,
+      "rule-worker": 61.73,
+      "rule-worker-critical": 1.46,
+      "scheduler": 0.09
+    }
+  },
+  {
+    "run_id": "m11-11210204-82ce5-r1400-k1000-w4",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 84000,
+        "confirmed": 84000,
+        "confirmed_in_window": 84000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 6.19,
+      "delivery-worker": 18.45,
+      "fake-telecom": 16.37,
+      "ingest-amqp": 30.49,
+      "mailpit": 0.0,
+      "postgres": 174.25,
+      "rabbitmq": 70.33,
+      "rule-worker": 178.57,
+      "rule-worker-critical": 1.67,
+      "scheduler": 0.06
+    }
+  },
+  {
+    "run_id": "m11-11210207-34c2d-r700-k1000-w4",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 42000,
+        "confirmed": 42000,
+        "confirmed_in_window": 42000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 8.36,
+      "delivery-worker": 15.17,
+      "fake-telecom": 13.85,
+      "ingest-amqp": 17.22,
+      "mailpit": 0.0,
+      "postgres": 99.9,
+      "rabbitmq": 64.81,
+      "rule-worker": 85.36,
+      "rule-worker-critical": 1.53,
+      "scheduler": 0.08
+    }
+  },
+  {
+    "run_id": "m11-11210208-ba9e8-r700-k1000-w4",
+    "checks": {
+      "sha256": true,
+      "matching_run_id": true,
+      "compose_replicas": true,
+      "unique_inputs_and_broker_totals": true,
+      "committed_inputs": true,
+      "processed_windows": true,
+      "published_backlog_samples": true,
+      "backlog_medians_and_trends": true,
+      "receiver_percentiles": true,
+      "postgres_cpu_samples": true,
+      "postgres_sampled_waits": true
+    },
+    "status": "PASS",
+    "publisher_by_lane": {
+      "normal": {
+        "scheduled": 42000,
+        "confirmed": 42000,
+        "confirmed_in_window": 42000
+      },
+      "critical": {
+        "scheduled": 120,
+        "confirmed": 120,
+        "confirmed_in_window": 120
+      }
+    },
+    "service_cpu_mean_percent": {
+      "api": 7.84,
+      "delivery-worker": 16.95,
+      "fake-telecom": 10.92,
+      "ingest-amqp": 16.23,
+      "mailpit": 0.0,
+      "postgres": 96.91,
+      "rabbitmq": 75.89,
+      "rule-worker": 67.61,
+      "rule-worker-critical": 1.43,
+      "scheduler": 0.1
+    }
+  }
+]
