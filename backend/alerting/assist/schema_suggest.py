@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict
 
 from alerting import llm
 from alerting.contracts import CanonicalEvent
-from alerting.ingest.normalize import MAX_PATHS
+from alerting.ingest.normalize import MAX_PATHS, SEVERITY_WORDS, guess_time_format
 from alerting.schemas.mapping import SchemaDraft, fingerprint
 
 # Prefer meaningful names and parent/name combinations over a generic field called "name".
@@ -22,8 +22,10 @@ NAMES = {
     "message": ("message", "msg", "summary", "description", "detail"),
     "time": ("timestamp", "occurredat", "observedat", "startsat", "createdat", "time", "ts", "at"),
 }
-LEVELS = {"debug": "debug", "info": "info", "warn": "warning", "warning": "warning",
-          "error": "error", "fatal": "critical", "critical": "critical"}
+RANK_SUGGESTIONS = {
+    "sev1": "critical", "p1": "critical", "sev2": "error", "p2": "error",
+    "high": "error", "medium": "warning", "low": "info",
+}
 
 
 class FieldHints(BaseModel):
@@ -41,7 +43,7 @@ _hints: OrderedDict[tuple, dict[str, str]] = OrderedDict()
 
 
 def _leaf_words(path):
-    leaf = re.sub(r"([a-z])([A-Z])", r"\1_\2", path.split(".")[-1])
+    leaf = re.sub(r"([a-z])([A-Z])", r"\1_\2", path.removesuffix(".#text").split(".")[-1])
     return set(re.findall("[a-z]+", leaf.casefold()))
 
 
@@ -81,11 +83,12 @@ def _name_matches(descriptions):
         scores = []
         for row in descriptions:
             path = row["path"]
-            parts = path.split(".")
+            parts = path.removesuffix(".#text").split(".")
             names = {re.sub("[^a-z0-9]", "", part.casefold()) for part in (parts[-1], "".join(parts[-2:]))}
             rank = next((i for i, name in enumerate(vocabulary) if name in names), None)
             if alias == "severity":
-                known_level = str(row["example"]).casefold() in LEVELS
+                level = str(row["example"]).strip().casefold()
+                known_level = level in SEVERITY_WORDS or level in RANK_SUGGESTIONS
                 if parts[-1].casefold() == "level" and not known_level and "loglevel" not in names:
                     continue
                 if rank is None and known_level and _leaf_words(path) & {"status", "importance", "priority", "level", "severity", "urgency"}:
@@ -170,17 +173,20 @@ async def suggest(event: CanonicalEvent) -> dict:
         rationale["detect"] = "Empty sample. This condition covers the entire source; refine it before publishing."
     name = "format-" + signature[:12]
     draft = {"id": name, "name": name, "detect": detect, "aliases": aliases}
+    suggestions = {}
     if "severity" in aliases:
-        level = str(fields[aliases["severity"]]).casefold()
-        if level in LEVELS:
-            draft["severity_map"] = LEVELS
+        label = str(fields[aliases["severity"]]).strip()
+        level = label.casefold()
+        if level in SEVERITY_WORDS:
+            draft["severity_map"] = SEVERITY_WORDS
         else:
             rationale["severity_map"] = "Confirm what the producer's severity values mean."
+            if level in RANK_SUGGESTIONS:
+                # The reviewer must explicitly copy or edit the suggestion before publishing.
+                suggestions["suggested_severity_map"] = {
+                    "status": "suggested", "mapping": {label: RANK_SUGGESTIONS[level]},
+                }
     if "time" in aliases:
-        value = fields[aliases["time"]]
-        try:
-            draft["time_format"] = "epoch_ms" if abs(float(value)) >= 10_000_000_000 else "epoch_s"
-        except (TypeError, ValueError, OverflowError):
-            draft["time_format"] = "iso"
+        draft["time_format"] = guess_time_format(fields[aliases["time"]])
     source = {"source": "llm", "model": model} if hints else {"source": "heuristic"}
-    return {"draft": SchemaDraft.model_validate(draft).spec(), **source, "rationale": rationale}
+    return {"draft": SchemaDraft.model_validate(draft).spec(), **source, "rationale": rationale, **suggestions}

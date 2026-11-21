@@ -42,7 +42,8 @@ async def test_http_bad_envelope_and_size_are_reported(client):
     url = "/v1/events/alertmanager"
     headers = {"X-Api-Key": "demo-alertmanager-key"}
     assert (await client.post(url, json={"alerts": {}}, headers=headers)).status_code == 400
-    assert (await client.post(url, content=b"broken", headers=headers)).status_code == 400
+    broken = await client.post(url, content=b"broken", headers={**headers, "Content-Type": "application/json"})
+    assert broken.status_code == 400 and "example" in broken.json()["detail"]
     assert (await client.post(url, content=b"x" * 262145, headers=headers)).status_code == 413
 
 
