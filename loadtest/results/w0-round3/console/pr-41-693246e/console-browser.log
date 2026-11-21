@@ -1,0 +1,17 @@
+
+> alert-funnel-ui@0.1.0 test:console
+> node e2e/console.mjs
+
+PASS A · live critical incident and acknowledge · 0.94s
+PASS B · Lee approves persisted retry in a separate context · 0.66s
+PASS Timeline · one plain row per delivery and raw history in More details · 0.04s
+PASS C and F · unknown JSON verified and routed with assist off · 0.92s
+PASS D · rule typo suggestion and versioned publish · 0.27s
+PASS E · structured runbook validation blocks publish until fixed · 0.18s
+PASS On call · preference sliders persist · 0.09s
+PASS Health · live counters and dated benchmark provenance · 0.04s
+PASS Now · one fallback tile or four live response tiles · 0.24s
+PASS Now · four tiles with an example response and a missing sample · 0.26s
+PASS Intro · auto-enter and session replay · 6.56s
+PASS Screenshots · four layouts across eight views · 3.13s
+PASS Network · genuine API, no fixtures or browser errors · 0s

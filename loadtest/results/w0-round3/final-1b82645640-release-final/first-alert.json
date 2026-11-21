@@ -1,0 +1,45 @@
+{
+  "started_utc": "2026-11-21T05:56:00.413640+00:00",
+  "project": "w0f-release-final",
+  "result": "PASS",
+  "clock": "monotonic, seconds",
+  "cache": "fresh checkout and volumes, existing Docker layer cache retained",
+  "timing": "first API-visible alert is polled during startup; canonical sample is posted on API readiness",
+  "commit": "1b82645640736f48f31da6f41945cfae8cd93b0b",
+  "clone_seconds": 7.763,
+  "sample_fixture": "fixtures/events/alertmanager_high_error_rate.json",
+  "sample_sha256": "3f731a8dbaf4ff7a05d1dcf8319c12902b8001dd8ac92271122d1c3d6c0d91e4",
+  "docker_server": "29.4.3",
+  "compose_command": "docker compose -p w0f-release-final up -d --build --wait",
+  "api_ready_seconds": 17.045,
+  "first_alert_from_compose_s": 17.045,
+  "first_alert_from_clone_s": 24.906,
+  "first_seen_alerts": [
+    {
+      "id": 2,
+      "rule_id": "pricing-warn-logs",
+      "team_id": "pricing",
+      "title": "Pricing USDJPY: cache miss storm"
+    },
+    {
+      "id": 1,
+      "rule_id": "pricing-warn-logs",
+      "team_id": "pricing",
+      "title": "Pricing EURUSD: price latency above 1s"
+    }
+  ],
+  "sample_response": {
+    "accepted": 1,
+    "duplicates": 0,
+    "conflicts": 0,
+    "rejected": [],
+    "event_ids": [
+      8
+    ]
+  },
+  "sample_accepted_s": 17.063,
+  "sample_alert_from_compose_s": 17.217,
+  "sample_alert_from_clone_s": 25.079,
+  "sample_alert_id": 3,
+  "compose_ready_seconds": 24.23
+}

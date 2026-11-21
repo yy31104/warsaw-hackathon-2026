@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "rule_id": "optimizer-demo-warning",
+  "path": "/rules",
+  "actor": "rita",
+  "seed_count": 18,
+  "baseline": {
+    "planned_interruptions": 18,
+    "night_interruptions": 18
+  },
+  "after": {
+    "planned_interruptions": 4,
+    "night_interruptions": 4,
+    "added_delay_p95_s": 0,
+    "added_delay_max_s": 0,
+    "diff_size": 2
+  },
+  "option": "B",
+  "savings": {
+    "planned_interruptions": 14,
+    "night_interruptions": 14,
+    "by_recipient": [
+      {
+        "recipient": "rita",
+        "planned_interruptions": 14,
+        "night_interruptions": 14
+      }
+    ]
+  },
+  "protected_cases": 14,
+  "protected_violations": 0,
+  "rejected": {
+    "source": "labelled_reference",
+    "episode_id": "warning-at-threshold",
+    "note": "The first orders lag at the configured threshold requires an SMS to the rates operator.",
+    "recipient": "rita",
+    "channel": "sms",
+    "kind": "missing"
+  },
+  "events_replayed": 26,
+  "candidates_evaluated": 17
+}

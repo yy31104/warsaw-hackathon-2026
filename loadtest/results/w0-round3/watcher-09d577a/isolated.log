@@ -1,0 +1,21 @@
+09d577ac74bcc04ad899bd36ed754e9415e00c5d
+
+Run 1/5: .venv/bin/python -m pytest -q tests/ingest/test_source_parser_config.py::test_watcher_keeps_last_committed_parser_and_accepts_a_corrected_edit
+.                                                                        [100%]
+1 passed in 1.31s
+
+Run 2/5: .venv/bin/python -m pytest -q tests/ingest/test_source_parser_config.py::test_watcher_keeps_last_committed_parser_and_accepts_a_corrected_edit
+.                                                                        [100%]
+1 passed in 0.86s
+
+Run 3/5: .venv/bin/python -m pytest -q tests/ingest/test_source_parser_config.py::test_watcher_keeps_last_committed_parser_and_accepts_a_corrected_edit
+.                                                                        [100%]
+1 passed in 0.86s
+
+Run 4/5: .venv/bin/python -m pytest -q tests/ingest/test_source_parser_config.py::test_watcher_keeps_last_committed_parser_and_accepts_a_corrected_edit
+.                                                                        [100%]
+1 passed in 0.90s
+
+Run 5/5: .venv/bin/python -m pytest -q tests/ingest/test_source_parser_config.py::test_watcher_keeps_last_committed_parser_and_accepts_a_corrected_edit
+.                                                                        [100%]
+1 passed in 0.93s

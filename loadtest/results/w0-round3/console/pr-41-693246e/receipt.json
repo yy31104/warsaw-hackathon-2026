@@ -1,0 +1,60 @@
+{
+  "commit": "693246ebe7bd1dd0db46999ef78a5e74b36d7bf3",
+  "project": "w0-console-check-pr41",
+  "port_map": {
+    "POSTGRES_PORT": "64042",
+    "RABBITMQ_PORT": "64043",
+    "RABBITMQ_MANAGEMENT_PORT": "64044",
+    "SMTP_PORT": "64045",
+    "MAILPIT_PORT": "64046",
+    "TELECOM_PORT": "64047",
+    "MOCK_OPS_PORT": "64048",
+    "API_PORT": "64049",
+    "FRONTEND_PORT": "64050"
+  },
+  "utc": "2026-11-21T04:54:55.426777+00:00",
+  "checks": {
+    "npm-ci": {
+      "command": [
+        "npm",
+        "ci",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "exit": 0,
+      "seconds": 1.855
+    },
+    "frontend-build": {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exit": 0,
+      "seconds": 3.563
+    },
+    "compose-start": {
+      "command": [
+        "docker",
+        "compose",
+        "-p",
+        "w0-console-check-pr41",
+        "up",
+        "-d",
+        "--build",
+        "--wait"
+      ],
+      "exit": 0,
+      "seconds": 15.333
+    },
+    "console-browser": {
+      "command": [
+        "npm",
+        "run",
+        "test:console"
+      ],
+      "exit": 0,
+      "seconds": 14.842
+    }
+  }
+}

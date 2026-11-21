@@ -63,3 +63,27 @@ frontend/          React app (zhaoqinghe)
 
 ## Local URLs
 API `:8000` · UI `:5173` · Mailpit `:8025` · RabbitMQ `:15672` · fake-telecom `:8100` · mock-ops `:8200`
+
+<!-- w0-input-variations-start -->
+## How the sample handles input variations
+
+| Change | HTTP | Stored / decision | Observed route |
+| --- | --- | --- | --- |
+| README baseline | 202 | processed / NEW_ALERT | anna / sms |
+| Renamed service field | 202 | processed / UNROUTED | None observed |
+| Upper-case severity | 202 | processed / NEW_ALERT | anna / sms |
+| Epoch seconds | 202 | processed / NEW_ALERT | anna / sms |
+| Extra nesting | 202 | needs_review / NEEDS_REVIEW | None observed |
+| CSV with dotted headers | 202 | needs_review / NEEDS_REVIEW | None observed |
+| Nested XML | 202 | processed / NO_MATCH | None observed |
+| Timestamp without timezone | 202 | processed / NEW_ALERT | anna / sms |
+| Typo in a rule field | 202 | Draft check HTTP 200, publish HTTP 200; cloned rule decision before/after the typo NEW_ALERT / NO_MATCH. The existing Anna rule remains active. | anna / sms |
+
+[Observed requests and decisions](loadtest/results/w0-round3/final-1b82645640-release-final/m16.json) · [Final acceptance](docs/GATES.md)
+<!-- w0-input-variations-end -->
+
+<!-- w0-release-measurements-start -->
+## Measured release results
+
+The README sample produced its alert in **25.079 s** from a fresh clone (one timed run with warm Docker layers). The final runner passed **32/32 golden cases** and **13/13 console browser checks**. [Startup evidence](loadtest/results/w0-round3/final-1b82645640-release-final/first-alert.json) · [Golden runner](loadtest/results/w0-round3/final-1b82645640-release-final/golden.log) · [Browser receipts](loadtest/results/w0-round3/final-1b82645640-release-final/browser/result.json) · [Scorecard](docs/SCORECARD.md)
+<!-- w0-release-measurements-end -->

@@ -1,0 +1,30 @@
+
+> alert-funnel-ui@0.1.0 build
+> tsc -b && vite build
+
+vite v6.4.6 building for production...
+transforming...
+✓ 937 modules transformed.
+[plugin vite:reporter]
+(!) ./main/frontend/src/session.ts is dynamically imported by ./main/frontend/src/Overview.tsx, ./main/frontend/src/Overview.tsx but also statically imported by ./main/frontend/src/ActivityFeed.tsx, ./main/frontend/src/App.tsx, ./main/frontend/src/Motion.tsx, ./main/frontend/src/Overview.tsx, ./main/frontend/src/ProposalPage.tsx, ./main/frontend/src/Runbook.tsx, ./main/frontend/src/Screens.tsx, ./main/frontend/src/api.ts, dynamic import will not move module into another chunk.
+
+[plugin vite:reporter]
+(!) ./main/frontend/src/api.ts is dynamically imported by ./main/frontend/src/App.tsx, ./main/frontend/src/App.tsx but also statically imported by ./main/frontend/src/ActivityFeed.tsx, ./main/frontend/src/App.tsx, ./main/frontend/src/CheckReceipt.tsx, ./main/frontend/src/Motion.tsx, ./main/frontend/src/OptimizerPanel.tsx, ./main/frontend/src/Overview.tsx, ./main/frontend/src/ProposalPage.tsx, ./main/frontend/src/Runbook.tsx, ./main/frontend/src/RunbookCatalogue.tsx, ./main/frontend/src/SchemaOnboarding.tsx, ./main/frontend/src/Screens.tsx, ./main/frontend/src/StabilityPanel.tsx, ./main/frontend/src/VerificationPanels.tsx, ./main/frontend/src/console/Incident.tsx, ./main/frontend/src/console/Incidents.tsx, ./main/frontend/src/console/Now.tsx, ./main/frontend/src/console/OnCall.tsx, ./main/frontend/src/console/Rules.tsx, ./main/frontend/src/console/Runbooks.tsx, ./main/frontend/src/console/Shell.tsx, ./main/frontend/src/console/Sources.tsx, ./main/frontend/src/console/data.ts, dynamic import will not move module into another chunk.
+
+rendering chunks...
+computing gzip size...
+dist/index.html                                        0.37 kB │ gzip:   0.27 kB
+dist/assets/jetbrains-mono-latin-ext-DIC32ArD.woff2   11.62 kB
+dist/assets/hanken-grotesk-latin-ext-Dg-wlmqe.woff2   19.59 kB
+dist/assets/jetbrains-mono-latin-6fWv1k7M.woff2       31.43 kB
+dist/assets/hanken-grotesk-latin-CaVRRdDk.woff2       34.70 kB
+dist/assets/newsreader-latin-ext-BQn1nviT.woff2       86.61 kB
+dist/assets/newsreader-latin-s-izfB6B.woff2          132.00 kB
+dist/assets/index-CQp3E2KC.css                       298.15 kB │ gzip:  48.40 kB
+dist/assets/index-DtRd4Q1O.js                        829.40 kB │ gzip: 246.74 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.24s
