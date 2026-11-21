@@ -39,7 +39,7 @@ function EscalationPolicies() {
       const {primary, secondary} = item.oncall!;
       return <div className="cf-policy" key={item.id}>
         <div className="cf-policy-head"><strong>{teamName(item.id, directory)}</strong>
-          {!secondary && <Chip tone="amber">No backup</Chip>}</div>
+          {!secondary && <Chip tone="amber">No backup responder</Chip>}</div>
         <ol className="cf-policy-levels">
           <li><span className="cf-policy-level">1</span><Person id={primary} role="Primary" directory={directory} now={now}/>
             <span className="cf-meta">called first</span></li>

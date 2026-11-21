@@ -210,7 +210,7 @@ try {
       .format(new Date(escalation.at));
     const lede = sam.locator('.cf-hero .cf-lede');
     await visible(lede.getByText(time, {exact: true}));
-    assert.equal(await lede.innerText(), `Lee is paged at ${time} unless someone takes it.`);
+    assert.equal(await lede.innerText(), `Lee is paged at ${time} unless someone acknowledges first.`);
     assert.equal(await lede.locator('time').getAttribute('datetime'), escalation.at);
     await ingest(flow(), 'settlement-repeat');
     await visible(sam.locator('.cf-hero').getByText('×2', {exact: true}));
@@ -227,7 +227,7 @@ try {
     assert.ok(receipts.every(item => /\/a\/(\d+)(?:\s|$)/.exec(item.text)?.[1] === String(incident.id)));
     await sam.locator('.cf-hero').getByRole('button', {name: 'Acknowledge'}).click();
     await visible(main(sam).getByText('Escalation stopped', {exact: true}));
-    await visible(main(sam).getByText('Escalation stopped. Nobody else will be woken up.', {exact: true}));
+    await visible(main(sam).getByText('Acknowledged, so escalation has stopped. It stays open until someone resolves it.', {exact: true}));
     const detail = await json(`/v1/alerts/${incident.id}`);
     assert.equal(detail.status, 'acknowledged');
     assert.equal(detail.acked_by, 'sam');
@@ -378,7 +378,7 @@ try {
     await button(sam, 'New runbook').click();
     await sam.getByLabel('Runbook ID', {exact: true}).fill('console-lint-' + tag);
     await sam.getByLabel('Original text', {exact: true}).fill('1. Restart service settlement-engine\n2. If the restart does not help, check the dashboard.');
-    await button(sam, 'Structure steps').click();
+    await button(sam, 'Turn into steps').click();
     await visible(main(sam).getByText('Rules draft', {exact: true}));
     await main(sam).getByText('Edit steps', {exact: true}).click();
     const structured = sam.getByLabel('Steps YAML', {exact: true});
@@ -433,12 +433,12 @@ try {
     const group = main(page).getByRole('group', {name: 'Response metrics', exact: true});
     let stats;
     if (response.status() === 404) {
-      await visible(group.getByText('More metrics after the first incidents', {exact: true}));
+      await visible(group.getByText('More metrics appear after the first incidents.', {exact: true}));
       assert.equal(await group.getByRole('heading', {level: 2}).count(), 1);
     } else {
       assert(response.ok(), await response.text());
       stats = await response.json();
-      await visible(group.getByRole('heading', {name: 'Messages per incident', exact: true}));
+      await visible(group.getByRole('heading', {name: 'Notifications per incident', exact: true}));
       const keys = ['tta_p50_s', 'mtta_s', 'mttr_s', 'notifications_per_alert'];
       assert.deepEqual(await group.locator('.cf-big').allTextContents(), keys.map((key, index) =>
         stats[key] == null ? '—' : stats[key].toLocaleString('en-GB', {maximumFractionDigits: 3}) + (index < 3 ? ' s' : '')));
@@ -460,7 +460,7 @@ try {
     const group = main(page).getByRole('group', {name: 'Response metrics', exact: true});
     await visible(group.getByText('No samples', {exact: true}));
     assert.deepEqual(await group.getByRole('heading', {level: 2}).allTextContents(),
-      ['Time to notice', 'Time to respond', 'Time to fix', 'Messages per incident']);
+      ['Time to first notification', 'Time to acknowledge', 'Time to resolve', 'Notifications per incident']);
     assert.deepEqual(await group.locator('.cf-big').allTextContents(), ['0.31 s', '2.25 s', '—', '1.75']);
     await takeShot(page, 'desktop-light', 'now-response-example');
     await screen.close();

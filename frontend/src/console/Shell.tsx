@@ -12,13 +12,13 @@ import {Card, Icon, personName, teamName, timeLabel, useClock} from './ui';
 import './console.css';
 
 const pages = [
-  {path: '/', title: 'Now', icon: 'now', group: 'Respond', note: 'What needs you right now'},
-  {path: '/incidents', title: 'Incidents', icon: 'incidents', group: 'Respond', note: 'Everything that fired'},
-  {path: '/sources', title: 'Sources', icon: 'sources', group: 'Set up', note: 'Teach it a new format'},
-  {path: '/rules', title: 'Rules', icon: 'rules', group: 'Set up', note: 'What pages who'},
-  {path: '/runbooks', title: 'Runbooks', icon: 'runbooks', group: 'Set up', note: 'What to do when it fires'},
-  {path: '/oncall', title: 'On call', icon: 'oncall', group: 'Set up', note: 'Who picks up the phone'},
-  {path: '/health', title: 'Health', icon: 'health', group: 'Check', note: 'Is it keeping up?'},
+  {path: '/', title: 'Now', icon: 'now', group: 'Respond', note: 'Incidents that need attention'},
+  {path: '/incidents', title: 'Incidents', icon: 'incidents', group: 'Respond', note: 'Open and past incidents'},
+  {path: '/sources', title: 'Sources', icon: 'sources', group: 'Set up', note: 'Event formats waiting for review'},
+  {path: '/rules', title: 'Rules', icon: 'rules', group: 'Set up', note: 'When alerts fire and who is notified'},
+  {path: '/runbooks', title: 'Runbooks', icon: 'runbooks', group: 'Set up', note: 'Response steps for each alert'},
+  {path: '/oncall', title: 'On call', icon: 'oncall', group: 'Set up', note: 'Who is on call and how to reach them'},
+  {path: '/health', title: 'Health', icon: 'health', group: 'Check', note: 'Pipeline health and measured performance'},
 ] as const;
 const legacyTitles: Record<string, string> = {
   '/alerts': 'Incidents', '/approvals': 'Approvals', '/overview': 'Overview', '/onboarding': 'Mapping',

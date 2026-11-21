@@ -98,7 +98,7 @@ function Impact({result}: {result?: ImpactPreviewResult}) {
     <dl className="cf-comparison">{values.map(item => <div key={item.label}>
       <dt>{item.label}</dt><dd>{item.before} → <strong>{item.after}</strong></dd>
     </div>)}</dl>
-    <Chip tone={result.lost_all_notifications.length ? 'red' : 'neutral'}>{result.lost_all_notifications.length} events lose all messages</Chip>
+    <Chip tone={result.lost_all_notifications.length ? 'red' : 'neutral'}>{result.lost_all_notifications.length} events would notify no one</Chip>
     {!!result.lost_recipients?.length && <small>Lost recipients · {result.lost_recipients.join(', ')}</small>}
     <small>Replay · N={result.events_replayed} events</small>
   </div>;
