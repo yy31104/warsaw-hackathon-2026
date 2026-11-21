@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from math import isfinite
 
 from alerting.contracts import SEVERITY_ORDER, CanonicalEvent, Severity, Transition
+from alerting.ingest.normalize import pre_transform_fields
 from alerting.rules.dsl import compile
 from alerting.rules.failures import evaluating
 from alerting.rules.silences import active_silence
@@ -64,13 +65,15 @@ class Evaluation:
 
 
 def grouping(rule, schema, fields):
+    transforms = schema.get("transforms")
+    key_fields = pre_transform_fields(fields, transforms) if transforms else fields
     paths = rule.get("group", {}).get("by", [])
     if paths:
         values = {p: lookup(fields, p) for p in paths}
         return "|".join(
-            render("{{" + p + "}}", fields).replace("%", "%25").replace("|", "%7C") for p in paths
+            render("{{" + p + "}}", key_fields).replace("%", "%25").replace("|", "%7C") for p in paths
         ), values
-    return render(schema.get("alert_key") or "{{$schema}}|{{$service}}|{{$severity}}", fields), {}
+    return render(schema.get("alert_key") or "{{$schema}}|{{$service}}|{{$severity}}", key_fields), {}
 
 
 def episode_for(schema, fields):

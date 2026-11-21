@@ -4,6 +4,8 @@ from datetime import timedelta
 from psycopg.types.json import Jsonb
 
 from alerting.clock import SYSTEM, FixedClock
+from alerting.ingest.normalize import normalize
+from alerting.ingest.store import save_batch
 from alerting.rules.engine import Ruleset
 from alerting.rules.scheduler import tick
 from alerting.rules.storage import Settings
@@ -38,6 +40,27 @@ async def beat(db, cfg, at, sensor, count=1, lane="normal"):
             (Jsonb(fields), Jsonb({"demo_clock": at.isoformat()}), lane),
         )
     assert await process_batch(db, cfg, lane=lane) == 1
+
+
+async def test_heartbeat_keeps_one_watch_across_a_unit_change(database):
+    cfg = heartbeat_settings()
+    start = SYSTEM.now()
+    source = {"id": "station", "transport": "http"}
+    raw = {"type": "gauge", "sample": {"count": 1}, "rack": "R", "sensor": 1200}
+    rule = cfg.ruleset.rules[0][0]
+    for version, scale, seconds in [(1, 1, 0), (2, 0.01, 30)]:
+        schema = {"id": "gauges", "name": "gauge", "detect": {"type": "gauge"}, "version": version,
+                  "transforms": {"sensor": {"scale": scale}}}
+        cfg.ruleset = Ruleset([rule], [schema])
+        event = normalize(raw, source, [schema], received_at=start + timedelta(seconds=seconds))
+        async with database.connection() as conn:
+            await save_batch(conn, [event])
+        assert await process_batch(database, cfg) == 1
+
+    async with database.connection() as conn:
+        watches = await conn.execute("select alert_key, group_values, due_at from heartbeat_watches")
+        assert await watches.fetchall() == [("R|1200", {"rack": "R", "sensor": 12}, start + timedelta(seconds=90))]
+    assert await tick(database, cfg, FixedClock(start + timedelta(seconds=60))) == 0
 
 
 async def test_deadman_tracks_each_composite_key_matches_dsl_and_resolves_on_next_beat(database, monkeypatch):

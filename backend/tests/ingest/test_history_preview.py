@@ -10,6 +10,7 @@ from alerting.clock import FixedClock
 from alerting.config import files
 from alerting.contracts import CanonicalEvent
 from alerting.db import pool
+from alerting.ingest.normalize import normalize
 from alerting.rules.engine import Ruleset
 from alerting.rules.scheduler import tick
 from alerting.rules.storage import Settings
@@ -66,6 +67,27 @@ def test_on_time_heartbeats_refresh_the_watch_without_sending_an_alert():
     replay = preview_history(samples, rule, rule, [], files.directory(), [])
     assert replay["current"] == replay["draft"] == {
         "matched_events": 3, "alerts": 0, "notifications": {},
+    }
+
+
+def test_heartbeat_replay_keeps_one_watch_across_schema_scale_revisions():
+    rule = {**CURRENT, "expect": {"every": "1m", "key": ["inventory.bin"]}}
+    source = {"id": "inventory-test", "transport": "http"}
+    raw = {"inventory": {"bin": "00120", "count": 3}}
+    schema = {"id": "inventory", "name": "inventory", "detect": {"inventory.count": 3}}
+    revisions = [
+        {**schema, "version": 1, "transforms": {"inventory.bin": {"scale": "0.1"}}},
+        {**schema, "version": 2, "transforms": {"inventory.bin": {"scale": "0.025"}}},
+    ]
+    samples = []
+    for minute, revision in enumerate(revisions):
+        sample = normalize(raw, source, [revision], received_at=ORIGIN + timedelta(minutes=minute))
+        samples.append(sample.model_copy(update={"id": minute + 1, "status": "processed"}))
+
+    assert [sample.fields["inventory.bin"] for sample in samples] == [12, 3]
+    replay = preview_history(samples, rule, rule, [revisions[-1]], files.directory(), [])
+    assert replay["current"] == replay["draft"] == {
+        "matched_events": 2, "alerts": 0, "notifications": {},
     }
 
 
