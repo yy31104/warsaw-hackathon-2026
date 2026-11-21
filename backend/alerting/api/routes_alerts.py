@@ -7,8 +7,10 @@ from psycopg.types.json import Jsonb
 from alerting.clock import SYSTEM
 from alerting.contracts import Outcome
 from alerting.db import pool
+from alerting.routing.directory import by_id
 from alerting.rules.silences import SILENCE_COLUMNS, SilenceDraft, active_rows
 from alerting.rules.storage import alert_changed, audit, close_settings, get_db, get_settings
+from alerting.runbooks.approvals import pending_count, pending_for_alert
 
 
 @asynccontextmanager
@@ -120,6 +122,13 @@ async def alerts(
 async def detail(id: int, db=Depends(get_db)):
     async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
         alert = public_alert(await get_alert(cur, id))
+        pending = await pending_for_alert(cur, id)
+        if pending:
+            settings = await get_settings(db, conn=conn)
+            team = by_id(settings.directory["teams"]).get(alert["team_id"], {})
+            for run in pending:
+                run["approvers"] = team.get("approvers", [])
+        alert["pending_actions"] = pending
         await cur.execute(
             """select o.event_id,o.seen_at,e.fields from alert_occurrences o join events e on e.id=o.event_id
             where o.alert_id=%s order by event_id""",
@@ -141,6 +150,12 @@ async def detail(id: int, db=Depends(get_db)):
         )
         alert["timeline"] = await cur.fetchall()
         return alert
+
+
+@router.get("/stats/pending-approvals")
+async def pending_approvals(team: str | None = None, db=Depends(get_db)):
+    async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+        return await pending_count(cur, team)
 
 
 async def change(db, id, actor, resolve):

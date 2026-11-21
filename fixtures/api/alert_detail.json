@@ -98,5 +98,17 @@
       "kind": "audit",
       "text": "sam acknowledged"
     }
+  ],
+  "pending_actions": [
+    {
+      "run_id": 3,
+      "action": "escalate",
+      "requested_by": "sam",
+      "approvers": [
+        "lee"
+      ],
+      "status": "pending_approval",
+      "created_at": "2026-10-23T09:17:00Z"
+    }
   ]
 }
