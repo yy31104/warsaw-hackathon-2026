@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 from psycopg import sql
 from psycopg.errors import DeadlockDetected, LockNotAvailable
+from psycopg.rows import dict_row
 
 from alerting import llm
 from alerting.api.routes_stream import stream_stats
@@ -16,6 +17,7 @@ from alerting.db import pool
 
 router = APIRouter(tags=["ops"])
 WINDOW_UNITS = {"s": 1, "m": 60, "h": 3600, "d": 86400}
+StatsWindow = Annotated[str, Query(pattern=r"^[1-9][0-9]{0,3}[smhd]$")]
 NOTIFICATION_STATES = ("pending", "sending", "delivered", "retrying", "unknown", "failed", "fallback", "cancelled")
 LATENCY_BUCKETS = [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10, 30, 60]
 # Keep the config registry and the tailer's committed input position across cases.
@@ -41,9 +43,7 @@ async def health() -> dict:
 
 
 @router.get("/v1/stats/funnel")
-async def funnel(
-    window: Annotated[str, Query(pattern=r"^[1-9][0-9]{0,3}[smhd]$")] = "15m", db=Depends(pool)
-) -> dict:
+async def funnel(window: StatsWindow = "15m", db=Depends(pool)) -> dict:
     duration = timedelta(seconds=int(window[:-1]) * WINDOW_UNITS[window[-1]])
     snapshot = (await stream_stats(db, {None}))[None]
     async with db.connection() as conn:
@@ -71,8 +71,12 @@ async def funnel(
             FROM events
         """)
         processing_backlog, processed_recent = await rows.fetchone()
-        rows = await conn.execute("SELECT count(*) FROM alerts WHERE status<>'resolved' AND severity='critical'")
-        critical, = await rows.fetchone()
+        rows = await conn.execute("""
+            SELECT count(*) FILTER (WHERE status<>'resolved' AND severity='critical'),
+                   count(*) FILTER (WHERE created_at BETWEEN now()-%s AND now())
+            FROM alerts
+        """, (duration,))
+        critical, incidents_opened = await rows.fetchone()
         rows = await conn.execute("""
             SELECT state, count(*) FROM notifications
             WHERE coalesce(delivered_at,created_at) >= now()-%s GROUP BY state
@@ -90,11 +94,106 @@ async def funnel(
         "needs_review": needs_review,
         "matched": matched,
         "critical": critical,
+        "incidents_opened": incidents_opened,
         "notifications": notifications,
         "ingest_per_s": recent / 2,
         "processed_per_s": processed_recent / 2,
         "processing_backlog": processing_backlog,
     }
+
+
+@router.get("/v1/stats/response")
+async def response_stats(window: StatsWindow = "24h", team: str | None = None, db=Depends(pool)) -> dict:
+    """Measure incident outcomes and delivery activity within the requested window."""
+    duration = timedelta(seconds=int(window[:-1]) * WINDOW_UNITS[window[-1]])
+    async with db.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+        await cur.execute("""
+            WITH bounds AS (
+                SELECT now()-%(duration)s AS since, now() AS until, %(team)s::text AS team
+            ), cohort AS (
+                SELECT a.id, coalesce(a.first_seen_at, a.created_at) AS opened_at,
+                       CASE WHEN a.acked_at <= b.until THEN a.acked_at END AS acked_at,
+                       CASE WHEN a.resolved_at <= b.until THEN a.resolved_at END AS resolved_at,
+                       a.resolve_reason,
+                       CASE WHEN origin.outcome IS DISTINCT FROM 'HEARTBEAT_MISSED'
+                            THEN coalesce(origin.received_at, e.received_at) END AS received_at
+                FROM bounds b JOIN alerts a ON a.created_at BETWEEN b.since AND b.until
+                LEFT JOIN events e ON e.id=a.representative_event_id
+                LEFT JOIN LATERAL (
+                    SELECT opened.received_at, d.outcome
+                    FROM decisions d JOIN events opened ON opened.id=d.event_id
+                    WHERE d.alert_id=a.id AND (
+                        d.reason->>'transition'='created' OR d.outcome='HEARTBEAT_MISSED'
+                    )
+                    ORDER BY d.id LIMIT 1
+                ) origin ON true
+                WHERE (b.team IS NULL OR a.team_id=b.team)
+                  AND e.trace->'synthetic' IS DISTINCT FROM 'true'::jsonb
+            ), delivered AS (
+                SELECT n.alert_id, coalesce(n.merged_into, n.id) AS send_id,
+                       n.channel, n.recipient, n.delivered_at
+                FROM bounds b JOIN notifications n ON n.delivered_at BETWEEN b.since AND b.until
+                JOIN alerts a ON a.id=n.alert_id
+                LEFT JOIN events e ON e.id=a.representative_event_id
+                WHERE (b.team IS NULL OR a.team_id=b.team)
+                  AND n.state='delivered' AND n.kind<>'canary'
+                  AND e.trace->'synthetic' IS DISTINCT FROM 'true'::jsonb
+            ), per_incident AS (
+                SELECT c.id, c.acked_at, c.resolved_at, c.resolve_reason,
+                       extract(epoch FROM (min(n.delivered_at) FILTER (
+                           WHERE left(n.recipient, 5)<>'team:' AND n.delivered_at>=c.received_at
+                       ) - c.received_at))::float8 AS tta,
+                       CASE WHEN c.acked_at>=c.opened_at
+                            THEN extract(epoch FROM c.acked_at-c.opened_at)::float8 END AS ack_s,
+                       CASE WHEN c.resolved_at>=c.opened_at
+                            THEN extract(epoch FROM c.resolved_at-c.opened_at)::float8 END AS resolve_s,
+                       count(n.alert_id) AS notifications
+                FROM cohort c LEFT JOIN delivered n ON n.alert_id=c.id
+                GROUP BY c.id, c.acked_at, c.resolved_at, c.resolve_reason, c.opened_at, c.received_at
+            ), interruptions AS (
+                SELECT recipient, count(DISTINCT send_id) AS deliveries
+                FROM delivered WHERE channel IN ('sms','phone') AND left(recipient, 5)<>'team:'
+                GROUP BY recipient
+            ), unrouted AS (
+                SELECT count(*) AS total
+                FROM bounds b JOIN decisions d ON d.created_at BETWEEN b.since AND b.until
+                JOIN events e ON e.id=d.event_id
+                LEFT JOIN alerts a ON a.id=d.alert_id
+                WHERE d.outcome='UNROUTED' AND (b.team IS NULL OR a.team_id=b.team)
+                  AND e.trace->'synthetic' IS DISTINCT FROM 'true'::jsonb
+            )
+            SELECT count(*) AS n_alerts, count(tta) AS n_tta, count(ack_s) AS n_mtta,
+                   count(resolve_s) AS n_mttr, count(resolved_at) AS n_resolved,
+                   percentile_cont(0.50) WITHIN GROUP (ORDER BY tta) AS tta_p50_s,
+                   percentile_cont(0.95) WITHIN GROUP (ORDER BY tta) AS tta_p95_s,
+                   avg(ack_s) AS mtta_s, avg(resolve_s) AS mttr_s,
+                   count(acked_at)::float8 / nullif(count(*), 0) AS ack_rate,
+                   (SELECT total FROM unrouted) AS unrouted,
+                   avg(notifications)::float8 AS notifications_per_alert,
+                   count(*) FILTER (WHERE resolved_at IS NOT NULL AND resolve_reason='no_action_needed')::float8
+                       / nullif(count(resolved_at), 0) AS no_action_rate,
+                   (SELECT coalesce(jsonb_agg(
+                       jsonb_build_object('user', recipient, 'count', deliveries)
+                       ORDER BY deliveries DESC, recipient
+                   ), '[]'::jsonb) FROM interruptions) AS interruptions
+            FROM per_incident
+        """, {"duration": duration, "team": team or None})
+        result = await cur.fetchone()
+    n_tta = result.pop("n_tta")
+    n_alerts = result["n_alerts"]
+    result["sample_counts"] = {
+        "n_alerts": n_alerts,
+        "tta_p50_s": n_tta,
+        "tta_p95_s": n_tta,
+        "mtta_s": result.pop("n_mtta"),
+        "mttr_s": result.pop("n_mttr"),
+        "ack_rate": n_alerts,
+        "unrouted": result["unrouted"],
+        "notifications_per_alert": n_alerts,
+        "no_action_rate": result.pop("n_resolved"),
+        "interruptions": sum(row["count"] for row in result["interruptions"]),
+    }
+    return {**result, "window": window}
 
 
 class PrometheusText:
