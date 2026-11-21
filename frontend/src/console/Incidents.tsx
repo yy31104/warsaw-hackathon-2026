@@ -44,7 +44,7 @@ export function Incidents() {
           {views.map(item => <button type="button" key={item.key} aria-pressed={view === item.key}
             onClick={() => setView(item.key)}>{item.label}</button>)}
         </div>
-        <input className="cf-search" type="search" placeholder="Search title, rule or text" aria-label="Search incidents"
+        <input className="cf-search" type="search" placeholder="Search" aria-label="Search incidents"
           value={query} onChange={event => setQuery(event.target.value)}/>
       </div>
       {shown.map(alert => <Link className="cf-incident-row" key={alert.id} to={`/a/${alert.id}`}>
@@ -56,7 +56,7 @@ export function Incidents() {
         <Chip tone={statusTone(alert.status)}>{statusLabel(alert.status)}</Chip>
         <time className="cf-age" dateTime={alert.first_seen_at}>{ageLabel(alert.first_seen_at)}</time>
       </Link>)}
-      {list.isSuccess && !shown.length && <p className="cf-empty-row">No incidents match.</p>}
+      {list.isSuccess && !shown.length && <p className="cf-empty-row">Nothing here.</p>}
       {list.isPending && feedEnabled && <p className="cf-empty-row">Loading incidents…</p>}
     </Card>
   </div>;

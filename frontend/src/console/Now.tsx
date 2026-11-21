@@ -154,7 +154,7 @@ export function Now() {
             return <div className="cf-side-row" key={item.id}><Avatar name={name}/><strong>{name}</strong>
               <span className="cf-meta">{teamName(item.id, directory)}</span></div>;
           })}
-          <LegacyLink to="/oncall">Escalation and preferences</LegacyLink>
+          <LegacyLink to="/oncall">Who’s on call</LegacyLink>
         </Card>
       </div>
     </div>

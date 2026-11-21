@@ -34,7 +34,7 @@ function EscalationPolicies() {
   const now = useClock(30000);
   const teams = directory.teams.filter(item => item.oncall?.primary)
     .sort((a, b) => Number(b.id === team) - Number(a.id === team));
-  return <Card title="Escalation policies" meta="who gets paged, in order">
+  return <Card title="Who gets paged" meta="in this order">
     {teams.map(item => {
       const {primary, secondary} = item.oncall!;
       return <div className="cf-policy" key={item.id}>
@@ -42,21 +42,21 @@ function EscalationPolicies() {
           {!secondary && <Chip tone="amber">No backup</Chip>}</div>
         <ol className="cf-policy-levels">
           <li><span className="cf-policy-level">1</span><Person id={primary} role="Primary" directory={directory} now={now}/>
-            <span className="cf-meta">paged first</span></li>
+            <span className="cf-meta">called first</span></li>
           {secondary && <li><span className="cf-policy-level">2</span><Person id={secondary} role="Backup" directory={directory} now={now}/>
-            <span className="cf-meta">{item.escalate_after ? `after ${item.escalate_after} unacknowledged` : 'if nobody acknowledges'}</span></li>}
+            <span className="cf-meta">{item.escalate_after ? `after ${item.escalate_after} with no answer` : 'if nobody answers'}</span></li>}
         </ol>
         {item.approvers.length > 0 && <small className="cf-policy-approvers">
-          Approves runbook actions: {item.approvers.map(id => personName(id, directory)).join(', ')}</small>}
+          Signs off risky fixes: {item.approvers.map(id => personName(id, directory)).join(', ')}</small>}
       </div>;
     })}
-    <p className="cf-meta">Wait times come from each rule’s escalation setting. Teams and on-call people are set in <code>config/teams.yaml</code>.</p>
+    <p className="cf-meta">How long it waits is set per rule. People and teams live in <code>config/teams.yaml</code>.</p>
   </Card>;
 }
 
 function TeamDefaults() {
   const {directory} = useApp();
-  return <Card title="If none of your rules match" meta="team defaults">
+  return <Card title="If none of your rules fit" meta="team default">
     {directory.default_preferences.map(row => <div className="cf-default-row" key={row.min_severity + (row.when ?? '')}>
       <span>{severityLabel(row.min_severity)}</span>
       <span className="cf-chips">{row.channels.map(channel => <Chip key={channel}>{channelName(channel)}</Chip>)}</span>
@@ -169,14 +169,14 @@ function Schedule() {
         <output>{hhmm(range[index])}</output>
       </label>)}
     </div>}
-    <h3 className="cf-pref-title">Your notification rules <small>first match wins</small></h3>
+    <h3 className="cf-pref-title">How to reach you <small>top rule that fits wins</small></h3>
     <ol className="cf-pref-list">
       {rows.map((row, index) => <RuleRow key={index} row={row} index={index} count={rows.length}
         edit={patch => edit(index, patch)}
         move={() => replace(rows.map((item, position) => position === index - 1 ? rows[index] : position === index ? rows[index - 1] : item))}
         remove={() => replace(rows.filter((_, position) => position !== index))}/>)}
     </ol>
-    {invalid && <p className="cf-unknown">Each rule needs at least one channel.</p>}
+    {invalid && <p className="cf-unknown">Pick at least one way to reach you.</p>}
     <div className="cf-actions cf-form-actions">
       <button className="cf-btn" type="button" onClick={() => replace([...rows, {min_severity: 'critical', channels: ['phone', 'sms']}])}>
         Add rule

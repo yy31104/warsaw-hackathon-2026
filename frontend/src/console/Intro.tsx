@@ -2,23 +2,18 @@ import {useEffect, useRef, useState, type CSSProperties} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {countLabel, Icon} from './ui';
 
-// One example incident, told as the five things a new operator does. Each step names the page where it happens.
+// One example night, start to finish. Each step names the page where you'd do it yourself.
 const story = [
-  {value: '500', label: 'events in', icon: 'sources', page: '/sources', place: 'Sources',
-    caption: 'Three systems report the same settlement failure.',
-    how: 'Connect a system: paste one sample event and confirm what each field means.'},
-  {value: '9 fields', label: 'understood', icon: 'rules', page: '/rules', place: 'Rules',
-    caption: 'New format? We read it. You confirm what it means.',
-    how: 'Write a rule: what to match, and which team gets paged.'},
-  {value: '1', label: 'incident', icon: 'funnel', page: '/', place: 'Now',
-    caption: '500 repeats become one incident.',
-    how: 'Repeats are grouped for you. The incident waits on Now.'},
-  {value: '0.24 s', label: 'to reach Sam', icon: 'phone', page: '/oncall', place: 'On call',
-    caption: 'Sam’s phone rings. Lee is next if nobody answers.',
-    how: 'Choose who is on call, who backs them up, and your quiet hours.'},
-  {value: '6m 40s', label: 'to fix', icon: 'check', page: '/runbooks', place: 'Runbooks',
-    caption: 'One approved retry. Fixed, and every step is on record.',
-    how: 'Acknowledge, run the runbook step, resolve. Every step is logged.'},
+  {verb: 'Receive', value: '500', label: 'events', icon: 'sources', page: '/sources', place: 'Sources',
+    caption: 'Three systems report the same failure.', how: 'Paste one event. Say what the fields mean.'},
+  {verb: 'Read', value: '9', label: 'fields', icon: 'rules', page: '/rules', place: 'Rules',
+    caption: 'A format it has never seen. It reads it, you confirm.', how: 'Say what to match and who to page.'},
+  {verb: 'Group', value: '1', label: 'incident', icon: 'funnel', page: '/', place: 'Now',
+    caption: '500 repeats. One incident.', how: 'Nothing to do. It shows up on Now.'},
+  {verb: 'Page', value: '0.24 s', label: 'to Sam', icon: 'phone', page: '/oncall', place: 'On call',
+    caption: 'Sam’s phone rings. If nobody answers, Lee is next.', how: 'Pick who’s on call and who backs them up.'},
+  {verb: 'Fix', value: '6m 40s', label: 'to fixed', icon: 'check', page: '/runbooks', place: 'Runbooks',
+    caption: 'One approved retry. Fixed, and it’s all on record.', how: 'Ack it, run the step, close it.'},
 ] as const;
 const last = story.length - 1;
 const startMs = 350, stepMs = 1900, holdMs = 3600, countMs = 900;
@@ -48,12 +43,12 @@ function CountUp({to, run}: {to: number; run: boolean}) {
   return <>{countLabel(value)}</>;
 }
 
-export function Intro({close}: {close: () => void}) {
+export function Intro({close, tour}: {close: () => void; tour: () => void}) {
   const dialog = useRef<HTMLDialogElement>(null);
   const navigate = useNavigate();
   const [reduced] = useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [step, setStep] = useState(reduced ? last : -1);
-  // Autoplay until the person picks a step; then they move at their own pace and nothing closes on its own.
+  // Autoplay until someone picks a step; after that they set the pace and nothing closes on its own.
   const [manual, setManual] = useState(reduced);
   useEffect(() => {
     const element = dialog.current;
@@ -69,9 +64,9 @@ export function Intro({close}: {close: () => void}) {
 
   const shown = Math.max(0, step);
   const current = story[shown];
-  const fill = shown / last * 100;
   const pick = (index: number) => { setManual(true); setStep(index); };
   const go = (page: string) => { close(); navigate(page); };
+  const done = manual || step === last;
 
   return <dialog ref={dialog} className="cf-intro" aria-labelledby="cf-story-title" onCancel={event => {
     event.preventDefault(); close();
@@ -79,14 +74,16 @@ export function Intro({close}: {close: () => void}) {
     <div className="cf-story">
       <div className="cf-story-brand"><span className="cf-story-logo"><Icon name="funnel"/></span>Alert Funnel <span>Example</span></div>
       <h1 id="cf-story-title">500 failures. <em>One phone call.</em></h1>
-      <div className="cf-story-track" data-started={step >= 0} style={{'--fill': fill + '%'} as CSSProperties}>
+      <p className="cf-story-sub">Here’s one bad night, start to finish.</p>
+      <div className="cf-story-track" data-started={step >= 0} style={{'--fill': shown / last * 100 + '%'} as CSSProperties}>
         <div className="cf-story-line" aria-hidden="true"><i/><b data-ok={step === last}/></div>
         <ol>
-          {story.map((item, index) => <li key={item.label} data-reached={index <= step} data-current={index === step}>
+          {story.map((item, index) => <li key={item.verb} data-reached={index <= step} data-current={index === step}>
             <button type="button" className="cf-story-node" onClick={() => pick(index)}
-              aria-label={`Step ${index + 1} · ${item.place}`} aria-current={index === step ? 'step' : undefined}>
+              aria-label={`Step ${index + 1} · ${item.verb}`} aria-current={index === step ? 'step' : undefined}>
               <Icon name={item.icon}/>
             </button>
+            <span className="cf-story-verb">{item.verb}</span>
             <strong>{index !== 0 ? item.value : step < 0 ? '0'
               : <CountUp key={String(step === 0 && !manual)} to={500} run={step === 0 && !manual}/>}</strong>
             <small>{item.label}</small>
@@ -96,7 +93,7 @@ export function Intro({close}: {close: () => void}) {
       <div className="cf-story-copy" aria-live="polite">
         <p className="cf-story-caption">{current.caption}</p>
         <p className="cf-story-how">
-          <span className="cf-story-step">Step {shown + 1}</span>{current.how}
+          <span className="cf-story-step">You</span>{current.how}
           <button type="button" className="cf-story-go" onClick={() => go(current.page)}>Open {current.place} →</button>
         </p>
       </div>
@@ -105,9 +102,8 @@ export function Intro({close}: {close: () => void}) {
         <div className="cf-story-bar" aria-hidden="true"><i style={{width: (shown + 1) / story.length * 100 + '%'}}/></div>
         <div className="cf-actions">
           {manual && step < last && <button type="button" className="cf-btn cf-story-next" onClick={() => pick(step + 1)}>Next</button>}
-          <button type="button" className="cf-btn primary" autoFocus onClick={close}>
-            {manual || step === last ? 'Open console' : 'Skip'}
-          </button>
+          {done && <button type="button" className="cf-btn cf-story-next" onClick={() => { close(); tour(); }}>Show me around</button>}
+          <button type="button" className="cf-btn primary" autoFocus onClick={close}>{done ? 'Open console' : 'Skip'}</button>
         </div>
       </div>
     </div>

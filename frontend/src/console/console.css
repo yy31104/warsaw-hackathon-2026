@@ -477,7 +477,7 @@
 .cf-icon-btn:hover:not(:disabled) { background: var(--cf-sub); color: var(--cf-ink); }
 .cf-icon-btn:disabled { opacity: .35; cursor: default; }
 
-@media (max-width: 1040px) {
+@media (max-width: 1320px) {
   .cf-oncall { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 740px) {
@@ -485,4 +485,87 @@
   .cf-pref-row { grid-template-columns: 22px minmax(0, 1fr) auto; }
   .cf-pref-row > select, .cf-pref-row > .cf-toggles { grid-column: 2 / -1; }
   .cf-pref-tools { grid-row: 1; grid-column: 3; }
+}
+
+/* ---------- Fusion v6: labelled sidebar, green intro, tour ---------- */
+.cf-rail-item { display: contents; }
+/* The legacy UI styles every `nav a span` as an 18px icon; console labels are text. */
+.cf-rail :is(a, button) > span:not(.cf-badge) { width: auto; font-size: inherit; line-height: inherit; }
+.cf-rail-group { display: none; }
+.cf-rail .cf-brand { margin-bottom: 15px; padding: 0; min-height: 40px; width: 40px; }
+.cf-rail .cf-brand:hover { background: transparent; }
+.cf-logo { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; background: var(--cf-ink); color: var(--cf-bg); }
+.cf-wordmark { display: none; }
+.cf-rail-foot { margin-top: auto; display: grid; gap: 4px; justify-items: center; }
+.cf-top h1 small.cf-top-note { display: block; margin-top: 1px; color: var(--cf-muted); font-size: 12.5px; font-weight: 500; letter-spacing: 0; }
+
+@media (min-width: 1041px) {
+  .console { grid-template-columns: 212px minmax(0, 1fr); }
+  .cf-rail { align-items: stretch; gap: 2px; padding: 22px 12px 16px; }
+  .cf-rail .cf-brand { flex-direction: row; justify-content: flex-start; gap: 10px; width: auto; margin: 0 0 8px; padding: 0 6px 12px; color: var(--cf-ink); }
+  .cf-rail .cf-brand .cf-logo { width: 36px; height: 36px; border-radius: 11px; }
+  .cf-wordmark { display: block; font-size: 15px; font-weight: 750; letter-spacing: -.02em; }
+  .cf-rail-group { display: block; padding: 14px 12px 6px; color: var(--cf-muted); font: 600 10.5px var(--cf-mono); letter-spacing: .1em; text-transform: uppercase; }
+  .cf-rail .cf-rail-item a, .cf-rail-foot button {
+    flex-direction: row; justify-content: flex-start; gap: 11px; width: 100%; min-height: 40px; padding: 8px 12px; font-size: 13.5px; text-align: start;
+  }
+  .cf-rail a.active::before { left: 0; top: 10px; bottom: 10px; }
+  .cf-rail :is(a, button) > span:not(.cf-badge), .cf-wordmark { flex: 0 0 auto; width: auto; white-space: nowrap; overflow-wrap: normal; }
+  .cf-rail a.active .cf-icon { color: var(--cf-accent); }
+  .cf-rail .cf-badge { position: static; margin-inline-start: auto; }
+  .cf-rail-foot { justify-items: stretch; padding-top: 12px; border-top: 1px solid var(--cf-line); }
+  .cf-rail-foot button { min-height: 36px; font-size: 12.5px; }
+  .cf-skip { left: 228px; }
+}
+
+.cf-intro {
+  --cf-bg: #141d1a; --cf-sub: #1e3028; --story-muted: #b7cabc; --story-line: #405b4c; --story-accent: #e8a284;
+  background: radial-gradient(circle at 82% 19%, #3556489c, transparent 34%), radial-gradient(circle at 16% 75%, #a8664240, transparent 38%), #141d1a;
+}
+.cf-intro::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none;
+  background-image: linear-gradient(#ffffff07 1px, transparent 1px), linear-gradient(90deg, #ffffff07 1px, transparent 1px);
+  background-size: 58px 58px; mask-image: linear-gradient(90deg, transparent, #000 35%, #000 66%, transparent);
+}
+.cf-story { position: relative; }
+.cf-intro h1 em { font-style: italic; color: #e6a387; }
+.cf-intro p.cf-story-sub { margin: 16px 0 0; color: #bcccbd; font-size: 15px; }
+.cf-story-logo { background: #e2e6dd; color: #24382e; }
+.cf-story-brand > span:last-child { border-color: #496855; color: #b7cabc; }
+.cf-story-node { background: #1e3028; border-color: #496855; color: #c9e2d2; }
+.cf-story-track li[data-reached="true"] .cf-story-node { background: #345746; border-color: #4f7a63; color: #e7f1ea; }
+.console .cf-intro .cf-story-track li[data-current="true"] .cf-story-node {
+  background: #e8a284; border-color: #e8a284; color: #1f2b24; transform: scale(1.08); box-shadow: 0 0 40px #e8a28466 !important;
+}
+.console .cf-intro .cf-story-line i { background: #e4a081; box-shadow: 0 0 15px #e4a08175 !important; }
+.console .cf-intro .cf-story-line b { background: #f07167; box-shadow: 0 0 18px #f07167 !important; }
+.console .cf-intro .cf-story-line b[data-ok="true"] { background: #7fd1a0; box-shadow: 0 0 18px #7fd1a0 !important; }
+.cf-story-verb { display: block; margin-top: 14px; color: #f6f6f1; font: 650 14px var(--cf-sans); }
+.cf-story-track strong { margin-top: 2px; color: #e8a284; }
+.cf-intro p.cf-story-caption { font-style: italic; color: #d9e4d8; }
+.cf-story-step { background: #e8a28424; color: #e8a284; }
+.cf-story-bar { background: #405b4c; }
+.cf-intro .cf-btn.primary { background: #edf1e8; color: #22352a; }
+.cf-intro .cf-btn.primary:hover:not(:disabled) { background: #fff; }
+.cf-intro .cf-story-next { background: #24352f; color: #f6f6f1; border: 1px solid #4c6657; }
+
+.cf-tour {
+  position: fixed; inset: auto 24px 24px auto; z-index: 30; width: min(360px, calc(100vw - 32px)); height: auto; padding: 18px 20px;
+  border: 1px solid #4c6657; border-radius: 18px; background: #24352f; color: #f9fcf8; animation: cf-tour-in .3s ease;
+}
+.console .cf-tour { box-shadow: 0 18px 50px #0004 !important; }
+.cf-tour-count { color: #aac8b8; font: 600 10.5px var(--cf-mono); letter-spacing: .1em; text-transform: uppercase; }
+.cf-tour strong { display: block; margin: 8px 0 6px; font-size: 17px; }
+.console .cf-tour p { margin: 0 0 14px; color: #c3d8cc; font-size: 13px; line-height: 1.55; }
+.cf-tour footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cf-tour footer span { display: flex; gap: 6px; }
+.cf-tour button { border: 1px solid #668775; border-radius: 999px; background: #dff1e4; color: #1d3829; padding: 7px 13px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.cf-tour button.cf-tour-quiet { border-color: transparent; background: transparent; color: #f9fcf8; }
+@keyframes cf-tour-in { from { opacity: 0; transform: translateY(8px); } }
+
+@media (max-width: 740px) {
+  .cf-rail .cf-brand, .cf-rail .cf-rail-tour { display: none; }
+  .cf-rail-foot { display: contents; }
+  .cf-top h1 small.cf-top-note { font-size: 11.5px; }
+  .cf-tour { inset: auto 12px calc(70px + env(safe-area-inset-bottom, 0px)) 12px; width: auto; }
 }
