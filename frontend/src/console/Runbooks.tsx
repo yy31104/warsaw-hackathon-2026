@@ -80,7 +80,7 @@ function Editor({book, onSaved}: {book: Book | null; onSaved: (book: Book) => vo
           readOnly={readOnly || busy} spellCheck={false} onChange={event => {
             setOriginal(event.target.value); setStructured(undefined); setStructure(undefined); setError(null);
           }}/></label>
-        {!readOnly && <button className="cf-btn" disabled={busy || !original.trim()} onClick={() => void perform(convert)}>Structure steps</button>}
+        {!readOnly && <button className="cf-btn" disabled={busy || !original.trim()} onClick={() => void perform(convert)}>Turn into steps</button>}
       </Card>
       <Card title="As steps" meta={structure ? [structure.source === 'llm' ? 'AI draft' : 'Rules draft', structure.model]
         .filter(Boolean).join(' · ') : undefined}>

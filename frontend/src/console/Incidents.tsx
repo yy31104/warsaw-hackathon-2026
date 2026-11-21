@@ -56,7 +56,7 @@ export function Incidents() {
         <Chip tone={statusTone(alert.status)}>{statusLabel(alert.status)}</Chip>
         <time className="cf-age" dateTime={alert.first_seen_at}>{ageLabel(alert.first_seen_at)}</time>
       </Link>)}
-      {list.isSuccess && !shown.length && <p className="cf-empty-row">Nothing here.</p>}
+      {list.isSuccess && !shown.length && <p className="cf-empty-row">No incidents match these filters.</p>}
       {list.isPending && feedEnabled && <p className="cf-empty-row">Loading incidents…</p>}
     </Card>
   </div>;

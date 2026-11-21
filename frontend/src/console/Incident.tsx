@@ -42,7 +42,7 @@ function WhyYou({incident}: {incident: IncidentDetail}) {
   const decision = explain.data?.decisions.find(item => item.alert_id === incident.id && item.rule_id === incident.rule_id);
   const deciding = decision?.reason?.trace?.filter(item => item.matched) ?? [];
   const received = notifications.data?.filter(item => item.recipient === actor && item.kind !== 'approval') ?? [];
-  return <Card title="Why you">
+  return <Card title={received.length > 0 ? 'Why you were notified' : 'Why this alert fired'}>
     <Failure error={explain.error || notifications.error}/>
     <ol className="cf-chain">
       {decision && <li><strong>{humanize(decision.rule_id)}</strong>
@@ -174,7 +174,7 @@ export function Incident() {
   if (!incident || !directory.users.length) return <p>Loading incident…</p>;
   const canAct = inTeam(incident.team_id, actor, false, directory);
   const approver = directory.teams.some(team => team.id === incident.team_id && team.approvers.includes(actor));
-  if (!canAct && !approver) return <Card title="Incident unavailable"><p>Switch to an incident team member.</p></Card>;
+  if (!canAct && !approver) return <Card title="Incident unavailable"><p>Only the incident’s team can open it. Switch “Viewing as” to someone on that team.</p></Card>;
 
   const lifecycle = [
     {name: 'Opened', at: incident.first_seen_at, tone: 'red'},

@@ -5,15 +5,15 @@ import {countLabel, Icon} from './ui';
 // One example night, start to finish. Each step names the page where you'd do it yourself.
 const story = [
   {verb: 'Receive', value: '500', label: 'events', icon: 'sources', page: '/sources', place: 'Sources',
-    caption: 'Three systems report the same failure.', how: 'Paste one event. Say what the fields mean.'},
+    caption: 'Three systems report the same failure.', how: 'Check the fields of a new format, then publish it.'},
   {verb: 'Read', value: '9', label: 'fields', icon: 'rules', page: '/rules', place: 'Rules',
-    caption: 'A format it has never seen. It reads it, you confirm.', how: 'Say what to match and who to page.'},
+    caption: 'A format it hasn’t seen before. It suggests the fields; a person confirms.', how: 'Set what to match and who to notify.'},
   {verb: 'Group', value: '1', label: 'incident', icon: 'funnel', page: '/', place: 'Now',
-    caption: '500 repeats. One incident.', how: 'Nothing to do. It shows up on Now.'},
+    caption: '500 repeats. One incident.', how: 'Nothing to set up. It shows up on Now.'},
   {verb: 'Page', value: '0.24 s', label: 'to Sam', icon: 'phone', page: '/oncall', place: 'On call',
-    caption: 'Sam’s phone rings. If nobody answers, Lee is next.', how: 'See who’s on call. Set how you want to be reached.'},
+    caption: 'Sam gets a call and a text. If nobody acknowledges, Lee is next.', how: 'Check who is on call and how they’re reached.'},
   {verb: 'Fix', value: '6m 40s', label: 'to fixed', icon: 'check', page: '/runbooks', place: 'Runbooks',
-    caption: 'One approved retry. Fixed, and it’s all on record.', how: 'Ack it, run the step, close it.'},
+    caption: 'One approved retry. Fixed, and every step is logged.', how: 'Ack it, run the step, close it.'},
 ] as const;
 const last = story.length - 1;
 const startMs = 350, stepMs = 1900, holdMs = 3600, countMs = 900;
