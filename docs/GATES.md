@@ -142,3 +142,11 @@ The same code passed 470 backend tests with PostgreSQL and RabbitMQ. The databas
 | verify-unit-change | PASS | All declared checks passed |
 | rule-safety-counterexample | PASS | All declared checks passed |
 | rule-safety-ui-only-is-valid | PASS | All declared checks passed |
+
+<!-- w0-watcher-qa-start -->
+## Parser watcher QA on `09d577a`
+
+Local QA reported **797/798** in a concurrent run. The parser watcher test timed out. Its 250 ms pause before the invalid edit is sensitive to subscription timing under parallel load. The original failing terminal log was unavailable in the release worktree.
+
+Five isolated runs of the exact test passed **5/5** on `09d577ac74bcc04ad899bd36ed754e9415e00c5d`. GitHub CI on the same SHA passed **798/798**. The test verifies that the earlier parser stays active after a rejected edit and a corrected edit is committed. W0 classifies the reported timeout as a test timing flake under concurrent load. [Five isolated runs](../loadtest/results/w0-round3/watcher-09d577a/isolated.log) · [CI excerpt](../loadtest/results/w0-round3/watcher-09d577a/github-ci.log) · [GitHub job](https://github.com/yy31104/warsaw-hackathon-2026/actions/runs/44870059138/job/136742336303)
+<!-- w0-watcher-qa-end -->
