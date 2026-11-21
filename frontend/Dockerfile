@@ -8,6 +8,7 @@ COPY frontend/src ./src
 COPY frontend/demo ./demo
 COPY config ../config
 COPY fixtures/api ../fixtures/api
+COPY loadtest/results ../loadtest/results
 ENV VITE_MOCK=0 VITE_ALERTS_MODE=api
 RUN npm run build
 
@@ -27,6 +28,18 @@ server {
         proxy_set_header Connection "";
         proxy_buffering off;
         proxy_read_timeout 60s;
+    }
+
+    location = /ops-health {
+        resolver 127.0.0.11 valid=10s ipv6=off;
+        set $backend api:8000;
+        proxy_pass http://$backend/health;
+    }
+
+    location = /metrics {
+        resolver 127.0.0.11 valid=10s ipv6=off;
+        set $backend api:8000;
+        proxy_pass http://$backend/metrics;
     }
 
     location / {
