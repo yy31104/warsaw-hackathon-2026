@@ -134,3 +134,6 @@ No new top-level pages; extend the existing ones (APIs in CONTRACT §9, §10):
 - ☐ #16 cost-ladder steps in the timeline
 
 Label simulated data as simulated.
+
+## Round 3 (Sat 01:00) — mentor feedback; PRs open by 06:00
+First merge the latest `main` into your branch and keep main's real-API screens (`SchemaOnboarding.tsx`, `RunbookCatalogue.tsx`); the mock-only verification panel must not ship. Then, in [IMPROVEMENTS.md](../IMPROVEMENTS.md) Round 3 order: **M1** approval buttons use the API's `run_id` and the home count reads the real number, **M15** screens, **M13** response-metric tiles, **M10** restore button. The mentor said the UX will be fine; spend the time on working flows, not visual effects.
