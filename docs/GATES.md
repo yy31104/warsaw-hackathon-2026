@@ -31,7 +31,19 @@ For #19, the first run used the shared development database. Its team-scoped SSE
 | [#39](https://github.com/yy31104/warsaw-hackathon-2026/pull/39) | `345230d` | PASS | 591 passed in 115.45s (0:01:55) | [make test](../loadtest/results/w0-round3/merges/pr-39-345230d.log) |
 | [#33](https://github.com/yy31104/warsaw-hackathon-2026/pull/33) | `e9901e5` | PASS | 652 passed in 125.25s (0:02:05) | [make test](../loadtest/results/w0-round3/merges/pr-33-e9901e5.log) |
 | [#30](https://github.com/yy31104/warsaw-hackathon-2026/pull/30) | `87ddbe5` | PASS | 731 passed in 130.64s (0:02:10) | [make test](../loadtest/results/w0-round3/merges/pr-30-87ddbe5.log) |
+| [#37](https://github.com/yy31104/warsaw-hackathon-2026/pull/37) | `a3b95f2` | PASS | 736 passed in 138.61s (0:02:18) | [make test](../loadtest/results/w0-round3/merges/pr-37-a3b95f2.log) |
+| [#40](https://github.com/yy31104/warsaw-hackathon-2026/pull/40) | `94e4cba` | PASS | 736 passed in 150.93s (0:02:30) | [make test](../loadtest/results/w0-round3/merges/pr-40-94e4cba.log) |
 <!-- w0-round3-end -->
+
+<!-- w0-console-start -->
+## Integrated frontend verification
+
+| PR | Main | Frontend build | Console browser | Evidence |
+| --- | --- | --- | --- | --- |
+| [#30](https://github.com/yy31104/warsaw-hackathon-2026/pull/30) | `87ddbe5` | PASS | PASS (10/10 completed) | [Command receipts](../loadtest/results/w0-round3/console/pr-30-87ddbe5/receipt.json) |
+| [#37](https://github.com/yy31104/warsaw-hackathon-2026/pull/37) | `a3b95f2` | PASS | PASS (10/10 completed) | [Command receipts](../loadtest/results/w0-round3/console/pr-37-a3b95f2/receipt.json) |
+| [#40](https://github.com/yy31104/warsaw-hackathon-2026/pull/40) | `94e4cba` | PASS | PASS (13/13 completed) | [Command receipts](../loadtest/results/w0-round3/console/pr-40-94e4cba/receipt.json) |
+<!-- w0-console-end -->
 
 ## G0 — contract (Fri 21:00)
 | Check | Status | Who / when | Evidence |
