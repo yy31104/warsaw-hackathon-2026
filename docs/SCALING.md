@@ -143,3 +143,20 @@ These are design scenarios. Throughput, latency and cost at each multiplier are 
 | 10× · not measured | Add rule workers while the inbox grows and PostgreSQL CPU has headroom. Scale intake or delivery when its queue grows. Bound total database connections and provider concurrency. If repeated keys dominate, improve per-batch aggregation and tune work per claim. | Re-run the same generator and payload mix. Track oldest pending age, rejected input, worker wait events and receiver latency. Compare independent keys with a single hot key. |
 | 100× · not measured | Partition by team/source once primary CPU constrains writes. Batch durable inbox and per-key writes inside the owning partition. Keep the active alert and its outbox in one transactional boundary. Separate analytical reads from primary writes. Add failover and verify replay after promotion. | Exercise skewed tenants, config-version propagation, replica lag, provider unavailability and failover. Reconcile event identities, logical notifications and receiver receipts separately. |
 | 1,000× · not measured | Isolate groups of tenants in independently operated database/broker shards. Preserve ownership of a group during migration. Within a single indivisible hot group, combine updates before the ordered writer. | Rehearse replay and shard moves under traffic. Measure cross-tenant interference, worst-shard queue age and receiver tail latency during failover, together with operator effort and cost. |
+
+## Next delivery optimization
+
+**Deferred after end-to-end verification.** Keep the #36 delivery worker. Candidate `1891028` combined fenced result writes, grouped ACK checks for rows with send slots, skipped writes for healthy channels without a breaker row, and raised the worker's pool limit to at least its channel concurrency. All #36 behavior tests passed. The full local suite reported 589 passed and four live RabbitMQ tests skipped.
+
+One matched Apple M4 Pro trial offered 700 normal and 2 critical events/s across 1,000 normal keys. Both arms used the same generated input and measurement scripts, with two ingest workers, four normal rule workers and one delivery worker. The candidate processed 42,120 events. Both arms verified all 2,000 normal and 240 critical receipts, had zero duplicate receipts and ended with no backlog. [W0 #36 evidence](https://github.com/yy31104/warsaw-hackathon-2026/pull/36#pullrequestreview-6002566130) · [Paired measurement record](../loadtest/results/w2-delivery-finalize-1891028.json)
+
+| End-to-end measurement | #36 | Candidate |
+| --- | ---: | ---: |
+| Normal receiver p99, target <5 s | 5.738 s | **9.138 s · FAIL** |
+| Critical receiver p99, target <1 s | 0.356 s | 0.372 s · PASS |
+| Pending delivery peak | 1,575 | 1,800 |
+| Peak age of oldest pending notification | 4.770 s | 8.684 s |
+
+The paired 2,000-row local micro-benchmark used the same 5 ms simulated provider and connection-pool size in both arms. Mixed-priority throughput rose from 605.94 to 819.92 deliveries/s with one worker and from 677.12 to 1,086.96 deliveries/s with four. The micro-benchmark and the end-to-end trial produced different outcomes. For the slowest 20 end-to-end normal receipts, median event-processed to first-claim time rose from 5.476 to 8.920 s. Median claim-to-receipt time was 19.8 and 16.7 ms respectively. The trial did not measure application pool checkout wait, and a single candidate run cannot isolate the cause of the pre-claim slowdown. [Paired measurement record](../loadtest/results/w2-delivery-finalize-1891028.json)
+
+**Next measurement.** Compare #36 and the candidate on the same host with alternating run order and fresh volumes. Time claim transactions, team-lock misses and sleeps, application pool checkout, and receipt-to-finalization during the first ten seconds. Compare batched result writes and the pool change independently if the slowdown repeats. Require normal p99 below 5 s, critical p99 below 1 s, equal unique receipt counts and the #36 regression suite before adopting the change.

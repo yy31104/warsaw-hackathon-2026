@@ -6,7 +6,7 @@ from psycopg.rows import dict_row
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from alerting.assist.schema_suggest import suggest
-from alerting.clock import SYSTEM
+from alerting.clock import FixedClock, SYSTEM
 from alerting.config.loader import read_snapshot
 from alerting.contracts import Channel, Transport
 from alerting.db import pool
@@ -122,14 +122,14 @@ class VerificationInput(BaseModel):
     samples: list[VerificationSample] = Field(min_length=1)
 
 
-def _validate_draft(draft: dict, active: dict) -> None:
+def _validate_draft(draft: dict, active: dict) -> dict:
     base = draft.get("base", draft.get("id"))
     inherited = active.get(base) if isinstance(base, str) else None
     if "base" in draft and inherited is None:
         raise ValueError("base must name an active schema")
     spec = {key: value for key, value in (inherited or {}).items() if key not in ("version", "origin")}
     spec.update({key: value for key, value in draft.items() if key != "base"})
-    SchemaDraft.model_validate(spec)
+    return SchemaDraft.model_validate(spec).spec()
 
 
 @router.post("/schemas/verify")
@@ -145,15 +145,22 @@ async def verify_schema(request: VerificationInput, db_pool=Depends(pool)):
         if sample.get("source") in sources:
             sample.setdefault("transport", sources[sample["source"]])
     try:
-        _validate_draft(request.draft, ruleset.schemas)
-        report = verify(request.draft, samples, ruleset, snapshot.directory, snapshot.runbooks, SYSTEM)
+        schema = _validate_draft(request.draft, ruleset.schemas)
+        clock = FixedClock(SYSTEM.now())
+        report = verify(request.draft, samples, ruleset, snapshot.directory, snapshot.runbooks, clock)
+        for sample, result in zip(samples, report["samples"], strict=True):
+            source = {"id": sample.get("source", "preview"), "transport": sample.get("transport", "http")}
+            # The verifier exposes projected fields and routing. Publish the same
+            # normalizer's diagnostics here alongside its existing response.
+            event = normalize(sample["event"], source, [schema], received_at=clock.now())
+            result["normalization"] = event.trace.get("normalization", {})
+            result["problems"] = event.trace.get("problems", [])
+            if "note" in sample:
+                result["note"] = sample["note"]
     except ValidationError as exc:
         raise HTTPException(422, exc.errors(include_url=False, include_context=False, include_input=False)) from exc
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
-    for sample, result in zip(request.samples, report["samples"]):
-        if sample.note is not None:
-            result["note"] = sample.note
     return report
 
 

@@ -11,6 +11,7 @@ from sys import get_int_max_str_digits
 from typing import Any
 
 from alerting.contracts import CanonicalEvent, Severity
+from alerting.ingest.regex_safety import safe_fullmatch
 from alerting.rules.dsl import compile as compile_match, number
 from alerting.templates import lookup, render, variables
 
@@ -18,6 +19,11 @@ MAX_BYTES = 256 * 1024
 MAX_DEPTH = 20
 MAX_PATHS = 2000
 SchemaDetector = Callable[[dict], dict | None]
+SEVERITY_WORDS = {
+    "crit": "critical", "critical": "critical", "fatal": "critical", "emerg": "critical",
+    "err": "error", "error": "error", "warn": "warning", "warning": "warning",
+    "info": "info", "notice": "info", "debug": "debug",
+}
 
 
 class InvalidEvent(ValueError):
@@ -36,7 +42,7 @@ def decode_json(body: bytes) -> Any:
 def parse_log_line(line: str, parser: dict) -> dict:
     if len(line.encode("utf-8")) > MAX_BYTES:
         raise InvalidEvent("log line exceeds 256 KiB")
-    match = re.fullmatch(parser["pattern"], line.rstrip("\r\n"))
+    match = safe_fullmatch(parser["pattern"], line)
     if not match:
         raise InvalidEvent("log line does not match the configured parser")
     fields = match.groupdict()
@@ -115,27 +121,68 @@ def identity(message_id: str | None, schema: dict, fields: dict, source: dict, p
     return payload_hash if source.get("dedup") == "payload_hash" else None
 
 
-def _severity(value, schema: dict) -> Severity:
+def _severity(value, schema: dict) -> tuple[Severity, str | None]:
     mapping = schema.get("severity_map", {})
     key = str(value)
     if key in mapping:
-        return Severity(mapping[key])
+        return Severity(mapping[key]), None
+    word = key.strip().casefold()
     for label, severity in mapping.items():
-        if str(label).casefold() == key.casefold():
-            return Severity(severity)
-    return Severity(schema.get("severity_default", "unknown"))
+        if str(label).strip().casefold() == word:
+            return Severity(severity), None
+    if word in SEVERITY_WORDS:
+        return Severity(SEVERITY_WORDS[word]), "auto-detected"
+    if value is None or not word:
+        return Severity(schema.get("severity_default") or "unknown"), None
+    return Severity.unknown, "unmapped_severity"
 
 
-def _time(value, fmt: str) -> datetime | None:
+def guess_time_format(value) -> str:
+    try:
+        numeric = float(value)
+    except (ValueError, TypeError, OverflowError):
+        return "iso"
+    if not math.isfinite(numeric):
+        return "iso"
+    return "epoch_ms" if abs(numeric) >= 10_000_000_000 else "epoch_s"
+
+
+def _time(value, fmt: str | None) -> tuple[datetime | None, bool]:
     if value is None or isinstance(value, bool):
-        return None
+        return None, False
+    fmt = fmt or guess_time_format(value)
     try:
         if fmt in ("epoch_ms", "epoch_s"):
-            return datetime.fromtimestamp(float(value) / (1000 if fmt == "epoch_ms" else 1), UTC)
-        parsed = datetime.fromisoformat(str(value))
-        return (parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)).astimezone(UTC)
+            return datetime.fromtimestamp(float(value) / (1000 if fmt == "epoch_ms" else 1), UTC), False
+        parsed = datetime.fromisoformat(str(value).strip())
+        no_zone = parsed.tzinfo is None
+        return (parsed.replace(tzinfo=UTC) if no_zone else parsed.astimezone(UTC)), no_zone
     except (ValueError, TypeError, OverflowError, OSError):
-        return None
+        return None, False
+
+
+def _input_diagnostics(schema, aliases, severity_method, occurred_at, no_zone):
+    methods = {}
+    problems = []
+    if severity_method == "auto-detected":
+        methods["severity"] = severity_method
+    if severity_method == "unmapped_severity":
+        problems.append({
+            "code": severity_method,
+            "path": aliases["severity"],
+            "message": "The severity value has no confirmed mapping.",
+            "fix_example": 'Set "severity_map": {"SEV1": "critical"} after confirming the producer meaning.',
+        })
+    if occurred_at is not None and not schema.get("time_format"):
+        methods["time"] = "auto-detected"
+    if no_zone:
+        problems.append({
+            "code": "no_timezone",
+            "path": aliases["time"],
+            "message": "The timestamp has no timezone and was read as UTC.",
+            "fix_example": "2026-10-23T09:00:00Z",
+        })
+    return methods, problems
 
 
 # Storage redaction preserves JSON types, timestamps and long non-sensitive values.
@@ -237,9 +284,9 @@ def _identity_fields(fields: dict, schema: dict, scales: dict[str, Decimal],
     # Rebuild derived aliases from raw inputs only where their source was transformed.
     aliases = schema.get("aliases", {})
     if (path := aliases.get("severity")) in scales:
-        severity = _severity(view.get(path), schema)
+        severity, _ = _severity(view.get(path), schema)
     if (path := aliases.get("time")) in scales:
-        occurred_at = _time(view.get(path), schema.get("time_format", "iso"))
+        occurred_at, _ = _time(view.get(path), schema.get("time_format"))
     _set_labels(view, schema, severity, occurred_at)
     _set_episode(view, schema)
     return view
@@ -269,7 +316,10 @@ def reclassify(event: CanonicalEvent, schemas: Sequence[dict] | SchemaDetector) 
     projected.id = event.id
     if event.source_event_id is not None and not heuristic:
         projected.source_event_id = event.source_event_id  # already in storage form
-    projected.trace = event.trace
+    projected.trace = {
+        **{key: value for key, value in event.trace.items() if key not in ("normalization", "problems")},
+        **{key: projected.trace[key] for key in ("normalization", "problems") if key in projected.trace},
+    }
     return projected
 
 
@@ -282,12 +332,19 @@ def _project(original, public, source, schemas, digest, received_at, message_id,
     _apply_scales(original, scales)
 
     aliases = schema.get("aliases", {})
-    severity = _severity(original.get(aliases.get("severity")), schema)
-    occurred_at = _time(original.get(aliases.get("time")), schema.get("time_format", "iso"))
+    severity, severity_method = _severity(original.get(aliases.get("severity")), schema)
+    occurred_at, no_zone = _time(original.get(aliases.get("time")), schema.get("time_format"))
     original.update(metadata)
     private_keys = _identity_fields(original, schema, scales, severity, occurred_at)
     source_event_id = identity(message_id, schema, private_keys, source, digest)
     trace = dict(trace or {})
+    trace.pop("normalization", None)
+    trace.pop("problems", None)
+    methods, problems = _input_diagnostics(schema, aliases, severity_method, occurred_at, no_zone)
+    if methods:
+        trace["normalization"] = methods
+    if problems:
+        trace["problems"] = problems
     if not schema and not (message_id and message_id.strip()) and source.get("dedup") == "payload_hash":
         trace["identity_method"] = "payload_hash"
 
