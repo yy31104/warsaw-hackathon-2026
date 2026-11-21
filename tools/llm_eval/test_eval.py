@@ -1,11 +1,12 @@
 """Regression checks for misattribution, safety scoring, and the cumulative spending limit."""
 from copy import deepcopy
 from contextlib import contextmanager
+import sys
 from types import SimpleNamespace
-from unittest.mock import AsyncMock
 
 import pytest
 
+from tools.llm_eval import __main__ as cli
 from tools.llm_eval.ledger import Journal, Rate, usd
 from tools.llm_eval.scoring import alias_score, hint_steps, step_score
 from tools.llm_eval import runner
@@ -120,7 +121,7 @@ def test_only_recognized_calendar_snapshot_and_cache_write_price(tmp_path):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("outcome", ["success", "timeout"])
+@pytest.mark.parametrize("outcome", ["success", "empty", "timeout"])
 async def test_product_and_provider_scores_and_preflight_latency(tmp_path, monkeypatch, outcome):
     from alerting import llm
     from alerting.assist.runbook_structure import StepHints
@@ -148,6 +149,8 @@ async def test_product_and_provider_scores_and_preflight_latency(tmp_path, monke
             state["observe"](usage(i=None, c=None, o=None, outcome="timeout", model=None))
             return None
         state["observe"](usage())
+        if outcome == "empty":
+            return StepHints(steps=[])
         return StepHints(steps=[{"index": 1, "action": "restart_service", "params": [{"name": "service", "value": "amber"}]}])
 
     monkeypatch.setattr(llm, "observe_calls", observer, raising=False)
@@ -162,6 +165,94 @@ async def test_product_and_provider_scores_and_preflight_latency(tmp_path, monke
     if outcome == "timeout":
         assert row["attribution"] == "provider_failure_fallback" and row["provider_only"] is None
         assert row["product"]["steps"] == [0, 1] and j.exposure() > 0
+    elif outcome == "empty":
+        assert row["attribution"] == "validated_no_contribution" and row["product_source"] == "heuristic"
+        assert row["provider_only"]["candidate_steps"] == row["product"]["steps"] == [0, 1]
     else:
         assert row["attribution"] == "model_contributed" and row["product_source"] == "llm"
         assert row["provider_only"]["candidate_steps"] == row["product"]["steps"] == [1, 1]
+
+
+@pytest.mark.asyncio
+async def test_inventory_uses_a_listed_snapshot_and_ignores_other_families(monkeypatch):
+    async def listing():
+        for name in ("test-model", "test-model-2026-12-01", "test-model-2026-11-21",
+                     "test-model-plus-2026-12-10", "test-model-2026-20-99"):
+            yield SimpleNamespace(id=name)
+
+    class Client:
+        def __init__(self, *, max_retries, timeout):
+            assert max_retries == 0
+            self.models = SimpleNamespace(list=listing)
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+    monkeypatch.setenv("OPENAI_API_KEY", "synthetic-test-value")
+    monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
+    monkeypatch.setitem(sys.modules, "openai", SimpleNamespace(AsyncOpenAI=Client))
+    choices, error = await runner.discover(["test-model", "not-listed"])
+    assert error is None
+    assert choices["test-model"]["selected"] == "test-model-2026-12-01"
+    assert choices["test-model"]["listed_snapshots"] == ["test-model-2026-11-21", "test-model-2026-12-01"]
+    assert choices["not-listed"]["selected"] is None
+
+
+@pytest.mark.asyncio
+async def test_final_access_guard_and_replay_without_another_assist(tmp_path, monkeypatch):
+    journal = Journal(tmp_path / "budget.sqlite3")
+    args = SimpleNamespace(phase="final", output=tmp_path / "export", offline=True)
+    opened, evaluated = [], []
+
+    def fixtures(split):
+        opened.append(split)
+        raw = {"id": "unit-only", "text": "Inspect the paper.", "steps": [
+            {"text": "Inspect the paper.", "action": None, "params": {}, "approval": "none"}]}
+        return [("runbook", raw)], {"unit-data": "test"}
+
+    original = cli.evaluate
+
+    async def spy(*args, **kwargs):
+        evaluated.append(args[:3])
+        return await original(*args, **kwargs)
+
+    monkeypatch.setattr(cli, "read_cases", fixtures)
+    monkeypatch.setattr(cli, "evaluate", spy)
+    monkeypatch.setattr(cli, "source_hash", lambda: "baseline-production")
+    with pytest.raises(ValueError, match="finish tuned"):
+        await cli.campaign(args, journal)
+    assert not opened
+    args.phase = "baseline"
+    await cli.campaign(args, journal)
+    frozen = (args.output / args.phase / "cases.jsonl").read_bytes()
+    await cli.campaign(args, journal)
+    assert len(evaluated) == 1
+    assert frozen == (args.output / args.phase / "cases.jsonl").read_bytes()
+    args.phase = "tuned"
+    monkeypatch.setattr(cli, "source_hash", lambda: "tuned-production")
+    await cli.campaign(args, journal)
+    args.phase = "final"
+    n = len(opened)
+    monkeypatch.setattr(cli, "source_hash", lambda: "changed-after-freeze")
+    with pytest.raises(ValueError, match="frozen tuned"):
+        await cli.campaign(args, journal)
+    assert len(opened) == n
+    monkeypatch.setattr(cli, "source_hash", lambda: "tuned-production")
+    await cli.campaign(args, journal)
+    await cli.campaign(args, journal)
+    assert [e[0] for e in evaluated] == ["baseline", "tuned", "final"]
+
+
+def test_campaign_process_lock_and_duplicate_attempt(tmp_path):
+    one = Journal(tmp_path / "budget.sqlite3")
+    two = Journal(tmp_path / "budget.sqlite3")
+    with one.campaign_lock():
+        with pytest.raises(ValueError, match="another evaluation"):
+            with two.campaign_lock():
+                pass
+    one.reserve("baseline", "model", "key", rate(), 40, counted=30)
+    with pytest.raises(ValueError, match="already reserved"):
+        two.reserve("baseline", "model", "key", rate(), 40, counted=30)

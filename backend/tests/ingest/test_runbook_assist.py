@@ -78,3 +78,22 @@ async def test_unavailable_model_keeps_unknown_and_conditional_steps_manual(monk
     assert len(result["draft"]["steps"]) == 3
     assert [s["approval"] for s in result["draft"]["steps"]] == ["none", "required", "required"]
     assert all("action" not in s for s in result["draft"]["steps"])
+
+
+async def test_model_cannot_use_a_role_or_pronoun_as_a_missing_target(monkeypatch):
+    monkeypatch.setattr(llm, "enabled", lambda: True)
+    monkeypatch.setattr(llm, "structured", AsyncMock(return_value=StepHints(steps=[
+        StepHint(index=1, action="restart_service", params=[{"name": "service", "value": "service"}]),
+        StepHint(index=2, action="restart_service", params=[{"name": "service", "value": "it"}]),
+    ])))
+    steps = (await structure("Restart the affected service. Reboot it."))["draft"]["steps"]
+    assert [(s.get("action"), s["approval"]) for s in steps] == [(None, "required"), (None, "required")]
+
+
+async def test_offline_explicit_targets_with_alternate_verbs(monkeypatch):
+    monkeypatch.setenv("ASSIST_ENABLED", "0")
+    text = "Re-run workflow label-printer. File a ticket titled Empty tray."
+    steps = (await structure(text))["draft"]["steps"]
+    assert [(s.get("action"), s.get("workflowId") or s.get("title")) for s in steps] == [
+        ("retry_workflow", "label-printer"), ("open_ticket", "Empty tray")
+    ]
