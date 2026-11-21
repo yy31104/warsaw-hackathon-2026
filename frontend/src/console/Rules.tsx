@@ -8,6 +8,10 @@ import {OptimizerPanel} from '../OptimizerPanel';
 import {ownsRule} from '../permissions';
 import {applyRulePathSuggestion, requestProblems, type EditableRule, type Problem} from './data';
 import {Card, channelName, Chip, Failure, LegacyLink, personName, Problems, teamName} from './ui';
+import type {Directory} from '../types';
+
+const ownerLabel = (owner: string, directory: Directory) => owner.startsWith('team:')
+  ? teamName(owner.slice(5), directory) : owner.startsWith('user:') ? personName(owner.slice(5), directory) : owner;
 
 type Match = Record<string, unknown>;
 type DraftRule = EditableRule;
@@ -173,13 +177,14 @@ export function ConsoleRules() {
     {!draft && <div className="cf-grid cf-grid-wide">
       <Card title="Configured rules" meta={rules.isSuccess && `${rules.data.length} · live`}>
         {(rules.data ?? []).map(item => <button className="cf-rule-row" key={item.id} onClick={() => open(item, item)}>
-          <div><strong>{item.id}</strong><small>{item.owner} · v{item.version} · {item.origin}</small></div>
+          <div><strong>{item.id}</strong><small>{ownerLabel(item.owner, directory)} · v{item.version} · {item.origin === 'file' ? 'config file' : 'made here'}</small></div>
           <Chip tone={!item.enabled ? 'amber' : 'neutral'}>{item.enabled ? 'Enabled' : 'Paused'}</Chip>
         </button>)}
         <div className="cf-foot"><button className="cf-btn primary" onClick={start}>New rule</button></div>
       </Card>
       <Card title="Describe a rule">
-        <label className="cf-field">Rule in words<textarea rows={4} value={text} onChange={event => setText(event.target.value)}/></label>
+        <label className="cf-field">Rule in words<textarea rows={4} value={text} placeholder="e.g. Call the settlements on-call by phone when a production settlement workflow fails"
+          onChange={event => setText(event.target.value)}/></label>
         <button className="cf-btn" disabled={!text.trim() || busy} onClick={() => void perform(async () => {
           const result = await request<RuleSuggestion>('/rules/draft', actor, {text});
           open({...result.draft, origin: 'ui'});
