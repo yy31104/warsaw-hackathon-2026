@@ -124,6 +124,8 @@ services:
 
   ingest-amqp:
     <<: *backend
+    deploy:
+      replicas: 2
     command: ["python", "-m", "alerting.ingest.amqp"]
     depends_on:
       <<: *database-ready
