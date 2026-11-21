@@ -1,0 +1,3731 @@
+[
+  {
+    "utc": "2026-11-21T03:24:34.309062+00:00",
+    "experiment": [],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:24:41.433945+00:00",
+    "experiment": [
+      "m11-11210324-24866-r700-k1000-w4-api-1",
+      "m11-11210324-24866-r700-k1000-w4-delivery-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-4",
+      "m11-11210324-24866-r700-k1000-w4-scheduler-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-3",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rabbitmq-1",
+      "m11-11210324-24866-r700-k1000-w4-postgres-1",
+      "m11-11210324-24866-r700-k1000-w4-fake-telecom-1",
+      "m11-11210324-24866-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:24:48.661130+00:00",
+    "experiment": [
+      "m11-11210324-24866-r700-k1000-w4-generator",
+      "m11-11210324-24866-r700-k1000-w4-api-1",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210324-24866-r700-k1000-w4-delivery-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-4",
+      "m11-11210324-24866-r700-k1000-w4-scheduler-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-3",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rabbitmq-1",
+      "m11-11210324-24866-r700-k1000-w4-postgres-1",
+      "m11-11210324-24866-r700-k1000-w4-fake-telecom-1",
+      "m11-11210324-24866-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:24:55.904273+00:00",
+    "experiment": [
+      "m11-11210324-24866-r700-k1000-w4-generator",
+      "m11-11210324-24866-r700-k1000-w4-api-1",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210324-24866-r700-k1000-w4-delivery-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-4",
+      "m11-11210324-24866-r700-k1000-w4-scheduler-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-3",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rabbitmq-1",
+      "m11-11210324-24866-r700-k1000-w4-postgres-1",
+      "m11-11210324-24866-r700-k1000-w4-fake-telecom-1",
+      "m11-11210324-24866-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:25:03.065170+00:00",
+    "experiment": [
+      "m11-11210324-24866-r700-k1000-w4-generator",
+      "m11-11210324-24866-r700-k1000-w4-api-1",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210324-24866-r700-k1000-w4-delivery-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-4",
+      "m11-11210324-24866-r700-k1000-w4-scheduler-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-3",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rabbitmq-1",
+      "m11-11210324-24866-r700-k1000-w4-postgres-1",
+      "m11-11210324-24866-r700-k1000-w4-fake-telecom-1",
+      "m11-11210324-24866-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:25:10.224417+00:00",
+    "experiment": [
+      "m11-11210324-24866-r700-k1000-w4-generator",
+      "m11-11210324-24866-r700-k1000-w4-api-1",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210324-24866-r700-k1000-w4-delivery-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-4",
+      "m11-11210324-24866-r700-k1000-w4-scheduler-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-3",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rabbitmq-1",
+      "m11-11210324-24866-r700-k1000-w4-postgres-1",
+      "m11-11210324-24866-r700-k1000-w4-fake-telecom-1",
+      "m11-11210324-24866-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:25:17.379895+00:00",
+    "experiment": [
+      "m11-11210324-24866-r700-k1000-w4-generator",
+      "m11-11210324-24866-r700-k1000-w4-api-1",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210324-24866-r700-k1000-w4-delivery-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-4",
+      "m11-11210324-24866-r700-k1000-w4-scheduler-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-3",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rabbitmq-1",
+      "m11-11210324-24866-r700-k1000-w4-postgres-1",
+      "m11-11210324-24866-r700-k1000-w4-fake-telecom-1",
+      "m11-11210324-24866-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:25:24.531192+00:00",
+    "experiment": [
+      "m11-11210324-24866-r700-k1000-w4-generator",
+      "m11-11210324-24866-r700-k1000-w4-api-1",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210324-24866-r700-k1000-w4-delivery-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-4",
+      "m11-11210324-24866-r700-k1000-w4-scheduler-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-3",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rabbitmq-1",
+      "m11-11210324-24866-r700-k1000-w4-postgres-1",
+      "m11-11210324-24866-r700-k1000-w4-fake-telecom-1",
+      "m11-11210324-24866-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:25:31.797941+00:00",
+    "experiment": [
+      "m11-11210324-24866-r700-k1000-w4-generator",
+      "m11-11210324-24866-r700-k1000-w4-api-1",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210324-24866-r700-k1000-w4-delivery-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-4",
+      "m11-11210324-24866-r700-k1000-w4-scheduler-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-3",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rabbitmq-1",
+      "m11-11210324-24866-r700-k1000-w4-postgres-1",
+      "m11-11210324-24866-r700-k1000-w4-fake-telecom-1",
+      "m11-11210324-24866-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:25:38.947489+00:00",
+    "experiment": [
+      "m11-11210324-24866-r700-k1000-w4-generator",
+      "m11-11210324-24866-r700-k1000-w4-api-1",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210324-24866-r700-k1000-w4-delivery-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-4",
+      "m11-11210324-24866-r700-k1000-w4-scheduler-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-3",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rabbitmq-1",
+      "m11-11210324-24866-r700-k1000-w4-postgres-1",
+      "m11-11210324-24866-r700-k1000-w4-fake-telecom-1",
+      "m11-11210324-24866-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:25:46.092236+00:00",
+    "experiment": [
+      "m11-11210324-24866-r700-k1000-w4-generator",
+      "m11-11210324-24866-r700-k1000-w4-api-1",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210324-24866-r700-k1000-w4-delivery-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-4",
+      "m11-11210324-24866-r700-k1000-w4-scheduler-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-3",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210324-24866-r700-k1000-w4-rule-worker-1",
+      "m11-11210324-24866-r700-k1000-w4-rabbitmq-1",
+      "m11-11210324-24866-r700-k1000-w4-postgres-1",
+      "m11-11210324-24866-r700-k1000-w4-fake-telecom-1",
+      "m11-11210324-24866-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:25:53.229572+00:00",
+    "experiment": [
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210324-24866-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210324-24866-r700-k1000-w4-rabbitmq-1",
+      "m11-11210324-24866-r700-k1000-w4-postgres-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:26:00.348565+00:00",
+    "experiment": [
+      "m11-11210324-24866-r700-k1000-w4-rabbitmq-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:26:07.477037+00:00",
+    "experiment": [
+      "m11-11210326-bb859-r700-k1000-w4-api-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-4",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-scheduler-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210326-bb859-r700-k1000-w4-delivery-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-2",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-3",
+      "m11-11210326-bb859-r700-k1000-w4-postgres-1",
+      "m11-11210326-bb859-r700-k1000-w4-rabbitmq-1",
+      "m11-11210326-bb859-r700-k1000-w4-fake-telecom-1",
+      "m11-11210326-bb859-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:26:14.616223+00:00",
+    "experiment": [
+      "m11-11210326-bb859-r700-k1000-w4-api-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-4",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-scheduler-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210326-bb859-r700-k1000-w4-delivery-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-2",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-3",
+      "m11-11210326-bb859-r700-k1000-w4-postgres-1",
+      "m11-11210326-bb859-r700-k1000-w4-rabbitmq-1",
+      "m11-11210326-bb859-r700-k1000-w4-fake-telecom-1",
+      "m11-11210326-bb859-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:26:21.825196+00:00",
+    "experiment": [
+      "m11-11210326-bb859-r700-k1000-w4-generator",
+      "m11-11210326-bb859-r700-k1000-w4-api-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-4",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-scheduler-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210326-bb859-r700-k1000-w4-delivery-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-2",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-3",
+      "m11-11210326-bb859-r700-k1000-w4-postgres-1",
+      "m11-11210326-bb859-r700-k1000-w4-rabbitmq-1",
+      "m11-11210326-bb859-r700-k1000-w4-fake-telecom-1",
+      "m11-11210326-bb859-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:26:28.989447+00:00",
+    "experiment": [
+      "m11-11210326-bb859-r700-k1000-w4-generator",
+      "m11-11210326-bb859-r700-k1000-w4-api-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-4",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-scheduler-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210326-bb859-r700-k1000-w4-delivery-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-2",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-3",
+      "m11-11210326-bb859-r700-k1000-w4-postgres-1",
+      "m11-11210326-bb859-r700-k1000-w4-rabbitmq-1",
+      "m11-11210326-bb859-r700-k1000-w4-fake-telecom-1",
+      "m11-11210326-bb859-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:26:36.143948+00:00",
+    "experiment": [
+      "m11-11210326-bb859-r700-k1000-w4-generator",
+      "m11-11210326-bb859-r700-k1000-w4-api-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-4",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-scheduler-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210326-bb859-r700-k1000-w4-delivery-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-2",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-3",
+      "m11-11210326-bb859-r700-k1000-w4-postgres-1",
+      "m11-11210326-bb859-r700-k1000-w4-rabbitmq-1",
+      "m11-11210326-bb859-r700-k1000-w4-fake-telecom-1",
+      "m11-11210326-bb859-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:26:43.287249+00:00",
+    "experiment": [
+      "m11-11210326-bb859-r700-k1000-w4-generator",
+      "m11-11210326-bb859-r700-k1000-w4-api-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-4",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-scheduler-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210326-bb859-r700-k1000-w4-delivery-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-2",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-3",
+      "m11-11210326-bb859-r700-k1000-w4-postgres-1",
+      "m11-11210326-bb859-r700-k1000-w4-rabbitmq-1",
+      "m11-11210326-bb859-r700-k1000-w4-fake-telecom-1",
+      "m11-11210326-bb859-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:26:50.417380+00:00",
+    "experiment": [
+      "m11-11210326-bb859-r700-k1000-w4-generator",
+      "m11-11210326-bb859-r700-k1000-w4-api-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-4",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-scheduler-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210326-bb859-r700-k1000-w4-delivery-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-2",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-3",
+      "m11-11210326-bb859-r700-k1000-w4-postgres-1",
+      "m11-11210326-bb859-r700-k1000-w4-rabbitmq-1",
+      "m11-11210326-bb859-r700-k1000-w4-fake-telecom-1",
+      "m11-11210326-bb859-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:26:57.600814+00:00",
+    "experiment": [
+      "m11-11210326-bb859-r700-k1000-w4-generator",
+      "m11-11210326-bb859-r700-k1000-w4-api-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-4",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-scheduler-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210326-bb859-r700-k1000-w4-delivery-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-2",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-3",
+      "m11-11210326-bb859-r700-k1000-w4-postgres-1",
+      "m11-11210326-bb859-r700-k1000-w4-rabbitmq-1",
+      "m11-11210326-bb859-r700-k1000-w4-fake-telecom-1",
+      "m11-11210326-bb859-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:27:04.746340+00:00",
+    "experiment": [
+      "m11-11210326-bb859-r700-k1000-w4-generator",
+      "m11-11210326-bb859-r700-k1000-w4-api-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-4",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-scheduler-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210326-bb859-r700-k1000-w4-delivery-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-2",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-3",
+      "m11-11210326-bb859-r700-k1000-w4-postgres-1",
+      "m11-11210326-bb859-r700-k1000-w4-rabbitmq-1",
+      "m11-11210326-bb859-r700-k1000-w4-fake-telecom-1",
+      "m11-11210326-bb859-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:27:11.902893+00:00",
+    "experiment": [
+      "m11-11210326-bb859-r700-k1000-w4-generator",
+      "m11-11210326-bb859-r700-k1000-w4-api-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-4",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-scheduler-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-critical-1",
+      "m11-11210326-bb859-r700-k1000-w4-delivery-worker-1",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-2",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210326-bb859-r700-k1000-w4-rule-worker-3",
+      "m11-11210326-bb859-r700-k1000-w4-postgres-1",
+      "m11-11210326-bb859-r700-k1000-w4-rabbitmq-1",
+      "m11-11210326-bb859-r700-k1000-w4-fake-telecom-1",
+      "m11-11210326-bb859-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:27:19.114546+00:00",
+    "experiment": [
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-2",
+      "m11-11210326-bb859-r700-k1000-w4-ingest-amqp-1",
+      "m11-11210326-bb859-r700-k1000-w4-postgres-1",
+      "m11-11210326-bb859-r700-k1000-w4-rabbitmq-1",
+      "m11-11210326-bb859-r700-k1000-w4-mailpit-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  {
+    "utc": "2026-11-21T03:27:26.381150+00:00",
+    "experiment": [
+      "m11-11210326-bb859-r700-k1000-w4-postgres-1",
+      "m11-11210326-bb859-r700-k1000-w4-rabbitmq-1"
+    ],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  }
+]

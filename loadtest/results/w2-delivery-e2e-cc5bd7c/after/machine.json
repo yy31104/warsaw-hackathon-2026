@@ -1,0 +1,67 @@
+{
+  "captured_at_utc": "2026-11-21T03:26:01.366632+00:00",
+  "git_commit": "cc5bd7c67606571fe016af03957cba5a5d31e0a1",
+  "host_os": "macOS-27.2-arm64-arm-64bit",
+  "host_cpu": "arm",
+  "host_logical_cpus": 14,
+  "docker": {
+    "ServerVersion": "29.4.3",
+    "OSVersion": "",
+    "OperatingSystem": "Docker Desktop",
+    "Architecture": "aarch64",
+    "KernelVersion": "6.12.76-linuxkit",
+    "NCPU": 14,
+    "MemTotal": 8321150976,
+    "CgroupVersion": "2",
+    "Driver": "overlayfs"
+  },
+  "compose_version": "Docker Compose version v5.1.3",
+  "images": {
+    "backend": {
+      "tag": "w0w2-after-backend:local",
+      "id": "sha256:a33420d6fc584ae596ddfbb21ee9e416290937b60386a2d730afc9ef4e74ab82"
+    },
+    "fake-telecom": {
+      "tag": "w0w2-after-fake-telecom",
+      "id": "sha256:a9f377541e8a34750879e1e6e1f085cab2bd6d09964bc68ffccb5f07b74c68f4"
+    },
+    "postgres": {
+      "tag": "postgres:16-alpine",
+      "id": "sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea"
+    },
+    "rabbitmq": {
+      "tag": "rabbitmq:3.13-management-alpine",
+      "id": "sha256:606d8c0d6b3c18d1da9afc53bc7cdb2a8d5486df91b5a9830e9e07626c9ae281"
+    },
+    "mailpit": {
+      "tag": "axllent/mailpit:latest",
+      "id": "sha256:23a2ef85bc50853ab3093645d1d64679afd8887e89da5e48a88940c172591a4e"
+    }
+  },
+  "settings": {
+    "output": "/private/tmp/gs-w0-round3.UbUmhI/m4-pair/loadtest/results/w2-delivery-e2e-cc5bd7c/after",
+    "rates": [
+      700
+    ],
+    "workers": [
+      4
+    ],
+    "keys": [
+      1000
+    ],
+    "duration": 60,
+    "drain_seconds": 20,
+    "critical_rate": 2,
+    "ingest_workers": 2,
+    "delivery_workers": 1,
+    "max_in_flight": 2000,
+    "image_project": "w0w2-after"
+  },
+  "workload_fixture_sha256": "c10157316c30cfb26665b829044a45362a4b7b7fb07f8d12f05397dc5a9c54f8",
+  "measurement_scripts_sha256": {
+    "run_saturation.py": "49d62b5d731530e438f64923926767777a61a02ee78ac38d4afb50326c21bd2e",
+    "saturation_trial.py": "3c1d5fd59b073a36bf439087496b020f97673db9e1a75a50b95f7c260da9cc3f",
+    "bench_generate.py": "a941f3d6d285a7415aa32e50098419bcc59e69b67a0083cbf81da6c4a510cea2",
+    "bench_collect.py": "bea3c892912aca0109b0c54e2835db5ddd330a20fb764ec9d9ebfa850defaab8"
+  }
+}

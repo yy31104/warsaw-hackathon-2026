@@ -1,0 +1,24 @@
+RUN ID m11-11210252-253d4-r5600-k1000-w4
+2026-11-21T02:53:01.219202+00:00
+> docker compose --ansi never -p m11-11210252-253d4-r5600-k1000-w4 -f /private/tmp/gs-w0-round3.UbUmhI/m4-pair/docker-compose.yml -f /private/tmp/gs-w0-round3.UbUmhI/m4-pair/loadtest/results/intake-pair-d7a6884-m4/intake2/compose.measurement.json run --rm -T --no-deps --name m11-11210252-253d4-r5600-k1000-w4-generator --volume /private/tmp/gs-w0-round3.UbUmhI/m4-pair/loadtest:/app/loadtest:ro --volume /private/tmp/gs-w0-round3.UbUmhI/m4-pair/fixtures:/app/fixtures:ro --volume /private/tmp/gs-w0-round3.UbUmhI/m4-pair/loadtest/results/intake-pair-d7a6884-m4/intake2/m11-11210252-253d4-r5600-k1000-w4:/bench-output rule-worker python -m loadtest.saturation_trial --output /bench-output --run-id m11-11210252-253d4-r5600-k1000-w4 --tag m11-k1000-r5600 --duration 60 --drain-seconds 20 --normal-workers 4 --normal-rate 5600 --normal-keys 1000 --ingest-workers 2 --critical-rate 2 --max-in-flight 2000
+
+ Container m11-11210252-253d4-r5600-k1000-w4-generator Creating 
+ Container m11-11210252-253d4-r5600-k1000-w4-generator Created 
+RUN ID m11-11210252-253d4-r5600-k1000-w4
+Offer 5,600 normal/s + 2/s critical for 60s | 4 normal workers | 1,000 normal keys
+Offer started. Backlog samples below are live.
+   0.0s | accepted       0  processed       0  broker ready       0  DB pending       0
+  10.2s | accepted  53,462  processed  28,699  broker ready     160  DB pending  24,763
+  22.0s | accepted 113,107  processed  56,121  broker ready     109  DB pending  56,986
+  32.9s | accepted 159,117  processed  78,337  broker ready     125  DB pending  80,780
+  49.4s | accepted 233,949  processed 113,364  broker ready   2,442  DB pending 120,585
+  64.9s | accepted 311,458  processed 144,191  broker ready     148  DB pending 167,267
+  76.2s | accepted 321,980  processed 191,796  broker ready       0  DB pending 130,184
+RUN ID m11-11210252-253d4-r5600-k1000-w4 | PASS measurement
+Inside offer: 5,334.3 ingested/s, 2,453.2 processed/s.
+Confirmed 321,980/336,120 | dropped 14,140 | publish errors 0 | rejected 0
+Pipeline backlog growing | peak 167,415 | verified phone/SMS 2,230/2,240
+Normal p50/p95/p99 (ms): 34143/68537/70115  N=2000
+Critical p50/p95/p99 (ms): 401/1261/1576  N=230
+
+Exit code 0

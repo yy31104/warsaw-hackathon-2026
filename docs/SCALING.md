@@ -21,24 +21,107 @@ At 5,600 normal events/s with one hot key and four rule workers, adding a second
 
 **One hot key, 5,600 normal events/s.** Changing from one to two intake consumers reduced observed critical receiver p99 from **28.449 s** (206 of 240 receipts) to **1.233 s** (238 of 240). Outstanding receipts at cutoff have no measured latency. [One consumer](../loadtest/results/saturation-ae69a28/diagnostic-intake1/m11-11210200-9f20c-r5600-k1-w4/summary.json) · [Two consumers](../loadtest/results/saturation-ae69a28/diagnostic-intake2/m11-11210202-ea57d-r5600-k1-w4/summary.json)
 
-**1,000 keys, 5,600 normal events/s.** Critical receiver p99 with **two intake consumers: not measured**. The matrix used one intake consumer: critical p99 was 27.437, 28.604 and 34.156 s with one, two and four normal rule workers, respectively. [Matrix configurations and receipts](../loadtest/results/saturation-ae69a28/runs.csv)
+**Intel matrix, 1,000 keys, 5,600 normal events/s.** Critical receiver p99 with **two intake consumers: not measured on Intel**. The Apple pair below measures this combination separately. The matrix used one intake consumer: critical p99 was 27.437 s (208 received / 240 expected), 28.604 s (202 / 240) and 34.156 s (180 / 240) with one, two and four normal rule workers, respectively. [Matrix configurations and receipts](../loadtest/results/saturation-ae69a28/runs.csv)
 
-**1,000 keys, 2,800 normal events/s.** With one intake consumer and four normal rule workers, the rule inbox grew to a late-window median of **56,040.5 pending events** while critical receiver p99 stayed at **0.443 s** (240 receipts). In this run the critical lane was isolated from the normal rule backlog. [Backlog and receiver measurements](../loadtest/results/saturation-ae69a28/m11-11210120-1d623-r2800-k1000-w4/summary.json)
+**1,000 keys, 2,800 normal events/s.** With one intake consumer and four normal rule workers, the rule inbox grew to a late-window median of **56,040.5 pending events** while critical receiver p99 stayed at **0.443 s** (240 received / 240 expected). In this run the critical lane was isolated from the normal rule backlog. [Backlog and receiver measurements](../loadtest/results/saturation-ae69a28/m11-11210120-1d623-r2800-k1000-w4/summary.json)
 
 ## Delivery and loss accounting
 
-With 1,000 distinct normal alerts routed to one recipient, normal receiver p99 spanned **36.394–61.134 s**. In the controlled 700/s repeat, increasing delivery workers from one to four reduced p99 from **39.877 to 33.627 s** and the middle-block delivery backlog from **407.5 to 53**, while the rule inbox stayed steady. Delivery and recipient fan-out deserve separate capacity measurements from event processing. [Normal receiver series](../loadtest/results/saturation-ae69a28/runs.csv) · [One delivery worker](../loadtest/results/saturation-ae69a28/diagnostic-delivery1/batch.json) · [Four delivery workers](../loadtest/results/saturation-ae69a28/diagnostic-delivery4/batch.json)
+With 1,000 distinct normal alerts routed to one recipient, normal receiver p99 spanned **36.394–61.134 s** (2,000 received / 2,000 expected in each trial). In the controlled 700/s repeat, increasing delivery workers from one to four reduced p99 from **39.877 s** (2,000 received / 2,000 expected) to **33.627 s** (2,000 / 2,000) and the middle-block delivery backlog from **407.5 to 53**, while the rule inbox stayed steady. Delivery and recipient fan-out deserve separate capacity measurements from event processing. [Normal receiver series](../loadtest/results/saturation-ae69a28/runs.csv) · [One delivery worker](../loadtest/results/saturation-ae69a28/diagnostic-delivery1/batch.json) · [Four delivery workers](../loadtest/results/saturation-ae69a28/diagnostic-delivery4/batch.json)
 
 Of **3,782,880** scheduled events, RabbitMQ confirmed **3,775,341**. The difference of **7,539** was dropped at the generator before broker acceptance. The publisher recorded **zero errors** and ingestion recorded **zero rejections**. The bounded observation can leave broker-confirmed events and expected receiver receipts pending. A claim of permanent downstream loss or lossless eventual delivery would require following those IDs to terminal state. [Aggregate counts](../loadtest/results/saturation-ae69a28/REPORT.md) · [Per-run reconciliation and pending counts](../loadtest/results/saturation-ae69a28/runs.csv)
+
+### Delivery batching · end-to-end
+
+Apple M4 Pro, main `d7a6884` before and PR #36 `cc5bd7c` after. Each run offered 700 normal plus 2 critical events/s across 1,000 normal keys for 60 s, followed by up to 20 s of drain. Two AMQP consumers, four normal rule workers, one critical rule worker and one delivery worker ran in each trial. Both used workload SHA-256 `5804a2c054511b70324d863286d262bcbb02b3c8949b1a6feee529841dc5b4be`. Provider receipts are verified by ID, channel, recipient and generation time through fake-telecom. Other local containers remained available. [Pre-registered target](./SCORECARD.md) · [Machine and Docker inventory](../loadtest/results/w2-delivery-e2e-cc5bd7c/host.json) · [Before · main](../loadtest/results/w2-delivery-e2e-cc5bd7c/before/m11-11210324-24866-r700-k1000-w4/summary.json) · [After · #36](../loadtest/results/w2-delivery-e2e-cc5bd7c/after/m11-11210326-bb859-r700-k1000-w4/summary.json)
+
+| Measurement | Before · main | After · #36 |
+| --- | ---: | ---: |
+| Normal p50 / p95 / p99 (ms), received / expected | 17969 / 26922 / 27424 (2,000 / 2,000) | 3292 / 5577 / 5738 (2,000 / 2,000) |
+| Critical p50 / p95 / p99 (ms), received / expected | 195 / 336 / 547 (240 / 240) | 219 / 317 / 356 (240 / 240) |
+| Delivery pending · early / middle / late median | 1,033 / 0.0 / 0.0 | 0 / 0.0 / 0.0 |
+| Verified sends/s over the 60 s offer | 37.30 | 37.30 |
+| Verified sends/s over the offer and any receipt drain | 37.21 | 37.20 |
+| Verified sends/s during the active receiver span | 37.42 | 37.37 |
+| PostgreSQL mean / peak CPU (one core = 100%) | 94.8% / 146.1% (N=12) | 63.1% / 121.1% (N=13) |
+| Offered / generator-not-submitted / confirmed | 42,120 / 0 / 42,120 | 42,120 / 0 / 42,120 |
+| Accepted events pending processing at cutoff | 0 | 0 |
+
+The active receiver span divides the inter-receipt count by elapsed time from the first to the last verified receipt. Early, middle and late queue medians use the three steady blocks after the initial 10 s. Missing receipts have no latency sample. [Send-rate denominators](../loadtest/results/w2-delivery-e2e-cc5bd7c/w0-sends.json) · [Before · main](../loadtest/results/w2-delivery-e2e-cc5bd7c/before/m11-11210324-24866-r700-k1000-w4/summary.json) · [After · #36](../loadtest/results/w2-delivery-e2e-cc5bd7c/after/m11-11210326-bb859-r700-k1000-w4/summary.json)
+
+Pre-registered targets on the after trial. Normal p99 <5 s **FAIL**. Critical p99 <1 s **PASS**. Complete unique receiver coverage **PASS**. [After · #36](../loadtest/results/w2-delivery-e2e-cc5bd7c/after/m11-11210326-bb859-r700-k1000-w4/summary.json)
+
+#### Delivery worker DB pool wait · paired end-to-end diagnostic
+
+A separate run pair used the same two source commits, schedule hash, hardware, offer and drain as the end-to-end trial above. A temporary measurement hook in each delivery worker timed every async checkout and its waiting-queue calls. The table covers checkouts and waits started during the 60 s offer. Checkout time includes the pool API overhead. Queue wait measures the waits for an available connection. No quantile is reported for an empty wait sample. [Pool samples and both windows](../loadtest/results/w2-delivery-pool-diagnostic-cc5bd7c/pool-summary.json) · [Probe](../loadtest/results/w2-delivery-pool-diagnostic-cc5bd7c/pool_probe.py)
+
+| 60 s delivery-worker pool metric | Before · main | After · #36 |
+| --- | ---: | ---: |
+| Successful checkouts | 9,432 | 3,685 |
+| Queued waits | 0 | 34 |
+| Queue wait total (ms) | 0.000 | 270.282 |
+| Queue wait mean / p95 per queued wait (ms) | — / — | 7.949 / 16.986 |
+| Checkout mean / p95 (ms) | 0.009 / 0.016 | 0.085 / 0.022 |
+| Delivery pending · early / middle / late median | 1,109.5 / 2 / 0.0 | 2 / 1.0 / 0 |
+| Receiver receipts verified / expected | 2,240 / 2,240 | 2,240 / 2,240 |
+
+The pool waits are small relative to the remaining normal latency. In the uninstrumented after trial, the 20 slowest verified normal receipts spent a median of 5.727 s from offer to first delivery claim and 19.8 ms from claim to receipt. This trace points to the work before the claim, which includes intake, rule processing and time in the delivery queue. [After raw receiver and claim ledger](../loadtest/results/w2-delivery-e2e-cc5bd7c/after/m11-11210326-bb859-r700-k1000-w4/observations.json.gz)
+
+### Delivery batching · micro-benchmark
+
+The W2 micro-benchmark timed a pre-populated outbox on the same Mac with a 5 ms in-process SMS provider. Its mixed workload was one team and 2,000 due notifications. This measures the delivery worker and the database, with every notification available at the start. See the separate end-to-end trial above for the queue, rules and receiver path. [W2 method and raw results](https://github.com/yy31104/warsaw-hackathon-2026/pull/36)
+
+| Delivery workers | Measured sends/s, baseline → batch | Normal p99, received / expected, baseline → batch | Critical p99, received / expected, baseline → batch |
+| ---: | ---: | --- | --- |
+| 1 | 58.83 → 691.72 | 33.708 s (1,960/1,960) → 2.857 s (1,960/1,960) | 0.711 s (40/40) → 0.089 s (40/40) |
+| 4 | 82.41 → 749.20 | 24.036 s (1,960/1,960) → 2.650 s (1,960/1,960) | 0.450 s (40/40) → 0.094 s (40/40) |
 
 ## Apple M4 Pro cross-machine check
 
 On the second host, one normal rule worker processed a 60-second, 1,000-key offer. Each row reports throughput across the **entire offer window** and latency to the mock SMS/phone receiver. CPU is mean PostgreSQL usage as a percentage of one core. All accepted events and expected receipts reconciled after drain in both trials. The Mac used a later source commit, omitted critical traffic, and had desktop apps running. These runs independently check which queue grows. They cannot establish a hardware speed ratio or critical latency. [Mac configuration](../loadtest/results/saturation-10c398e-m4-pro/machine.json) · [Generator command](../loadtest/results/saturation-10c398e-m4-pro/k1000-w1-r700/run.json)
 
-| Offered/s | Processed/s | Receiver p50 / p95 / p99 (s) | Inbox backlog at 15 / 30 / 45 / 60 s | Generator drops | PG CPU | Evidence |
+| Offered/s | Processed/s | Receiver p50 / p95 / p99 (s), received / expected | Inbox backlog at 15 / 30 / 45 / 60 s | Generator drops | PG CPU | Evidence |
 | ---: | ---: | --- | --- | ---: | ---: | --- |
-| 700 | 698.25 | 16.034 / 24.275 / 24.748 | 140 / 210 / 175 / 105 | 0 | 77.18% | [Counters and receipt reconciliation](../loadtest/results/saturation-10c398e-m4-pro/k1000-w1-r700/metrics.json) |
-| 1,400 | 1,007.83 | 15.165 / 24.906 / 25.704 | 6,130 / 12,530 / 18,330 / 23,530 | 0 | 96.68% | [Counters and receipt reconciliation](../loadtest/results/saturation-10c398e-m4-pro/k1000-w1-r1400/metrics.json) |
+| 700 | 698.25 | 16.034 / 24.275 / 24.748 (2,000 / 2,000) | 140 / 210 / 175 / 105 | 0 | 77.18% | [Counters and receipt reconciliation](../loadtest/results/saturation-10c398e-m4-pro/k1000-w1-r700/metrics.json) |
+| 1,400 | 1,007.83 | 15.165 / 24.906 / 25.704 (2,000 / 2,000) | 6,130 / 12,530 / 18,330 / 23,530 | 0 | 96.68% | [Counters and receipt reconciliation](../loadtest/results/saturation-10c398e-m4-pro/k1000-w1-r1400/metrics.json) |
+
+## 1,000 keys at 5,600/s, 1 vs 2 intake consumers (Apple M4 Pro)
+
+The same Apple M4 Pro ran both trials on `d7a6884813f7`, using the same images and clean volumes. Each offered 5,600 normal and two critical events/s for 60 s, with four normal rule workers, one critical rule worker and one delivery worker. The comparison used explicit Compose replica counts. Both input schedules have SHA-256 `c61d01984d685038242e040c6af641541675b224807cdf445acfeef05c9fc490`. The CPU row uses 100% per logical CPU. [Machine and restored inventory](../loadtest/results/intake-pair-d7a6884-m4/host.json) · [Live container samples](../loadtest/results/intake-pair-d7a6884-m4/active-containers.json) · [1 intake](../loadtest/results/intake-pair-d7a6884-m4/intake1/m11-11210251-ea4f7-r5600-k1000-w4/summary.json) · [2 intake](../loadtest/results/intake-pair-d7a6884-m4/intake2/m11-11210252-253d4-r5600-k1000-w4/summary.json)
+
+| Count or latency | One intake | Two intakes |
+| --- | ---: | ---: |
+| Offered events | 336,120 | 336,120 |
+| Generator not submitted | 0 | 14,140 |
+| Publish errors | 0 | 0 |
+| Broker-confirmed by end of offer | 336,120 | 321,699 |
+| Broker-confirmed in total | 336,120 | 321,980 |
+| Ingested during offer | 230,930 | 320,060 |
+| Processed during offer | 176,882 | 147,195 |
+| Processed/s during offer | 2,948 | 2,453.2 |
+| Ingested by cutoff | 315,730 | 321,980 |
+| Processed by cutoff | 239,912 | 205,996 |
+| Pending at cutoff · confirmed, awaiting durable intake | 20,390 | 0 |
+| Pending at cutoff · in inbox, awaiting rule processing | 75,818 | 115,984 |
+| Pending at cutoff · total confirmed events awaiting processing | 96,208 | 115,984 |
+| Rejected inputs | 0 | 0 |
+| Mock SMS/phone receipts verified / expected slots | 2,224 / 2,240 | 2,230 / 2,240 |
+| Expected receipt slots unverified at cutoff | 16 | 10 |
+| Critical receiver p50 / p95 / p99 (ms), received / expected | 12,947 / 22,784 / 23,784 (224 / 240) | 401 / 1,261 / 1,576 (230 / 240) |
+| Normal receiver p99 (ms), received / expected | 41,856 (2,000 / 2,000) | 70,115 (2,000 / 2,000) |
+| Elapsed offer start to snapshot (s) | 80.229 | 80.367 |
+| Mean / peak PostgreSQL CPU, N samples | 246.7% / 269.1% (N=12) | 188.3% / 296.2% (N=13) |
+
+Backlog entries below are early / middle / late medians. The three equal blocks cover the offer after the initial 10 s. Broker-ready counts exclude deliveries in flight to consumers. Receipts represent logical channel notifications and have a different denominator from events. The post-offer drain is capped at 20 s, with actual snapshot times above. Pending IDs at this cutoff have unknown eventual outcomes. [1 intake](../loadtest/results/intake-pair-d7a6884-m4/intake1/m11-11210251-ea4f7-r5600-k1000-w4/summary.json) · [2 intake](../loadtest/results/intake-pair-d7a6884-m4/intake2/m11-11210252-253d4-r5600-k1000-w4/summary.json)
+
+| Queue | One intake | Two intakes |
+| --- | ---: | ---: |
+| RabbitMQ ready | 27,132 / 60,043 / 89,326 | 160 / 62.5 / 1,782 |
+| PostgreSQL rule inbox | 17,017 / 32,682 / 48,059 | 44,805 / 87,702 / 132,465.5 |
+| Delivery outbox | 1,348 / 412 / 0 | 1,509 / 968 / 523 |
+| Broker ready + rule inbox | 44,149 / 92,725 / 137,385 | 44,805 / 87,764.5 / 134,247.5 |
+
+In this pair, two consumers brought observed critical p99 from 23.784 s (224 received / 240 expected) to 1.576 s (230 / 240) and moved more work into the rule inbox. Normal receiver p99 rose from 41.856 s (2,000 received / 2,000 expected) to 70.115 s (2,000 / 2,000). Both arms replayed the same offered schedule, but the two-consumer arm left 14,140 events unsubmitted at the generator and confirmed fewer events. Completed processing during the offer also fell. This single pair measures the trade-off on this Mac. [1 intake](../loadtest/results/intake-pair-d7a6884-m4/intake1/m11-11210251-ea4f7-r5600-k1000-w4/summary.json) · [2 intake](../loadtest/results/intake-pair-d7a6884-m4/intake2/m11-11210252-253d4-r5600-k1000-w4/summary.json)
 
 ## What another replica can do
 

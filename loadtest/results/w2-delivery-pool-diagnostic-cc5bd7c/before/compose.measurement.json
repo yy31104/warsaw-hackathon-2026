@@ -1,0 +1,39 @@
+{
+  "services": {
+    "api": {
+      "image": "w0w2-before-backend:local",
+      "pull_policy": "never"
+    },
+    "ingest-amqp": {
+      "image": "w0w2-before-backend:local",
+      "pull_policy": "never"
+    },
+    "rule-worker": {
+      "image": "w0w2-before-backend:local",
+      "pull_policy": "never"
+    },
+    "rule-worker-critical": {
+      "image": "w0w2-before-backend:local",
+      "pull_policy": "never"
+    },
+    "delivery-worker": {
+      "image": "w0w2-before-backend:local",
+      "pull_policy": "never",
+      "environment": {
+        "PYTHONPATH": "/w0-pool-probe"
+      },
+      "volumes": [
+        "/private/tmp/gs-w0-round3.UbUmhI/w2-pool-probe:/w0-pool-probe:ro",
+        "/private/tmp/gs-w0-round3.UbUmhI/m4-pair/loadtest/results/w2-delivery-pool-diagnostic-cc5bd7c/before:/w0-pool-output"
+      ]
+    },
+    "scheduler": {
+      "image": "w0w2-before-backend:local",
+      "pull_policy": "never"
+    },
+    "fake-telecom": {
+      "image": "w0w2-before-fake-telecom",
+      "pull_policy": "never"
+    }
+  }
+}

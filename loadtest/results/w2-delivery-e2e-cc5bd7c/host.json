@@ -1,0 +1,148 @@
+{
+  "start_utc": "2026-11-21T03:24:31.882974+00:00",
+  "scorecard_commit": "40e4343e813fd1ddf32e58ea82c07cf579401ec6",
+  "chip": "Apple M4 Pro",
+  "model": "Mac16,7",
+  "macos": "27.2",
+  "host_logical_cpus": 14,
+  "host_memory_bytes": 25769803776,
+  "docker_cpus_and_bytes": "14 8321150976",
+  "before": {
+    "utc": "2026-11-21T03:24:32.582230+00:00",
+    "experiment": [],
+    "other_containers": [
+      {
+        "id": "4cec271e2855",
+        "image": "postgres:16-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "8ee3f50b6f21",
+        "image": "rabbitmq:3.13-management-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "077d5120650d",
+        "image": "mailpit:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "f5fab047257e",
+        "image": "postgres:17.6.1.159",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2c659c6a677e",
+        "image": "chronicle-local:latest",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "12519e922569",
+        "image": "postgres:18",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "1b2c3d6fecfb",
+        "image": "postgres:17.6.1.143",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2517f248bcc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "9648c62cb010",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "85622062942d",
+        "image": "storage-api:v1.68.10",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "d2f479f92c77",
+        "image": "postgrest:v14.16",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "fbaed8905680",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "0e4b3251b4cf",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e485320db1f6",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "fc984105985e",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "10e7ac4d99a6",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "46cd0a4435dc",
+        "image": "studio:2026.08.03-sha-022b374",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "806bb9aeb406",
+        "image": "postgres-meta:v0.96.8",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "768ca6dc9cd8",
+        "image": "storage-api:v1.71.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "86406d7ba1d8",
+        "image": "postgrest:v14.17",
+        "status": "Up 8 hours"
+      },
+      {
+        "id": "6df4c6113540",
+        "image": "realtime:v2.124.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4f2b0f46eb81",
+        "image": "mailpit:v1.30.2",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "2f5ca12811b8",
+        "image": "gotrue:v2.195.0",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "e2e6de1a6ad4",
+        "image": "kong:2.8.1",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "4ec240e8f092",
+        "image": "vector:0.53.0-alpine",
+        "status": "Up 8 hours (healthy)"
+      },
+      {
+        "id": "c3a58458c9c1",
+        "image": "logflare:1.50.1",
+        "status": "Up 8 hours (healthy)"
+      }
+    ]
+  },
+  "conditions": "One experiment stack at a time. Existing containers were left available for team work. Fresh project volumes per trial. All provider deliveries went to fake-telecom.",
+  "finished_utc": "2026-11-21T03:27:27.702648+00:00"
+}
