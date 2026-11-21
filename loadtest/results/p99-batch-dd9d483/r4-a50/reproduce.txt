@@ -1,0 +1,6 @@
+Batch m11-11210604-be50f
+Commit dd9d4834216f63ded7dabd130ea6b58ea62c1d3f
+From the repository root
+docker compose --ansi never -p af-p99-img build api fake-telecom
+/opt/homebrew/opt/python@3.12/bin/python3.12 loadtest/run_saturation.py --output <repo>/loadtest/results/p99-batch-dd9d483/r4-a50 --rates 700 --keys 1000 --workers 4 --duration 60 --critical-rate 2 --delivery-workers 1 --ingest-workers 2 --drain-seconds 20 --image-project af-p99-img
+Each run includes an exact commands.json and two untouched terminal traces.

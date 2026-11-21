@@ -1,0 +1,24 @@
+RUN ID m11-11210604-be50f-r700-k1000-w4
+2026-11-21T06:04:37.345106+00:00
+> docker compose --ansi never -p m11-11210604-be50f-r700-k1000-w4 -f <repo>/docker-compose.yml -f <repo>/loadtest/results/p99-batch-dd9d483/r4-a50/compose.measurement.json run --rm -T --no-deps --name m11-11210604-be50f-r700-k1000-w4-generator --volume <repo>/loadtest:/app/loadtest:ro --volume <repo>/fixtures:/app/fixtures:ro --volume <repo>/loadtest/results/p99-batch-dd9d483/r4-a50/m11-11210604-be50f-r700-k1000-w4:/bench-output rule-worker python -m loadtest.saturation_trial --output /bench-output --run-id m11-11210604-be50f-r700-k1000-w4 --tag m11-k1000-r700 --duration 60 --drain-seconds 20 --normal-workers 4 --normal-rate 700 --normal-keys 1000 --ingest-workers 2 --critical-rate 2 --max-in-flight 2000
+
+ Container m11-11210604-be50f-r700-k1000-w4-generator Creating 
+ Container m11-11210604-be50f-r700-k1000-w4-generator Created 
+RUN ID m11-11210604-be50f-r700-k1000-w4
+Offer 700 normal/s + 2/s critical for 60s | 4 normal workers | 1,000 normal keys
+Offer started. Backlog samples below are live.
+   0.0s | accepted       0  processed       0  broker ready       0  DB pending       0
+  10.1s | accepted   7,020  processed   6,967  broker ready       0  DB pending      53
+  20.2s | accepted  14,180  processed  14,145  broker ready       0  DB pending      35
+  30.4s | accepted  21,340  processed  21,206  broker ready       0  DB pending     134
+  40.6s | accepted  28,439  processed  28,395  broker ready       0  DB pending      44
+  50.8s | accepted  35,556  processed  35,521  broker ready       0  DB pending      35
+  60.9s | accepted  42,120  processed  42,120  broker ready       0  DB pending       0
+RUN ID m11-11210604-be50f-r700-k1000-w4 | PASS measurement
+Inside offer: 702.0 ingested/s, 701.1 processed/s.
+Confirmed 42,120/42,120 | dropped 0 | publish errors 0 | rejected 0
+Pipeline backlog no sustained growth | peak 188 | verified phone/SMS 2,240/2,240
+Normal p50/p95/p99 (ms): 4180/6844/7086  N=2000
+Critical p50/p95/p99 (ms): 229/333/638  N=240
+
+Exit code 0

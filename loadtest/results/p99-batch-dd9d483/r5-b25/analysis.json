@@ -1,0 +1,238 @@
+{
+  "run_id": "m11-11210606-163a2-r700-k1000-w4",
+  "trial_status": "PASS",
+  "measurement_errors": [],
+  "workload_sha256": "5804a2c054511b70324d863286d262bcbb02b3c8949b1a6feee529841dc5b4be",
+  "workers": {
+    "normal": 4,
+    "ingest": 2,
+    "delivery": 1
+  },
+  "receiver_latency": {
+    "normal": {
+      "n": 2000,
+      "p50_ms": 3866,
+      "p95_ms": 6467,
+      "p99_ms": 6722
+    },
+    "critical": {
+      "n": 240,
+      "p50_ms": 214,
+      "p95_ms": 326,
+      "p99_ms": 405
+    }
+  },
+  "receipts": {
+    "critical": {
+      "received": 240,
+      "expected": 240
+    },
+    "normal": {
+      "received": 2000,
+      "expected": 2000
+    }
+  },
+  "notifications_expected": 2240,
+  "notifications_verified": 2240,
+  "slots_without_verified_receipt": 0,
+  "duplicate_receipts": 0,
+  "duplicate_receipts_by_lane": {
+    "critical": 0,
+    "normal": 0
+  },
+  "invalid_receipts": 0,
+  "events": {
+    "scheduled": 42120,
+    "broker_confirmed": 42120,
+    "generator_dropped": 0,
+    "publish_errors": 0,
+    "accepted_after_drain": 42120,
+    "processed_after_drain": 42120,
+    "accepted_not_processed_after_drain": 0,
+    "confirmed_not_stored_at_snapshot": 0,
+    "final_processing_backlog": 0,
+    "final_delivery_backlog": 0,
+    "final_rabbit_ready": 0,
+    "final_failed": 0
+  },
+  "peak_delivery_backlog": 1636,
+  "peak_oldest_pending_s": 6.641065,
+  "postgres_docker_cpu_pct": {
+    "n": 13,
+    "mean": 53.94923076923077,
+    "peak": 127.94
+  },
+  "slowest20_normal": {
+    "n_breakdown_rows": 2000,
+    "n_unmatched_trigger": 0,
+    "median_ms": {
+      "e2e_ms": 6731.5,
+      "offer_to_ingest_ms": 3.092529296875,
+      "ingest_to_processed_ms": 112.52197265625,
+      "processed_to_first_claim_ms": 6592.1634521484375,
+      "claim_to_receipt_ms": 23.321044921875
+    },
+    "rows": [
+      {
+        "notification_id": "ff1491e1-61c8-40c0-8633-d03f50d6d47f",
+        "e2e_ms": 6748,
+        "offer_to_ingest_ms": 7.18994140625,
+        "ingest_to_processed_ms": 210.053955078125,
+        "processed_to_first_claim_ms": 6502.70703125,
+        "claim_to_receipt_ms": 28.049072265625
+      },
+      {
+        "notification_id": "f8364807-bb62-4386-9bb6-0023768466ad",
+        "e2e_ms": 6747,
+        "offer_to_ingest_ms": 8.510986328125,
+        "ingest_to_processed_ms": 208.780029296875,
+        "processed_to_first_claim_ms": 6502.659912109375,
+        "claim_to_receipt_ms": 27.049072265625
+      },
+      {
+        "notification_id": "d323d81b-f44c-4646-9d3f-d392ebba32ed",
+        "e2e_ms": 6736,
+        "offer_to_ingest_ms": 2.06201171875,
+        "ingest_to_processed_ms": 112.991943359375,
+        "processed_to_first_claim_ms": 6592.625,
+        "claim_to_receipt_ms": 28.321044921875
+      },
+      {
+        "notification_id": "df92ea61-e5f9-4a25-a7c4-1b9b0244b6b4",
+        "e2e_ms": 6736,
+        "offer_to_ingest_ms": 2.958984375,
+        "ingest_to_processed_ms": 112.511962890625,
+        "processed_to_first_claim_ms": 6592.2080078125,
+        "claim_to_receipt_ms": 28.321044921875
+      },
+      {
+        "notification_id": "c41476f8-bcae-4c0d-b303-7934d249ebf0",
+        "e2e_ms": 6736,
+        "offer_to_ingest_ms": 3.093017578125,
+        "ingest_to_processed_ms": 112.43603515625,
+        "processed_to_first_claim_ms": 6592.14990234375,
+        "claim_to_receipt_ms": 28.321044921875
+      },
+      {
+        "notification_id": "9bfef81a-5a79-4ebd-8cb6-6385dd9d3165",
+        "e2e_ms": 6734,
+        "offer_to_ingest_ms": 2.9609375,
+        "ingest_to_processed_ms": 112.531982421875,
+        "processed_to_first_claim_ms": 6592.18603515625,
+        "claim_to_receipt_ms": 26.321044921875
+      },
+      {
+        "notification_id": "da8ffce3-6757-48cc-bdfd-bdd554ca2183",
+        "e2e_ms": 6734,
+        "offer_to_ingest_ms": 3.135986328125,
+        "ingest_to_processed_ms": 112.028076171875,
+        "processed_to_first_claim_ms": 6592.514892578125,
+        "claim_to_receipt_ms": 26.321044921875
+      },
+      {
+        "notification_id": "fd1fa39d-8846-44e7-b754-881aeb24fe14",
+        "e2e_ms": 6733,
+        "offer_to_ingest_ms": 8.35009765625,
+        "ingest_to_processed_ms": 209.218994140625,
+        "processed_to_first_claim_ms": 6502.3818359375,
+        "claim_to_receipt_ms": 13.049072265625
+      },
+      {
+        "notification_id": "b1c7974c-76cf-4aac-9349-a981743fb6b5",
+        "e2e_ms": 6733,
+        "offer_to_ingest_ms": 2.962890625,
+        "ingest_to_processed_ms": 112.5390625,
+        "processed_to_first_claim_ms": 6592.177001953125,
+        "claim_to_receipt_ms": 25.321044921875
+      },
+      {
+        "notification_id": "f04e0683-4a41-4312-8d56-bc26e44ce7f0",
+        "e2e_ms": 6732,
+        "offer_to_ingest_ms": 3.092041015625,
+        "ingest_to_processed_ms": 112.427978515625,
+        "processed_to_first_claim_ms": 6592.158935546875,
+        "claim_to_receipt_ms": 24.321044921875
+      },
+      {
+        "notification_id": "f85e4f1c-e04b-4579-90ff-0e154574c5d6",
+        "e2e_ms": 6731,
+        "offer_to_ingest_ms": 8.508056640625,
+        "ingest_to_processed_ms": 208.77392578125,
+        "processed_to_first_claim_ms": 6502.6689453125,
+        "claim_to_receipt_ms": 11.049072265625
+      },
+      {
+        "notification_id": "cd9996b1-cf2b-428b-916e-b20b627ebf13",
+        "e2e_ms": 6731,
+        "offer_to_ingest_ms": 3.092041015625,
+        "ingest_to_processed_ms": 112.427978515625,
+        "processed_to_first_claim_ms": 6592.158935546875,
+        "claim_to_receipt_ms": 23.321044921875
+      },
+      {
+        "notification_id": "f3dfbe40-ebb9-441b-b1fe-5a0eb3f8dd48",
+        "e2e_ms": 6731,
+        "offer_to_ingest_ms": 3.138916015625,
+        "ingest_to_processed_ms": 112.0419921875,
+        "processed_to_first_claim_ms": 6592.498046875,
+        "claim_to_receipt_ms": 23.321044921875
+      },
+      {
+        "notification_id": "fd871bf1-80ab-471b-93db-b1cbd2216158",
+        "e2e_ms": 6730,
+        "offer_to_ingest_ms": 6.998046875,
+        "ingest_to_processed_ms": 210.4228515625,
+        "processed_to_first_claim_ms": 6502.530029296875,
+        "claim_to_receipt_ms": 10.049072265625
+      },
+      {
+        "notification_id": "92b209f5-67b3-4d39-b867-5f82ce369b03",
+        "e2e_ms": 6729,
+        "offer_to_ingest_ms": 2.803955078125,
+        "ingest_to_processed_ms": 112.64697265625,
+        "processed_to_first_claim_ms": 6592.22802734375,
+        "claim_to_receipt_ms": 21.321044921875
+      },
+      {
+        "notification_id": "ed89139a-3a47-4411-a855-3cfb791c801b",
+        "e2e_ms": 6728,
+        "offer_to_ingest_ms": 6.587890625,
+        "ingest_to_processed_ms": 210.34716796875,
+        "processed_to_first_claim_ms": 6503.015869140625,
+        "claim_to_receipt_ms": 8.049072265625
+      },
+      {
+        "notification_id": "d3bfb710-6e4e-4631-a1d7-55c196f907dd",
+        "e2e_ms": 6728,
+        "offer_to_ingest_ms": 3.01611328125,
+        "ingest_to_processed_ms": 112.11279296875,
+        "processed_to_first_claim_ms": 6592.550048828125,
+        "claim_to_receipt_ms": 20.321044921875
+      },
+      {
+        "notification_id": "aee0981e-cd76-4723-aa0d-2d6b012ba773",
+        "e2e_ms": 6727,
+        "offer_to_ingest_ms": 3.093017578125,
+        "ingest_to_processed_ms": 112.43603515625,
+        "processed_to_first_claim_ms": 6592.14990234375,
+        "claim_to_receipt_ms": 19.321044921875
+      },
+      {
+        "notification_id": "f5607baf-cae2-4e7a-a2be-8899f1143fdf",
+        "e2e_ms": 6725,
+        "offer_to_ingest_ms": 2.860107421875,
+        "ingest_to_processed_ms": 112.23779296875,
+        "processed_to_first_claim_ms": 6592.5810546875,
+        "claim_to_receipt_ms": 17.321044921875
+      },
+      {
+        "notification_id": "bd8163ee-2e10-4c70-9068-34bbafc82a7b",
+        "e2e_ms": 6724,
+        "offer_to_ingest_ms": 3.090087890625,
+        "ingest_to_processed_ms": 112.4208984375,
+        "processed_to_first_claim_ms": 6592.16796875,
+        "claim_to_receipt_ms": 16.321044921875
+      }
+    ]
+  }
+}

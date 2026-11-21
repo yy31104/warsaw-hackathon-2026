@@ -1,0 +1,135 @@
+{
+  "batch_id": "m11-11210601-42882",
+  "commit": "dd9d4834216f63ded7dabd130ea6b58ea62c1d3f",
+  "planned_runs": 1,
+  "completed_runs": 1,
+  "runs": [
+    {
+      "run_id": "m11-11210601-42882-r700-k1000-w4",
+      "status": "PASS",
+      "measurement_errors": [],
+      "duration_s": 60,
+      "normal_workers": 4,
+      "ingest_workers": 2,
+      "normal_keys": 1000,
+      "normal_offer_per_s": 700,
+      "critical_offer_per_s": 2,
+      "started_at_ms": 1795240925517,
+      "offer_ended_at_ms": 1795240985517,
+      "sampled_until_ms": 1795240986662,
+      "workload_sha256": "5804a2c054511b70324d863286d262bcbb02b3c8949b1a6feee529841dc5b4be",
+      "scheduled": 42120,
+      "broker_confirmed": 42120,
+      "broker_confirmed_in_window": 42120,
+      "generator_dropped": 0,
+      "publish_errors": 0,
+      "max_abs_offer_lag_ms": 11,
+      "p99_abs_offer_lag_ms": 6,
+      "accepted_in_window": 42120,
+      "accepted_in_window_per_s": 702.0,
+      "processed_in_window": 41979,
+      "processed_in_window_per_s": 699.65,
+      "processed_steady_per_s": 700.6,
+      "accepted_after_drain": 42120,
+      "processed_after_drain": 42120,
+      "confirmed_not_stored_at_snapshot": 0,
+      "rejected": 0,
+      "duplicate_inputs": 0,
+      "conflicting_inputs": 0,
+      "backlog": {
+        "warmup_s": 10,
+        "block_width_s": 16.666666666666668,
+        "minimum_growth_per_block": 175.5,
+        "pipeline": {
+          "trend": "no sustained growth",
+          "block_medians": [
+            63,
+            72.5,
+            70.0
+          ]
+        },
+        "rabbit_ready": {
+          "trend": "no sustained growth",
+          "block_medians": [
+            0,
+            0.0,
+            0.0
+          ]
+        },
+        "processing_backlog": {
+          "trend": "no sustained growth",
+          "block_medians": [
+            63,
+            72.5,
+            70.0
+          ]
+        },
+        "delivery_backlog": {
+          "trend": "no sustained growth",
+          "block_medians": [
+            0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "final_sample": {
+        "observed_at_ms": 1795240986661,
+        "accepted": 42120,
+        "processed": 42120,
+        "processing_backlog": 0,
+        "planned": 2240,
+        "delivered": 2240,
+        "delivery_backlog": 0,
+        "terminal": 2240,
+        "failed": 0,
+        "attempts": 2240,
+        "oldest_pending_s": 0.0,
+        "rabbit_ready": 0,
+        "pg_activity": []
+      },
+      "peak_pipeline_backlog": 269,
+      "peak_delivery_backlog": 1830,
+      "peak_oldest_pending_s": 6.752032,
+      "postgres_active_wait_session_samples": {
+        "IO:WALSync": 3,
+        "Running:CPU or runnable": 11,
+        "Client:ClientRead": 3
+      },
+      "postgres_peak_waiting_sessions": {
+        "IO:WALSync": 1,
+        "Running:CPU or runnable": 1,
+        "Client:ClientRead": 1
+      },
+      "rule_decisions_after_drain": 168480,
+      "notifications_expected": 2240,
+      "notifications_verified": 2240,
+      "notification_slots_without_verified_receipt": 0,
+      "duplicate_receipts": 0,
+      "invalid_receipts": 0,
+      "receiver_latency": {
+        "normal": {
+          "n": 2000,
+          "p50_ms": 4066,
+          "p95_ms": 7006,
+          "p99_ms": 7426
+        },
+        "critical": {
+          "n": 240,
+          "p50_ms": 231,
+          "p95_ms": 349,
+          "p99_ms": 557
+        }
+      },
+      "evidence_written_at_ms": 1795240987055,
+      "postgres_docker_cpu_pct": {
+        "n": 12,
+        "mean": 58.20666666666667,
+        "peak": 102.23
+      },
+      "actual_normal_workers": 4,
+      "actual_ingest_workers": 2,
+      "actual_delivery_workers": 1
+    }
+  ]
+}

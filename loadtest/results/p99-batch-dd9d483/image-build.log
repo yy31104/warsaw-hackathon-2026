@@ -1,0 +1,97 @@
+ Image af-p99-img-fake-telecom Building 
+ Image af-p99-img-backend:local Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.32kB done
+#1 DONE 0.0s
+
+#2 [fake-telecom internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.01kB done
+#2 DONE 0.0s
+
+#3 [api internal] load build definition from Dockerfile
+#3 transferring dockerfile: 713B done
+#3 DONE 0.0s
+
+#4 [api internal] load metadata for docker.io/library/python:3.12-slim
+#4 DONE 0.0s
+
+#5 [api 1/8] FROM docker.io/library/python:3.12-slim@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea
+#5 resolve docker.io/library/python:3.12-slim@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea 0.0s done
+#5 DONE 0.0s
+
+#6 [fake-telecom internal] load build context
+#6 transferring context: 342.04kB 0.0s done
+#6 DONE 0.1s
+
+#7 [api internal] load build context
+#7 transferring context: 871.49kB 0.0s done
+#7 DONE 0.1s
+
+#8 [fake-telecom 3/8] COPY backend/pyproject.toml backend/uv.lock ./
+#8 CACHED
+
+#9 [fake-telecom 5/8] WORKDIR /app
+#9 CACHED
+
+#10 [fake-telecom 4/8] RUN pip install --no-cache-dir uv && uv sync --frozen --no-dev --no-install-project --no-cache
+#10 CACHED
+
+#11 [fake-telecom 6/8] COPY backend/alerting/clock.py ./alerting/clock.py
+#11 CACHED
+
+#12 [fake-telecom 7/8] COPY mocks/fake_telecom/app.py mocks/fake_telecom/inbox.py mocks/fake_telecom/index.html ./mocks/fake_telecom/
+#12 CACHED
+
+#13 [fake-telecom 2/8] WORKDIR /deps
+#13 CACHED
+
+#14 [api 6/7] COPY fixtures/protected ./fixtures/protected
+#14 CACHED
+
+#15 [api 5/7] COPY backend/alerting ./alerting
+#15 CACHED
+
+#16 [api 3/7] COPY backend/pyproject.toml backend/uv.lock ./
+#16 CACHED
+
+#17 [api 4/7] RUN pip install --no-cache-dir uv && uv sync --frozen --no-dev --no-install-project --no-cache
+#17 CACHED
+
+#18 [api 2/7] WORKDIR /app
+#18 CACHED
+
+#19 [api 7/7] RUN useradd --system --create-home alerting
+#19 CACHED
+
+#20 [fake-telecom 8/8] RUN useradd --system --create-home gateway && install -d -o gateway -g gateway /data
+#20 CACHED
+
+#21 [api] exporting to image
+#21 exporting layers done
+#21 exporting manifest sha256:d47e3c2d53082d7b2bc81959843454e8bcc629770df027d5a0b78c494537493e 0.0s done
+#21 exporting config sha256:a9ae6236db15049a32af32bb22f6c10f63dcf81b6defd4de6554094fde2680ea 0.0s done
+#21 exporting attestation manifest sha256:3319b9e7511a5dd6446588689d6d97f81d1cac4d76b97554628d41507e898e64 0.0s done
+#21 exporting manifest list sha256:3d47fade86733630fe91454e90ac8a6224d25c6ea9ae977d143868a7cda1c41e
+#21 exporting manifest list sha256:3d47fade86733630fe91454e90ac8a6224d25c6ea9ae977d143868a7cda1c41e 0.0s done
+#21 naming to docker.io/library/af-p99-img-backend:local done
+#21 unpacking to docker.io/library/af-p99-img-backend:local 0.0s done
+#21 DONE 0.2s
+
+#22 [fake-telecom] exporting to image
+#22 exporting layers done
+#22 exporting manifest sha256:4d6f8ad4722ae30836e4f1208d480b1348f99555957fe9a700cb10edb018db84 0.0s done
+#22 exporting config sha256:9e30daf046c402a2afeb8cc85e809d5ea574b27bf65b83fc89a4bb5b8505e71a 0.0s done
+#22 exporting attestation manifest sha256:944f0e67896635dabc4b9480cbb484b98a37422a54415560971f0592073003ba 0.0s done
+#22 exporting manifest list sha256:c1d9ce1b8873293af3e8d5c3b85e39a0da4289ceec266b24915e35994d3b0dae 0.0s done
+#22 naming to docker.io/library/af-p99-img-fake-telecom:latest done
+#22 unpacking to docker.io/library/af-p99-img-fake-telecom:latest 0.0s done
+#22 DONE 0.2s
+
+#23 [api] resolving provenance for metadata file
+#23 DONE 0.0s
+
+#24 [fake-telecom] resolving provenance for metadata file
+#24 DONE 0.0s
+ Image af-p99-img-backend:local Built 
+ Image af-p99-img-fake-telecom Built 
+docker compose --ansi never -p af-p99-img build api fake-telecom  0.18s user 0.15s system 31% cpu 1.042 total
