@@ -249,6 +249,24 @@
 .cf-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .cf-comparison dd { font-weight: 620; font-size: 21px; }
 .cf-comparison dt { color: var(--cf-muted); font-size: 12px; }
+.cf-legacy .cf-optimizer { margin-top: 16px; }
+.cf-optimizer .cf-stack { gap: 12px; }
+.cf-optimizer-controls { align-items: flex-end; }
+.cf-optimizer-scope, .cf-optimizer-option { display: grid; gap: 7px; }
+.cf-optimizer-option {
+  min-width: 0; padding: 12px; border: 1px solid var(--cf-line); border-radius: 10px; background: var(--cf-sub);
+}
+.cf-optimizer-option .cf-btn { justify-self: start; }
+.cf-optimizer-option .cf-violation { margin: 0; }
+.cf-optimizer-metrics { gap: 6px 12px; }
+.console .cf-optimizer-metrics > div { display: grid; grid-template-rows: subgrid; grid-row: span 2; row-gap: normal; padding: 0; }
+.cf-optimizer-metrics dd { font-size: 19px; line-height: 1.3; }
+.cf-optimizer-metrics small { display: block; font-size: 11px; font-weight: 600; }
+.cf-optimizer details { margin: 0; }
+.console .cf-optimizer summary { color: var(--cf-ink); font-weight: 650; }
+.cf-optimizer details :is(ul, p) { margin-top: 4px; font-size: 12px; }
+.cf-optimizer details ul { padding-inline-start: 18px; }
+.cf-optimizer details code { white-space: pre-wrap; }
 .cf-ladder { display: grid; gap: 7px; border-top: 1px solid var(--cf-line); padding: 10px 0; }
 .cf-ladder-people { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
 .cf-ladder-people > span { display: inline-flex; gap: 7px; align-items: center; }
