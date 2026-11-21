@@ -161,7 +161,7 @@ def _time(value, fmt: str | None) -> tuple[datetime | None, bool]:
         return None, False
 
 
-def _input_diagnostics(schema, aliases, severity_method, occurred_at, no_zone):
+def _input_diagnostics(schema, aliases, severity_method, occurred_at, no_zone, naive_timezone=None):
     methods = {}
     problems = []
     if severity_method == "auto-detected":
@@ -179,7 +179,7 @@ def _input_diagnostics(schema, aliases, severity_method, occurred_at, no_zone):
         problems.append({
             "code": "no_timezone",
             "path": aliases["time"],
-            "message": "The timestamp has no timezone and was read as UTC.",
+            "message": f"The timestamp has no timezone and was read as {naive_timezone or UTC}.",
             "fix_example": "2026-10-23T09:00:00Z",
         })
     return methods, problems
@@ -293,7 +293,7 @@ def _identity_fields(fields: dict, schema: dict, scales: dict[str, Decimal],
 
 
 def normalize(raw: dict, source: dict, schemas: Sequence[dict] | SchemaDetector, *, received_at: datetime,
-              message_id: str | None = None, trace: dict | None = None) -> CanonicalEvent:
+              message_id: str | None = None, trace: dict | None = None, naive_timezone=None) -> CanonicalEvent:
     original = flatten(raw)
     try:
         encoded = json.dumps(raw, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode()
@@ -302,7 +302,8 @@ def normalize(raw: dict, source: dict, schemas: Sequence[dict] | SchemaDetector,
     if len(encoded) > MAX_BYTES:
         raise InvalidEvent("body exceeds 256 KiB")
     digest = hashlib.sha256(encoded).hexdigest()
-    return _project(original, _redacted(raw), source, schemas, digest, received_at, message_id, trace)
+    return _project(original, _redacted(raw), source, schemas, digest, received_at, message_id, trace,
+                    naive_timezone=naive_timezone)
 
 
 def reclassify(event: CanonicalEvent, schemas: Sequence[dict] | SchemaDetector) -> CanonicalEvent:
@@ -323,7 +324,7 @@ def reclassify(event: CanonicalEvent, schemas: Sequence[dict] | SchemaDetector) 
     return projected
 
 
-def _project(original, public, source, schemas, digest, received_at, message_id, trace):
+def _project(original, public, source, schemas, digest, received_at, message_id, trace, *, naive_timezone=None):
     metadata = {"$source": source["id"], "$transport": source["transport"]}
     original.pop("$episode", None)
     original.update(metadata)
@@ -333,14 +334,18 @@ def _project(original, public, source, schemas, digest, received_at, message_id,
 
     aliases = schema.get("aliases", {})
     severity, severity_method = _severity(original.get(aliases.get("severity")), schema)
-    occurred_at, no_zone = _time(original.get(aliases.get("time")), schema.get("time_format"))
+    identity_time, no_zone = _time(original.get(aliases.get("time")), schema.get("time_format"))
+    occurred_at = identity_time
+    if naive_timezone is not None and no_zone:
+        # A hypothetical timezone changes the interpreted instant, while producer identity keeps the original input.
+        occurred_at = identity_time.replace(tzinfo=naive_timezone).astimezone(UTC)
     original.update(metadata)
-    private_keys = _identity_fields(original, schema, scales, severity, occurred_at)
+    private_keys = _identity_fields(original, schema, scales, severity, identity_time)
     source_event_id = identity(message_id, schema, private_keys, source, digest)
     trace = dict(trace or {})
     trace.pop("normalization", None)
     trace.pop("problems", None)
-    methods, problems = _input_diagnostics(schema, aliases, severity_method, occurred_at, no_zone)
+    methods, problems = _input_diagnostics(schema, aliases, severity_method, occurred_at, no_zone, naive_timezone)
     if methods:
         trace["normalization"] = methods
     if problems:
@@ -352,7 +357,7 @@ def _project(original, public, source, schemas, digest, received_at, message_id,
     fields.pop("$episode", None)
     _apply_scales(fields, scales)
     fields.update(metadata)
-    public_keys = _identity_fields(fields, schema, scales, severity, occurred_at)
+    public_keys = _identity_fields(fields, schema, scales, severity, identity_time)
     _set_labels(fields, schema, severity, occurred_at)
     if "$episode" in public_keys:
         fields["$episode"] = public_keys["$episode"]
