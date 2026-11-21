@@ -1,0 +1,6 @@
+Batch m11-11210207-34c2d
+Commit ae69a2829f7ead5c42107375fb5346046250ec7c
+From the repository root
+docker compose --ansi never -p m11satbuild-ae69a28 build api fake-telecom
+"D:\my project\高盛\warsaw-hackathon-2026\backend\.venv\Scripts\python.exe" loadtest/run_saturation.py --image-project m11satbuild-ae69a28 --output loadtest/results/saturation-ae69a28/diagnostic-delivery1 --rates 700 --workers 4 --keys 1000 --delivery-workers 1
+Each run includes an exact commands.json and two untouched terminal traces.

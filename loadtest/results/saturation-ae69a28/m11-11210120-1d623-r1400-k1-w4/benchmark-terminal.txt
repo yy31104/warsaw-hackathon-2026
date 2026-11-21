@@ -1,0 +1,24 @@
+RUN ID m11-11210120-1d623-r1400-k1-w4
+2026-11-21T01:32:46.546544+00:00
+> docker compose --ansi never -p m11-11210120-1d623-r1400-k1-w4 -f "D:\my project\高盛\dev2-m11-saturation\docker-compose.yml" -f "D:\my project\高盛\dev2-m11-saturation\loadtest\results\saturation-ae69a28\compose.measurement.json" run --rm -T --no-deps --name m11-11210120-1d623-r1400-k1-w4-generator --volume "D:\my project\高盛\dev2-m11-saturation\loadtest:/app/loadtest:ro" --volume "D:\my project\高盛\dev2-m11-saturation\fixtures:/app/fixtures:ro" --volume "D:\my project\高盛\dev2-m11-saturation\loadtest\results\saturation-ae69a28\m11-11210120-1d623-r1400-k1-w4:/bench-output" rule-worker python -m loadtest.saturation_trial --output /bench-output --run-id m11-11210120-1d623-r1400-k1-w4 --tag m11-k1-r1400 --duration 60 --drain-seconds 20 --normal-workers 4 --normal-rate 1400 --normal-keys 1 --ingest-workers 1 --critical-rate 2 --max-in-flight 2000
+
+ Container m11-11210120-1d623-r1400-k1-w4-generator Creating 
+ Container m11-11210120-1d623-r1400-k1-w4-generator Created 
+RUN ID m11-11210120-1d623-r1400-k1-w4
+Offer 1,400 normal/s + 2/s critical for 60s | 4 normal workers | 1 normal keys
+Offer started. Backlog samples below are live.
+   0.0s | accepted       0  processed       0  broker ready       0  DB pending       0
+  10.1s | accepted  14,020  processed  13,950  broker ready       0  DB pending      70
+  20.1s | accepted  28,180  processed  28,040  broker ready       0  DB pending     140
+  30.2s | accepted  42,270  processed  42,003  broker ready       0  DB pending     267
+  40.4s | accepted  56,570  processed  56,439  broker ready       0  DB pending     131
+  50.5s | accepted  70,801  processed  70,660  broker ready       0  DB pending     141
+  60.7s | accepted  84,120  processed  84,120  broker ready       0  DB pending       0
+RUN ID m11-11210120-1d623-r1400-k1-w4 | PASS measurement
+Inside offer: 1,402.0 ingested/s, 1,397.3 processed/s.
+Confirmed 84,120/84,120 | dropped 0 | publish errors 0 | rejected 0
+Pipeline backlog no sustained growth | peak 349 | verified phone/SMS 242/242
+Normal p50/p95/p99 (ms): 271/286/286  N=2
+Critical p50/p95/p99 (ms): 251/440/477  N=240
+
+Exit code 0

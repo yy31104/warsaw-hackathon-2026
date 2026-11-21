@@ -1,0 +1,44 @@
+psql:/verify/db/migrations/111_correlation_logs.sql:102: NOTICE:  trigger "trace_ingest" for relation "events" does not exist, skipping
+psql:/verify/db/migrations/111_correlation_logs.sql:105: NOTICE:  trigger "trace_processed" for relation "events" does not exist, skipping
+psql:/verify/db/migrations/111_correlation_logs.sql:109: NOTICE:  trigger "trace_rule" for relation "decisions" does not exist, skipping
+psql:/verify/db/migrations/111_correlation_logs.sql:113: NOTICE:  trigger "trace_outbox" for relation "notifications" does not exist, skipping
+psql:/verify/db/migrations/111_correlation_logs.sql:116: NOTICE:  trigger "trace_claim" for relation "delivery_attempts" does not exist, skipping
+psql:/verify/db/migrations/111_correlation_logs.sql:119: NOTICE:  trigger "trace_result" for relation "delivery_attempts" does not exist, skipping
+psql:/verify/db/migrations/111_correlation_logs.sql:123: NOTICE:  trigger "trace_run" for relation "action_runs" does not exist, skipping
+psql:/verify/db/migrations/111_correlation_logs.sql:126: NOTICE:  trigger "trace_run_state" for relation "action_runs" does not exist, skipping
+ pg_advisory_xact_lock 
+-----------------------
+ 
+(1 row)
+
+ position 
+----------
+(0 rows)
+
+ alert_id | team_id | approved_version 
+----------+---------+------------------
+(0 rows)
+
+ pg_advisory_xact_lock 
+-----------------------
+ 
+(1 row)
+
+ position 
+----------
+(0 rows)
+
+ alert_id | team_id | approved_version 
+----------+---------+------------------
+(0 rows)
+
+psql:/verify/db/migrations/215_log_tail_checkpoints.sql:9: NOTICE:  relation "log_tail_checkpoints" already exists, skipping
+Existing-volume upgrade and repeat passed. Running backend tests with PostgreSQL and RabbitMQ.
+........................................................................ [ 14%]
+........................................................................ [ 29%]
+........................................................................ [ 44%]
+........................................................................ [ 59%]
+........................................................................ [ 73%]
+........................................................................ [ 88%]
+.......................................................                  [100%]
+487 passed in 112.22s (0:01:52)
